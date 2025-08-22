@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
@@ -7,6 +8,7 @@ export default function page() {
 	const [queryResult, setQueryResult] = useState<any>(null); // FIX
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [copied, setCopied] = useState(false);
 
 	const handleQuery = async () => {
 		setIsLoading(true);
@@ -36,6 +38,16 @@ export default function page() {
 			console.error(err);
 		} finally {
 			setIsLoading(false);
+		}
+	};
+
+	const copyToClipboard = async () => {
+		try {
+			await navigator.clipboard.writeText(generatedSql);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		} catch (err) {
+			console.error('Failed to copy to clipboard:', err);
 		}
 	};
 
@@ -122,8 +134,19 @@ export default function page() {
 									</span>
 									Generated SQL Query
 								</h2>
-								<div className='bg-white rounded-md border border-gray-200 p-4'>
-									<code className='text-sm text-black font-mono whitespace-pre-wrap break-all'>
+								<div className='bg-white rounded-md border border-gray-200 p-4 relative'>
+									<button
+										onClick={copyToClipboard}
+										className='absolute top-2 right-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors'
+										title='Copy to clipboard'
+									>
+										{copied ? (
+											<Check className='w-4 h-4 text-green-600' />
+										) : (
+											<Copy className='w-4 h-4' />
+										)}
+									</button>
+									<code className='text-sm text-black font-mono whitespace-pre-wrap break-all pr-12'>
 										{generatedSql}
 									</code>
 								</div>
