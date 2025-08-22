@@ -53,7 +53,15 @@ export default function page() {
 				</div>
 
 				{/* Input Section */}
-				<div className='space-y-4 mb-8'>
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						if (!isLoading && naturalLanguageQuery.trim()) {
+							handleQuery();
+						}
+					}}
+					className='space-y-4 mb-8'
+				>
 					<div className='relative'>
 						<input
 							type='text'
@@ -64,20 +72,11 @@ export default function page() {
 								setNaturalLanguageQuery(e.target.value)
 							}
 							disabled={isLoading}
-							onKeyPress={(e) => {
-								if (
-									e.key === 'Enter' &&
-									!isLoading &&
-									naturalLanguageQuery.trim()
-								) {
-									handleQuery();
-								}
-							}}
 						/>
 					</div>
 
 					<button
-						onClick={handleQuery}
+						type='submit'
 						className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
 							isLoading || !naturalLanguageQuery.trim()
 								? 'bg-gray-300 cursor-not-allowed'
@@ -94,7 +93,7 @@ export default function page() {
 							'Generate & Execute Query'
 						)}
 					</button>
-				</div>
+				</form>
 
 				{/* Error Display */}
 				{error && (
