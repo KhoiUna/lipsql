@@ -1,4 +1,4 @@
-# PlainSQL 
+# PlainSQL
 
 PlainSQL uses AI (Gemini) to let users use natural language to speak with a database so they do not have to write SQL queries at all!
 
