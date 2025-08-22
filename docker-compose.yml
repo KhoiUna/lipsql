@@ -1,0 +1,15 @@
+services:
+    client:
+        container_name: plainsql_container
+        build:
+            context: .
+        ports:
+            - '3003:3000'
+        environment:
+            - NODE_ENV=production
+        networks:
+            - plainsql_network
+
+networks:
+    plainsql_network:
+        driver: bridge
