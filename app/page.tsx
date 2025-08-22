@@ -187,7 +187,10 @@ export default function page() {
 																			key={
 																				colIndex
 																			}
-																			className='px-4 py-3 text-black'
+																			className='px-4 py-3 text-black max-w-xs truncate'
+																			title={String(
+																				value
+																			)}
 																		>
 																			{value ===
 																			null ? (

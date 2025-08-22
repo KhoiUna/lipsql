@@ -138,7 +138,6 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 	try {
 		// Basic security check - only allow SELECT queries for now
 		const trimmedSql = sqlStatement.trim().toLowerCase();
-		console.log('trimmedSql', trimmedSql);
 
 		if (!trimmedSql.startsWith('select ')) {
 			throw new Error(
