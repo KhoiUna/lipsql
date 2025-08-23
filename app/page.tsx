@@ -9,7 +9,7 @@ export default function page() {
 	const [queryResult, setQueryResult] = useState<any>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const [selectedRow, setSelectedRow] = useState<any>(null);
+	const [selectedRow, setSelectedRow] = useState<any>(null); // FIX
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const handleQuery = async () => {
@@ -88,7 +88,7 @@ export default function page() {
 					<div className='relative'>
 						<input
 							type='text'
-							className='w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-500 text-base'
+							className='w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all placeholder-gray-500 text-base'
 							placeholder="e.g., 'Show me all users from New York City'"
 							value={naturalLanguageQuery}
 							onChange={(e) =>
@@ -103,7 +103,7 @@ export default function page() {
 						className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
 							isLoading || !naturalLanguageQuery.trim()
 								? 'bg-gray-300 cursor-not-allowed'
-								: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm'
+								: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
 						}`}
 						disabled={isLoading || !naturalLanguageQuery.trim()}
 					>
@@ -140,9 +140,7 @@ export default function page() {
 						{generatedSql && (
 							<div className='bg-gray-50 rounded-lg p-6 border border-gray-200'>
 								<h2 className='text-lg font-semibold text-black mb-3 flex items-center'>
-									<span className='text-blue-600 mr-2'>
-										📝
-									</span>
+									<span className='text-black mr-2'>📝</span>
 									Generated SQL Query
 								</h2>
 								<div
