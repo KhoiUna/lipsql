@@ -62,7 +62,7 @@ export default function HeaderBar() {
 					{/* Version and Auth */}
 					<div className='flex items-center space-x-6'>
 						<span className='text-sm text-gray-500'>
-							v{process.env.NEXT_PUBLIC_VERSION || '1.0.0'}
+							v{process.env.NEXT_PUBLIC_VERSION}
 						</span>
 						{!isLoading &&
 							(isAuthenticated ? (
