@@ -1,18 +1,12 @@
 'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function HeaderBar() {
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const router = useRouter();
-
-	const toggleMenu = () => {
-		setIsMenuOpen(!isMenuOpen);
-	};
 
 	const checkAuthStatus = async () => {
 		try {
