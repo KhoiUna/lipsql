@@ -1,4 +1,9 @@
+'use client';
 import { X } from 'lucide-react';
+
+interface QueryRow {
+	[key: string]: string | number | boolean | null;
+}
 
 export default function RowDetailsModal({
 	row,
@@ -6,7 +11,7 @@ export default function RowDetailsModal({
 	isOpen,
 	onClose,
 }: {
-	row: any;
+	row: QueryRow;
 	columns: string[];
 	isOpen: boolean;
 	onClose: () => void;

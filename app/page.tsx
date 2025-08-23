@@ -4,13 +4,26 @@ import HeaderBar from '@/components/header-bar';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+interface QueryRow {
+	[key: string]: string | number | boolean | null;
+}
+
+interface QueryResult {
+	rows: QueryRow[];
+	rowCount: number;
+	fields: Array<{
+		name: string;
+		dataTypeID: number;
+	}>;
+}
+
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
 	const [generatedSql, setGeneratedSql] = useState('');
-	const [queryResult, setQueryResult] = useState<any>(null);
+	const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [selectedRow, setSelectedRow] = useState<any>(null); // FIX
+	const [error, setError] = useState<string | null>(null);
+	const [selectedRow, setSelectedRow] = useState<QueryRow | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const handleQuery = async () => {
@@ -74,7 +87,7 @@ export default function page() {
 		}
 	};
 
-	const handleRowClick = (row: any) => {
+	const handleRowClick = (row: QueryRow) => {
 		setSelectedRow(row);
 		setIsModalOpen(true);
 	};
@@ -220,7 +233,7 @@ export default function page() {
 													<tbody>
 														{queryResult.rows.map(
 															(
-																row: any,
+																row: QueryRow,
 																index: number
 															) => (
 																<tr
