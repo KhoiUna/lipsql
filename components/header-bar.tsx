@@ -6,14 +6,18 @@ import { useRouter } from 'next/navigation';
 
 export default function HeaderBar() {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 	const router = useRouter();
 
 	const checkAuthStatus = async () => {
 		try {
 			const response = await fetch('/api/auth/check');
-			setIsAuthenticated(response.ok);
+			const data = await response.json();
+			setIsAuthenticated(data.authenticated || false);
 		} catch (error) {
 			setIsAuthenticated(false);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -60,21 +64,22 @@ export default function HeaderBar() {
 						<span className='text-sm text-gray-500'>
 							v{process.env.NEXT_PUBLIC_VERSION || '1.0.0'}
 						</span>
-						{isAuthenticated ? (
-							<button
-								onClick={handleLogout}
-								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
-							>
-								Logout
-							</button>
-						) : (
-							<button
-								onClick={handleLogin}
-								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
-							>
-								Login
-							</button>
-						)}
+						{!isLoading &&
+							(isAuthenticated ? (
+								<button
+									onClick={handleLogout}
+									className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
+								>
+									Logout
+								</button>
+							) : (
+								<button
+									onClick={handleLogin}
+									className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
+								>
+									Login
+								</button>
+							))}
 					</div>
 				</div>
 			</div>
