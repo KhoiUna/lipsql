@@ -44,21 +44,46 @@ export async function POST(request: NextRequest) {
 	} catch (error) {
 		console.error('API Error:', error);
 
-		// Return appropriate error response
+		// Determine error type and provide user-friendly messages
 		const errorMessage =
 			error instanceof Error
 				? error.message
 				: 'An unknown error occurred';
-		const statusCode = errorMessage.includes('GOOGLE_GENERATIVE_AI_API_KEY')
-			? 500
-			: errorMessage.includes('Only SELECT queries')
-			? 400
-			: 500;
+
+		let userFriendlyError: string;
+		let statusCode: number;
+
+		if (errorMessage.includes('Only SELECT queries')) {
+			userFriendlyError =
+				'Only SELECT queries are allowed for security reasons!';
+			statusCode = 400;
+		} else if (errorMessage.includes('GOOGLE_GENERATIVE_AI_API_KEY')) {
+			userFriendlyError =
+				'AI service configuration error. Please contact support.';
+			statusCode = 500;
+		} else if (errorMessage.includes('Failed to generate SQL')) {
+			userFriendlyError =
+				'Unable to convert your query to SQL. Please try rephrasing your question.';
+			statusCode = 500;
+		} else if (errorMessage.includes('SQL execution failed')) {
+			userFriendlyError =
+				'Database query failed. Please check your question and try again.';
+			statusCode = 500;
+		} else if (errorMessage.includes('Query parameter is required')) {
+			userFriendlyError =
+				'Query parameter is required and must be a string';
+			statusCode = 400;
+		} else {
+			// Generic server error for unknown issues
+			userFriendlyError =
+				'An unexpected error occurred. Please try again.';
+			statusCode = 500;
+		}
 
 		return NextResponse.json(
 			{
 				success: false,
-				error: errorMessage,
+				error: userFriendlyError,
 				timestamp: new Date().toISOString(),
 			},
 			{ status: statusCode }

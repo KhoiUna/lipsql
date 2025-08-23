@@ -28,11 +28,32 @@ export default function page() {
 				body: JSON.stringify({ query: naturalLanguageQuery }),
 			});
 
-			if (!response.ok) {
-				throw new Error('Failed to generate or execute query.');
-			}
-
 			const data = await response.json();
+
+			if (!response.ok) {
+				// Handle specific error types
+				if (response.status === 400) {
+					if (data.error?.includes('Only SELECT queries')) {
+						throw new Error(
+							'This action is not allowed. Only SELECT queries are permitted for security reasons.'
+						);
+					} else if (
+						data.error?.includes('Query parameter is required')
+					) {
+						throw new Error('Please enter a valid query.');
+					} else {
+						throw new Error(data.error || 'Invalid request.');
+					}
+				} else if (response.status === 500) {
+					throw new Error(
+						'Failed to generate or execute query. Please try again.'
+					);
+				} else {
+					throw new Error(
+						data.error || 'An unexpected error occurred.'
+					);
+				}
+			}
 
 			setGeneratedSql(data.sql);
 			setQueryResult(data.result);
