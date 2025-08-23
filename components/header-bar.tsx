@@ -1,24 +1,44 @@
 'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function HeaderBar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const router = useRouter();
 
 	const toggleMenu = () => {
 		setIsMenuOpen(!isMenuOpen);
 	};
 
+	const checkAuthStatus = async () => {
+		try {
+			const response = await fetch('/api/auth/check');
+			setIsAuthenticated(response.ok);
+		} catch (error) {
+			setIsAuthenticated(false);
+		}
+	};
+
+	useEffect(() => {
+		checkAuthStatus();
+	}, []);
+
 	const handleLogout = async () => {
 		try {
 			await fetch('/api/auth/logout', { method: 'POST' });
+			setIsAuthenticated(false);
 			router.push('/login');
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}
+	};
+
+	const handleLogin = () => {
+		router.push('/login');
 	};
 
 	return (
@@ -67,12 +87,21 @@ export default function HeaderBar() {
 						>
 							Contact
 						</Link>
-						<button
-							onClick={handleLogout}
-							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
-						>
-							Logout
-						</button>
+						{isAuthenticated ? (
+							<button
+								onClick={handleLogout}
+								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
+							>
+								Logout
+							</button>
+						) : (
+							<button
+								onClick={handleLogin}
+								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
+							>
+								Login
+							</button>
+						)}
 					</nav>
 
 					{/* Mobile menu button */}
@@ -139,15 +168,28 @@ export default function HeaderBar() {
 							>
 								Contact
 							</Link>
-							<button
-								onClick={() => {
-									handleLogout();
-									setIsMenuOpen(false);
-								}}
-								className='block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-							>
-								Logout
-							</button>
+
+							{isAuthenticated ? (
+								<button
+									onClick={() => {
+										handleLogout();
+										setIsMenuOpen(false);
+									}}
+									className='cursor-pointer block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
+								>
+									Logout
+								</button>
+							) : (
+								<button
+									onClick={() => {
+										handleLogin();
+										setIsMenuOpen(false);
+									}}
+									className='cursor-pointer block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
+								>
+									Login
+								</button>
+							)}
 						</div>
 					</div>
 				)}
