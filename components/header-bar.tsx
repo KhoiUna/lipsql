@@ -61,138 +61,28 @@ export default function HeaderBar() {
 						</span>
 					</Link>
 
-					{/* Desktop Navigation */}
-					<nav className='hidden md:flex items-center space-x-8'>
-						<Link
-							href='/'
-							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
-						>
-							Query
-						</Link>
-						<Link
-							href='/docs'
-							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
-						>
-							Documentation
-						</Link>
-						<Link
-							href='/about'
-							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
-						>
-							About
-						</Link>
-						<Link
-							href='/contact'
-							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
-						>
-							Contact
-						</Link>
+					{/* Version and Auth */}
+					<div className='flex items-center space-x-6'>
+						<span className='text-sm text-gray-500'>
+							v{process.env.NEXT_PUBLIC_VERSION || '1.0.0'}
+						</span>
 						{isAuthenticated ? (
 							<button
 								onClick={handleLogout}
-								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
+								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
 							>
 								Logout
 							</button>
 						) : (
 							<button
 								onClick={handleLogin}
-								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
+								className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
 							>
 								Login
 							</button>
 						)}
-					</nav>
-
-					{/* Mobile menu button */}
-					<div className='md:hidden'>
-						<button
-							onClick={toggleMenu}
-							className='text-gray-700 hover:text-black focus:outline-none focus:text-black transition-colors duration-200'
-						>
-							<svg
-								className='h-6 w-6'
-								fill='none'
-								viewBox='0 0 24 24'
-								stroke='currentColor'
-							>
-								{isMenuOpen ? (
-									<path
-										strokeLinecap='round'
-										strokeLinejoin='round'
-										strokeWidth={2}
-										d='M6 18L18 6M6 6l12 12'
-									/>
-								) : (
-									<path
-										strokeLinecap='round'
-										strokeLinejoin='round'
-										strokeWidth={2}
-										d='M4 6h16M4 12h16M4 18h16'
-									/>
-								)}
-							</svg>
-						</button>
 					</div>
 				</div>
-
-				{/* Mobile Navigation */}
-				{isMenuOpen && (
-					<div className='md:hidden'>
-						<div className='px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200'>
-							<Link
-								href='/'
-								className='block px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								onClick={() => setIsMenuOpen(false)}
-							>
-								Query
-							</Link>
-							<Link
-								href='/docs'
-								className='block px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								onClick={() => setIsMenuOpen(false)}
-							>
-								Documentation
-							</Link>
-							<Link
-								href='/about'
-								className='block px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								onClick={() => setIsMenuOpen(false)}
-							>
-								About
-							</Link>
-							<Link
-								href='/contact'
-								className='block px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								onClick={() => setIsMenuOpen(false)}
-							>
-								Contact
-							</Link>
-
-							{isAuthenticated ? (
-								<button
-									onClick={() => {
-										handleLogout();
-										setIsMenuOpen(false);
-									}}
-									className='cursor-pointer block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								>
-									Logout
-								</button>
-							) : (
-								<button
-									onClick={() => {
-										handleLogin();
-										setIsMenuOpen(false);
-									}}
-									className='cursor-pointer block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
-								>
-									Login
-								</button>
-							)}
-						</div>
-					</div>
-				)}
 			</div>
 		</header>
 	);
