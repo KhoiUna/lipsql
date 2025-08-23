@@ -2,12 +2,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HeaderBar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const router = useRouter();
 
 	const toggleMenu = () => {
 		setIsMenuOpen(!isMenuOpen);
+	};
+
+	const handleLogout = async () => {
+		try {
+			await fetch('/api/auth/logout', { method: 'POST' });
+			router.push('/login');
+		} catch (error) {
+			console.error('Logout failed:', error);
+		}
 	};
 
 	return (
@@ -56,6 +67,12 @@ export default function HeaderBar() {
 						>
 							Contact
 						</Link>
+						<button
+							onClick={handleLogout}
+							className='text-gray-700 hover:text-black transition-colors duration-200 font-medium'
+						>
+							Logout
+						</button>
 					</nav>
 
 					{/* Mobile menu button */}
@@ -122,6 +139,15 @@ export default function HeaderBar() {
 							>
 								Contact
 							</Link>
+							<button
+								onClick={() => {
+									handleLogout();
+									setIsMenuOpen(false);
+								}}
+								className='block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md font-medium transition-colors duration-200'
+							>
+								Logout
+							</button>
 						</div>
 					</div>
 				)}
