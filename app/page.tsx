@@ -60,7 +60,7 @@ export default function page() {
 						PlainSQL
 					</h1>
 					<p className='text-gray-600 text-lg'>
-						Ask questions in plain English, get data instantly
+						Speak to your database using natural language
 					</p>
 				</div>
 
