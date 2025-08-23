@@ -1,13 +1,16 @@
 'use client';
+import RowDetailsModal from '@/components/ui/row-details-modal';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
 	const [generatedSql, setGeneratedSql] = useState('');
-	const [queryResult, setQueryResult] = useState<any>(null); // FIX
+	const [queryResult, setQueryResult] = useState<any>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [selectedRow, setSelectedRow] = useState<any>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const handleQuery = async () => {
 		setIsLoading(true);
@@ -43,10 +46,20 @@ export default function page() {
 	const copyToClipboard = async () => {
 		try {
 			await navigator.clipboard.writeText(generatedSql);
-			toast.success('Event has been created');
+			toast.success('SQL copied to clipboard');
 		} catch (error) {
 			console.error('Failed to copy to clipboard:', error);
 		}
+	};
+
+	const handleRowClick = (row: any) => {
+		setSelectedRow(row);
+		setIsModalOpen(true);
+	};
+
+	const closeModal = () => {
+		setIsModalOpen(false);
+		setSelectedRow(null);
 	};
 
 	return (
@@ -186,7 +199,12 @@ export default function page() {
 														) => (
 															<tr
 																key={index}
-																className='border-b border-gray-100 last:border-b-0 hover:bg-gray-50'
+																className='border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors'
+																onClick={() =>
+																	handleRowClick(
+																		row
+																	)
+																}
 															>
 																{Object.values(
 																	row
@@ -234,6 +252,16 @@ export default function page() {
 					</div>
 				)}
 			</div>
+
+			{/* Row Details Modal */}
+			{selectedRow && (
+				<RowDetailsModal
+					row={selectedRow}
+					columns={Object.keys(selectedRow)}
+					isOpen={isModalOpen}
+					onClose={closeModal}
+				/>
+			)}
 		</div>
 	);
 }
