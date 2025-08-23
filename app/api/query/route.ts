@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 		const sqlStatement = await callGeminiApi(prompt);
 
 		// Step 4: Execute the generated SQL query
-		console.log('Executing SQL query...');
+		console.log('Executing SQL query:', sqlStatement, '...');
 		const result = await executeSql(sqlStatement);
 
 		// Step 5: Return results to frontend

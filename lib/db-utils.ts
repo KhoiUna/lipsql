@@ -140,6 +140,10 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 		const trimmedSql = sqlStatement.trim().toLowerCase();
 
 		if (!trimmedSql.startsWith('select ')) {
+			console.error(
+				'SQL Security Violation - Non-SELECT query attempted:',
+				sqlStatement
+			);
 			throw new Error(
 				`Only SELECT queries are allowed for security reasons!`
 			);
@@ -158,6 +162,7 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 		};
 	} catch (error) {
 		console.error('SQL execution error:', error);
+		console.error('Failed SQL statement:', sqlStatement);
 		throw new Error(
 			`SQL execution failed: ${
 				error instanceof Error ? error.message : 'Unknown error'
