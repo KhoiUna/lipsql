@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { SignJWT } from 'jose';
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function POST(request: NextRequest) {
 	try {
@@ -9,8 +12,19 @@ export async function POST(request: NextRequest) {
 		const expectedPassword = process.env.PLAINSQL_PASSWORD;
 
 		if (username === expectedUsername && password === expectedPassword) {
-			// Set session cookie
-			(await cookies()).set('plainsql-auth', 'authenticated', {
+			// Generate a secure JWT token using jose
+			const secret = new TextEncoder().encode(JWT_SECRET);
+			const token = await new SignJWT({
+				username,
+				authenticated: true,
+			})
+				.setProtectedHeader({ alg: 'HS256' })
+				.setIssuedAt()
+				.setExpirationTime('7d')
+				.sign(secret);
+
+			// Set secure session cookie with JWT token
+			(await cookies()).set('plainsql-auth', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'strict',
