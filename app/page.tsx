@@ -105,10 +105,7 @@ export default function page() {
 				<div className='w-full max-w-4xl bg-white rounded-xl shadow-sm border border-gray-200 p-8'>
 					{/* Header */}
 					<div className='text-center mb-8'>
-						<h1 className='text-4xl font-bold text-black mb-3'>
-							PlainSQL
-						</h1>
-						<p className='text-gray-600 text-lg'>
+						<p className='text-gray-600 text-lg italic'>
 							Speak to your database using natural language
 						</p>
 					</div>
@@ -126,8 +123,8 @@ export default function page() {
 						<div className='relative'>
 							<input
 								type='text'
-								className='w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all placeholder-gray-500 text-base'
-								placeholder="e.g., 'Show me all users from New York City'"
+								className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition-all text-base'
+								placeholder='Show me all users from New York City'
 								value={naturalLanguageQuery}
 								onChange={(e) =>
 									setNaturalLanguageQuery(e.target.value)
