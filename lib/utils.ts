@@ -45,5 +45,8 @@ export const generateStaticMetadata = ({
 			description,
 			images: ['https://plainsql.platopunk.com/images/og.png'],
 		},
+		icons: {
+			apple: '/images/apple-touch-icon.png',
+		},
 	};
 };
