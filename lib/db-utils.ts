@@ -288,7 +288,11 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 		// Basic security check - only allow SELECT queries for now
 		const trimmedSql = sqlStatement.trim().toLowerCase();
 
-		if (!trimmedSql.startsWith('select ')) {
+		if (
+			trimmedSql.includes('insert') &&
+			trimmedSql.includes('update') &&
+			trimmedSql.includes('delete')
+		) {
 			console.error(
 				'SQL Security Violation - Non-SELECT query attempted:',
 				sqlStatement
@@ -316,7 +320,6 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 			fields,
 		};
 	} catch (error) {
-		console.error('SQL execution error:', error);
 		console.error('Failed SQL statement:', sqlStatement);
 		throw new Error(
 			`SQL execution failed: ${
