@@ -67,12 +67,21 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 				</button>
 			)}
 
+			{/* Backdrop */}
+			{isOpen && (
+				<div
+					className="fixed inset-0 bg-black/20 z-20"
+					onClick={() => setIsOpen(false)}
+				/>
+			)}
+
 			{/* Sidebar */}
 			<div
 				className={cn(
 					'fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 z-30 w-full sm:w-96 md:w-80 lg:w-96',
 					isOpen ? 'translate-x-0' : '-translate-x-full'
 				)}
+				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between p-4 border-b border-gray-200">
 					<h2 className="text-lg font-semibold flex items-center gap-2">
