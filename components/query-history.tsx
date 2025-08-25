@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, History, Clock, Copy } from 'lucide-react';
+import { ChevronLeft, History, Clock, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface QueryHistoryItem {
 	id: number;
@@ -68,11 +69,10 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 
 			{/* Sidebar */}
 			<div
-				className={`
-        fixed right-0 top-0 h-full bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-30
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        w-full sm:w-96 md:w-80 lg:w-96
-      `}
+				className={cn(
+					'fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 z-30 w-full sm:w-96 md:w-80 lg:w-96',
+					isOpen ? 'translate-x-0' : '-translate-x-full'
+				)}
 			>
 				<div className="flex items-center justify-between p-4 border-b border-gray-200">
 					<h2 className="text-lg font-semibold flex items-center gap-2">
@@ -117,12 +117,10 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 													item.natural_query
 												)
 											}
-											className="text-left flex-1 hover:text-blue-600 transition-colors"
+											className="text-left flex-1 hover:text-black/50 transition-colors cursor-pointer text-sm font-medium text-gray-900 line-clamp-2"
 											title="Click to reuse this query"
 										>
-											<p className="text-sm font-medium text-gray-900 line-clamp-2">
-												{item.natural_query}
-											</p>
+											{item.natural_query}
 										</button>
 										<button
 											onClick={() =>
