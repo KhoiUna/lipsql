@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import HeaderBar from '@/components/header-bar';
 
 export default function LoginPage() {
@@ -25,8 +25,6 @@ export default function LoginPage() {
 			});
 
 			if (response.ok) {
-				// Add a small delay to ensure cookie is set
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				router.push('/');
 			} else {
 				const errorData = await response.json();

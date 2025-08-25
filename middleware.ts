@@ -17,22 +17,17 @@ export async function middleware(request: NextRequest) {
 			const secret = new TextEncoder().encode(JWT_SECRET);
 			const { payload } = await jwtVerify(authCookie.value, secret);
 
-			isAuthenticated = Boolean(
-				payload.authenticated && payload.username
-			);
+			isAuthenticated = !!payload.authenticated && !!payload.username;
 		} catch (error) {
 			// JWT verification failed - token is invalid, expired, or tampered with
 			isAuthenticated = false;
 		}
 	}
 
-	if (!isAuthenticated && !isLoginPage) {
-		return NextResponse.redirect(new URL('/login', request.url));
-	}
+	if (!isAuthenticated && !isLoginPage)
+		return NextResponse.redirect('/login');
 
-	if (isAuthenticated && isLoginPage) {
-		return NextResponse.redirect(new URL('/', request.url));
-	}
+	if (isAuthenticated && isLoginPage) return NextResponse.redirect('/');
 
 	return NextResponse.next();
 }
