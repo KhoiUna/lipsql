@@ -56,20 +56,20 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 
 	return (
 		<>
-			{/* Toggle Button */}
+			{/* Toggle Button - Visible on all devices */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="fixed right-4 top-20 z-40 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-all duration-200 md:hidden"
+				className="fixed right-4 top-20 z-40 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-all duration-200"
 			>
 				{isOpen ? <ChevronRight size={20} /> : <History size={20} />}
 			</button>
 
-			{/* Sidebar */}
+			{/* Sidebar - Responsive design for mobile and desktop */}
 			<div
 				className={`
         fixed right-0 top-0 h-full bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-30
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        w-full sm:w-96
+        w-full sm:w-96 md:w-80 lg:w-96
       `}
 			>
 				<div className="flex items-center justify-between p-4 border-b border-gray-200">
