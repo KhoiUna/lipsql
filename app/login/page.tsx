@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import HeaderBar from '@/components/header-bar';
 
 export default function LoginPage() {

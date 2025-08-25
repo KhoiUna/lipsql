@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
 	if (!isAuthenticated && !isLoginPage) {
 		const url = request.nextUrl.clone();
 		url.pathname = '/login';
-		return NextResponse.rewrite(url);
+		return NextResponse.redirect(url);
 	}
 
 	if (isAuthenticated && isLoginPage) {
