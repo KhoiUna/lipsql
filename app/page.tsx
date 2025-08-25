@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import QueryHistory from '@/components/query-history';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -78,6 +79,20 @@ export default function page() {
 
 			setGeneratedSql(data.sql);
 			setQueryResult(data.result);
+
+			// Save successful query to history
+			try {
+				await fetch('/api/history', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						naturalQuery: naturalLanguageQuery,
+						generatedSql: data.sql,
+					}),
+				});
+			} catch (historyError) {
+				console.error('Failed to save to history:', historyError);
+			}
 		} catch (err: any) {
 			setError(err.message);
 			console.error(err);
@@ -108,6 +123,12 @@ export default function page() {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!isLoading && naturalLanguageQuery.trim()) handleQuery();
+	};
+
+	const handleHistorySelect = (query: string) => {
+		setNaturalLanguageQuery(query);
+		// Optional: Auto-execute the query
+		// handleQuery();
 	};
 
 	useEffect(() => {
@@ -320,6 +341,9 @@ export default function page() {
 					)}
 				</div>
 			</div>
+
+			{/* Query History Sidebar */}
+			<QueryHistory onSelectQuery={handleHistorySelect} />
 
 			{/* Row Details Modal */}
 			{selectedRow && (
