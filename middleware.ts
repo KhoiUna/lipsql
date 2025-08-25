@@ -24,10 +24,17 @@ export async function middleware(request: NextRequest) {
 		}
 	}
 
-	if (!isAuthenticated && !isLoginPage)
-		return NextResponse.redirect('/login');
+	if (!isAuthenticated && !isLoginPage) {
+		const url = request.nextUrl.clone();
+		url.pathname = '/login';
+		return NextResponse.rewrite(url);
+	}
 
-	if (isAuthenticated && isLoginPage) return NextResponse.redirect('/');
+	if (isAuthenticated && isLoginPage) {
+		const url = request.nextUrl.clone();
+		url.pathname = '/';
+		return NextResponse.redirect(url);
+	}
 
 	return NextResponse.next();
 }
