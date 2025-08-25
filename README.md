@@ -11,3 +11,5 @@ The backend code connects to the database engine and get the database schemas (i
 -   shadcn/ui + TailwindCSS
 
 -   Gemini
+
+-   SQLite
