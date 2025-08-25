@@ -6,9 +6,10 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -104,6 +105,22 @@ export default function page() {
 		setSelectedRow(null);
 	};
 
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!isLoading && naturalLanguageQuery.trim()) handleQuery();
+	};
+
+	useEffect(() => {
+		const handleCtrlEnter = (event: KeyboardEvent) => {
+			if (event.ctrlKey && event.key === 'Enter') {
+				const formEvent = new Event('submit', { bubbles: true });
+				document.querySelector('form')?.dispatchEvent(formEvent);
+			}
+		};
+		document.addEventListener('keydown', handleCtrlEnter);
+		return () => document.removeEventListener('keydown', handleCtrlEnter);
+	}, []);
+
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
 			<HeaderBar />
@@ -112,25 +129,15 @@ export default function page() {
 				<div className="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-gray-200 p-8">
 					{/* Header */}
 					<div className="text-center mb-8">
-						<p className="text-gray-600 text-lg italic">
+						<p className="text-gray-600 italic">
 							Speak to your database using natural language
 						</p>
 					</div>
 
 					{/* Input Section */}
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							if (!isLoading && naturalLanguageQuery.trim()) {
-								handleQuery();
-							}
-						}}
-						className="space-y-4 mb-8"
-					>
+					<form onSubmit={handleSubmit} className="space-y-4 mb-8">
 						<div className="relative">
-							<input
-								type="text"
-								className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition-all text-base"
+							<Textarea
 								placeholder="Show me all users from New York City"
 								value={naturalLanguageQuery}
 								onChange={(e) =>
