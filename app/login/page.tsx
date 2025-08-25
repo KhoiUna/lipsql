@@ -20,13 +20,17 @@ export default function LoginPage() {
 			const response = await fetch('/api/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include', // Ensure cookies are sent
 				body: JSON.stringify({ username, password }),
 			});
 
 			if (response.ok) {
+				// Add a small delay to ensure cookie is set
+				await new Promise((resolve) => setTimeout(resolve, 100));
 				router.push('/');
 			} else {
-				setError('Invalid credentials');
+				const errorData = await response.json();
+				setError(errorData.error || 'Invalid credentials');
 			}
 		} catch (err) {
 			setError('Login failed');
