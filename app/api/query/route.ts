@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 		const { query } = await request.json();
 
 		// Validate input
-		if (!query || typeof query !== 'string') {
+		if (!query || typeof query !== 'string' || query.trim().length === 0) {
 			return NextResponse.json(
 				{ error: 'Query parameter is required and must be a string' },
 				{ status: 400 }
@@ -60,9 +60,13 @@ export async function POST(request: NextRequest) {
 		const dbSchema = await getDatabaseSchema();
 
 		// Step 2: Create prompt with schema context and user query
-		const prompt = `You are a SQL expert. Given the following database schema:	${dbSchema}
+		const prompt = `You are a SQL expert. Given the following:
 		
-		Convert the following natural language query into a valid SQL SELECT statement. 
+		Database schema: ${dbSchema}
+
+		Database driver: ${process.env.DATABASE_TYPE}
+
+		Convert the following natural language query into a valid SQL SELECT statement for that database driver. 
 		Only return the SQL statement, nothing else. Do not include explanations, quotes, or markdown formatting.
 		
 		User query: "${query}"`;
