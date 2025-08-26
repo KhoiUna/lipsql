@@ -146,8 +146,6 @@ export function useAuthCheck() {
 	return useQuery({
 		queryKey: ['auth'],
 		queryFn: api.checkAuth,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: false,
 	});
 }
 
@@ -167,6 +165,5 @@ export function useHistory() {
 	return useQuery({
 		queryKey: ['history'],
 		queryFn: api.getHistory,
-		staleTime: 30 * 1000, // 30 seconds
 	});
 }

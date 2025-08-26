@@ -18,15 +18,6 @@ interface QueryRow {
 	[key: string]: string | number | boolean | null;
 }
 
-interface QueryResult {
-	rows: QueryRow[];
-	rowCount: number;
-	fields: Array<{
-		name: string;
-		dataTypeID: number;
-	}>;
-}
-
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
 	const [selectedRow, setSelectedRow] = useState<QueryRow | null>(null);
