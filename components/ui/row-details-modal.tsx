@@ -19,8 +19,14 @@ export default function RowDetailsModal({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center p-4 z-5">
-			<div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+		<div
+			className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+			onClick={onClose}
+		>
+			<div
+				className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden"
+				onClick={(e) => e.stopPropagation()}
+			>
 				<div className="flex items-center justify-between p-6 border-b border-gray-200">
 					<h3 className="text-lg font-semibold text-black">
 						Row Details
