@@ -36,8 +36,8 @@ interface AuthCheckResponse {
 
 interface HistoryItem {
 	id: number;
-	naturalQuery: string;
-	generatedSql: string;
+	natural_query: string;
+	generated_sql: string;
 	timestamp: string;
 }
 
