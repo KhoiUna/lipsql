@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
+import { cn } from '@/lib/utils';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -170,11 +171,12 @@ export default function page() {
 
 						<button
 							type="submit"
-							className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
+							className={cn(
+								'cursor-pointer w-full py-3 rounded-lg font-semibold text-white transition-all duration-200',
 								isLoading || !naturalLanguageQuery.trim()
 									? 'bg-gray-300 cursor-not-allowed'
 									: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
-							}`}
+							)}
 							disabled={isLoading || !naturalLanguageQuery.trim()}
 						>
 							{isLoading ? (
@@ -183,7 +185,7 @@ export default function page() {
 									<span>Processing...</span>
 								</div>
 							) : (
-								'Generate & Execute Query'
+								'Submit'
 							)}
 						</button>
 					</form>
