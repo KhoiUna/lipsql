@@ -1,85 +1,74 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthCheck, useLogout } from '@/lib/hooks/use-api';
 
 export default function HeaderBar() {
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const router = useRouter();
+	const authCheck = useAuthCheck();
+	const logoutMutation = useLogout();
 
-	const checkAuthStatus = async () => {
-		try {
-			const response = await fetch('/api/auth/check');
-			const data = await response.json();
-			setIsAuthenticated(data.authenticated || false);
-		} catch (error) {
-			setIsAuthenticated(false);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		checkAuthStatus();
-	}, []);
-
-	const handleLogout = async () => {
-		try {
-			await fetch('/api/auth/logout', { method: 'POST' });
-			setIsAuthenticated(false);
-			router.push('/login');
-		} catch (error) {
-			console.error('Logout failed:', error);
-		}
+	const handleLogout = () => {
+		logoutMutation.mutate(undefined, {
+			onSuccess: () => {
+				router.push('/login');
+			},
+			onError: (error) => {
+				console.error('Logout failed:', error);
+			},
+		});
 	};
 
 	const handleLogin = () => {
 		router.push('/login');
 	};
 
+	const isAuthenticated = authCheck.data?.authenticated || false;
+	const isLoading = authCheck.isLoading;
+
 	return (
-		<header className='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-5'>
-			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-				<div className='flex justify-between items-center h-16'>
-					{/* Logo and Brand */}
-					<Link href='/' className='flex items-center space-x-3'>
-						<div className='w-8 h-8 flex items-center justify-center'>
-							<Image
-								src='/images/favicon-32x32.png'
-								alt='PlainSQL Logo'
-								width={32}
-								height={32}
-								className='w-8 h-8'
-							/>
-						</div>
-						<span className='text-xl font-bold text-black'>
+		<header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="flex justify-between items-center h-16">
+					{/* Logo and Title */}
+					<Link href="/" className="flex items-center space-x-3">
+						<Image
+							src="/images/android-chrome-192x192.png"
+							alt="PlainSQL Logo"
+							width={32}
+							height={32}
+							className="rounded-lg"
+						/>
+						<span className="text-xl font-bold text-black">
 							PlainSQL
 						</span>
 					</Link>
 
-					{/* Version and Auth */}
-					<div className='flex items-center space-x-6'>
-						<span className='text-sm text-gray-500'>
-							v{process.env.NEXT_PUBLIC_VERSION}
-						</span>
-						{!isLoading &&
-							(isAuthenticated ? (
-								<button
-									onClick={handleLogout}
-									className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
-								>
-									Logout
-								</button>
-							) : (
-								<button
-									onClick={handleLogin}
-									className='text-gray-700 hover:text-black transition-colors duration-200 font-medium cursor-pointer'
-								>
-									Login
-								</button>
-							))}
+					{/* Navigation and Auth */}
+					<div className="flex items-center space-x-4">
+						{isLoading ? (
+							<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+						) : isAuthenticated ? (
+							<button
+								type="button"
+								onClick={handleLogout}
+								disabled={logoutMutation.isPending}
+								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+							>
+								{logoutMutation.isPending
+									? 'Signing out...'
+									: 'Sign Out'}
+							</button>
+						) : (
+							<button
+								type="button"
+								onClick={handleLogin}
+								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+							>
+								Sign In
+							</button>
+						)}
 					</div>
 				</div>
 			</div>
