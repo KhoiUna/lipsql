@@ -61,7 +61,7 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 			{!isOpen && (
 				<button
 					onClick={() => setIsOpen(!isOpen)}
-					className="fixed left-5 top-20 z-10 bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-all duration-200"
+					className="cursor-pointer fixed left-5 top-20 z-10 bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-all duration-200"
 				>
 					<History size={20} />
 				</button>
