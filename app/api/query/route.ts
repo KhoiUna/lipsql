@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseSchema, callGeminiApi, executeSql } from '@/lib/db-utils';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { GEMINI_MODEL } from '@/lib/constants';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 		User query: "${query}"`;
 
 		// Step 3: Call Gemini AI to generate SQL
-		console.log('Generating SQL with Gemini AI...');
+		console.log(`Generating SQL with ${GEMINI_MODEL}...`);
 		const sqlStatement = await callGeminiApi(prompt);
 
 		// Step 4: Execute the generated SQL query

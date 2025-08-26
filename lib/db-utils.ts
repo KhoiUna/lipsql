@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { Pool } from 'pg';
 import * as sql from 'mssql';
+import { GEMINI_MODEL } from './constants';
 
 // Database driver abstraction
 interface DatabaseDriver {
@@ -243,11 +244,11 @@ export async function getDatabaseSchema(): Promise<string> {
 export async function callGeminiApi(prompt: string): Promise<string> {
 	const genAI = getGeminiAI();
 	const model = genAI.getGenerativeModel({
-		model: 'gemini-1.5-flash',
+		model: GEMINI_MODEL,
 		generationConfig: {
 			responseMimeType: 'application/json',
 			responseSchema: {
-				description: 'A string which is a SQL SELECT statement.',
+				description: 'A string represents a SQL statement.',
 				type: SchemaType.STRING,
 			},
 		},
