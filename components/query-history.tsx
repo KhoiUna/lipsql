@@ -1,16 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { ChevronLeft, History, Clock, Copy } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-
-interface QueryHistoryItem {
-	id: number;
-	natural_query: string;
-	generated_sql: string;
-	timestamp: string;
-	user_id: string;
-}
+import { ChevronLeft, Clock, Copy, History } from 'lucide-react';
+import { useHistory } from '@/lib/hooks/use-api';
 
 interface QueryHistoryProps {
 	onSelectQuery: (query: string) => void;
@@ -18,29 +10,7 @@ interface QueryHistoryProps {
 
 export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 	const [isOpen, setIsOpen] = useState(false);
-	const [history, setHistory] = useState<QueryHistoryItem[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-
-	const fetchHistory = async () => {
-		setIsLoading(true);
-		try {
-			const response = await fetch('/api/history');
-			if (response.ok) {
-				const data = await response.json();
-				setHistory(data.history || []);
-			}
-		} catch (error) {
-			console.error('Failed to fetch history:', error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		if (isOpen) {
-			fetchHistory();
-		}
-	}, [isOpen]);
+	const historyQuery = useHistory();
 
 	const copySql = async (sql: string) => {
 		try {
@@ -55,37 +25,39 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 		return new Date(timestamp).toLocaleString();
 	};
 
+	const history = historyQuery.data?.history || [];
+	const isLoading = historyQuery.isLoading;
+	const error = historyQuery.error;
+
 	return (
 		<>
 			{/* Toggle Button */}
-			{!isOpen && (
-				<button
-					onClick={() => setIsOpen(!isOpen)}
-					className="cursor-pointer fixed left-5 top-20 z-10 bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-all duration-200"
-				>
-					<History size={20} />
-				</button>
-			)}
+			<button
+				onClick={() => setIsOpen(!isOpen)}
+				className="fixed top-20 left-4 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
+				title="Query History"
+			>
+				<History size={20} />
+			</button>
 
 			{/* Backdrop */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/20 z-20"
+					className="fixed inset-0 bg-black/20 z-50"
 					onClick={() => setIsOpen(false)}
 				/>
 			)}
 
-			{/* Sidebar */}
+			{/* Side Panel */}
 			<div
-				className={cn(
-					'fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 z-30 w-full sm:w-96 md:w-80 lg:w-96',
+				className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 z-50 w-80 ${
 					isOpen ? 'translate-x-0' : '-translate-x-full'
-				)}
-				onClick={(e) => e.stopPropagation()}
+				}`}
 			>
+				{/* Header */}
 				<div className="flex items-center justify-between p-4 border-b border-gray-200">
 					<h2 className="text-lg font-semibold flex items-center gap-2">
-						<History size={20} />
+						<Clock size={20} />
 						Query History
 					</h2>
 					<button
@@ -96,10 +68,15 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 					</button>
 				</div>
 
+				{/* Content */}
 				<div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
 					{isLoading ? (
 						<div className="flex items-center justify-center py-8">
 							<div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
+						</div>
+					) : error ? (
+						<div className="text-center text-red-500 py-8">
+							Failed to load history
 						</div>
 					) : history.length === 0 ? (
 						<div className="text-center text-gray-500 py-8">
