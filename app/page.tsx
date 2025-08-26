@@ -12,6 +12,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import { cn } from '@/lib/utils';
+import { useQueryExecution } from '@/lib/hooks/use-api';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -28,83 +29,30 @@ interface QueryResult {
 
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
-	const [generatedSql, setGeneratedSql] = useState('');
-	const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [selectedRow, setSelectedRow] = useState<QueryRow | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isSqlExpanded, setIsSqlExpanded] = useState(true);
 
-	const handleQuery = async () => {
-		setIsLoading(true);
-		setError(null);
-		setGeneratedSql('');
-		setQueryResult(null);
+	const queryExecution = useQueryExecution();
 
-		try {
-			const response = await fetch('/api/query', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
+	const handleQuery = () => {
+		if (!naturalLanguageQuery.trim()) return;
+
+		queryExecution.mutate(
+			{ query: naturalLanguageQuery },
+			{
+				onError: (error) => {
+					toast.error(error.message);
 				},
-				body: JSON.stringify({ query: naturalLanguageQuery }),
-			});
-
-			const data = await response.json();
-
-			if (!response.ok) {
-				// Handle specific error types
-				if (response.status === 400) {
-					if (data.error?.includes('Only SELECT queries')) {
-						throw new Error(
-							'This action is not allowed. Only SELECT queries are permitted for security reasons.'
-						);
-					} else if (
-						data.error?.includes('Query parameter is required')
-					) {
-						throw new Error('Please enter a valid query.');
-					} else {
-						throw new Error(data.error || 'Invalid request.');
-					}
-				} else if (response.status === 500) {
-					throw new Error(
-						'Failed to generate or execute query. Please try again.'
-					);
-				} else {
-					throw new Error(
-						data.error || 'An unexpected error occurred.'
-					);
-				}
 			}
-
-			setGeneratedSql(data.sql);
-			setQueryResult(data.result);
-
-			// Save successful query to history
-			try {
-				await fetch('/api/history', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						naturalQuery: naturalLanguageQuery,
-						generatedSql: data.sql,
-					}),
-				});
-			} catch (historyError) {
-				console.error('Failed to save to history:', historyError);
-			}
-		} catch (err: any) {
-			setError(err.message);
-			console.error(err);
-		} finally {
-			setIsLoading(false);
-		}
+		);
 	};
 
 	const copyToClipboard = async () => {
+		if (!queryExecution.data?.sql) return;
+
 		try {
-			await navigator.clipboard.writeText(generatedSql);
+			await navigator.clipboard.writeText(queryExecution.data.sql);
 			toast.success('SQL copied to clipboard');
 		} catch (error) {
 			console.error('Failed to copy to clipboard:', error);
@@ -123,7 +71,9 @@ export default function page() {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!isLoading && naturalLanguageQuery.trim()) handleQuery();
+		if (!queryExecution.isPending && naturalLanguageQuery.trim()) {
+			handleQuery();
+		}
 	};
 
 	const handleHistorySelect = (query: string) => {
@@ -142,6 +92,11 @@ export default function page() {
 		document.addEventListener('keydown', handleCtrlEnter);
 		return () => document.removeEventListener('keydown', handleCtrlEnter);
 	}, []);
+
+	const isLoading = queryExecution.isPending;
+	const error = queryExecution.error?.message;
+	const generatedSql = queryExecution.data?.sql;
+	const queryResult = queryExecution.data?.result;
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
