@@ -121,11 +121,12 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 								>
 									<div className="flex items-start justify-between gap-2 mb-2">
 										<button
-											onClick={() =>
+											onClick={() => {
 												onSelectQuery(
 													item.natural_query
-												)
-											}
+												);
+												setIsOpen(false);
+											}}
 											className="text-left flex-1 hover:text-black/50 transition-colors cursor-pointer text-sm font-medium text-gray-900 line-clamp-2"
 											title="Click to reuse this query"
 										>
