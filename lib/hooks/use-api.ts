@@ -126,7 +126,7 @@ export function useQueryExecution() {
 		onSuccess: (data) => {
 			// Save to history on successful query
 			api.saveHistory({
-				naturalQuery: data.originalQuery,
+				naturalQuery: data.originalQuery.trim(),
 				generatedSql: data.sql,
 			}).catch(console.error);
 
