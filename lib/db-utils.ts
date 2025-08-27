@@ -290,16 +290,12 @@ export async function executeSql(sqlStatement: string): Promise<any> {
 		const trimmedSql = sqlStatement.trim().toLowerCase();
 
 		if (
-			trimmedSql.includes('insert') &&
-			trimmedSql.includes('update') &&
+			trimmedSql.includes('insert') ||
+			trimmedSql.includes('update') ||
 			trimmedSql.includes('delete')
 		) {
-			console.error(
-				'SQL Security Violation - Non-SELECT query attempted:',
-				sqlStatement
-			);
 			throw new Error(
-				`Only SELECT queries are allowed for security reasons!`
+				`Only SELECT queries are allowed for security reasons: ${sqlStatement}`
 			);
 		}
 
