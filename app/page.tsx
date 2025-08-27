@@ -67,22 +67,20 @@ export default function page() {
 		}
 	};
 
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.ctrlKey && e.key === 'Enter') {
+			e.preventDefault();
+			if (!queryExecution.isPending && naturalLanguageQuery.trim()) {
+				handleQuery();
+			}
+		}
+	};
+
 	const handleHistorySelect = (query: string) => {
 		setNaturalLanguageQuery(query);
 		// Optional: Auto-execute the query
 		// handleQuery();
 	};
-
-	useEffect(() => {
-		const handleCtrlEnter = (event: KeyboardEvent) => {
-			if (event.ctrlKey && event.key === 'Enter') {
-				const formEvent = new Event('submit', { bubbles: true });
-				document.querySelector('form')?.dispatchEvent(formEvent);
-			}
-		};
-		document.addEventListener('keydown', handleCtrlEnter);
-		return () => document.removeEventListener('keydown', handleCtrlEnter);
-	}, []);
 
 	const isLoading = queryExecution.isPending;
 	const error = queryExecution.error?.message;
@@ -93,7 +91,7 @@ export default function page() {
 		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
 
-			<div className="flex-1 flex items-center justify-center p-4">
+			<div className="flex-1 flex items-center justify-center p-8">
 				<div className="w-full max-w-4xl">
 					{/* Header */}
 					<div className="text-center mb-8">
@@ -111,6 +109,7 @@ export default function page() {
 								onChange={(e) =>
 									setNaturalLanguageQuery(e.target.value)
 								}
+								onKeyDown={handleKeyDown}
 								disabled={isLoading}
 							/>
 						</div>
