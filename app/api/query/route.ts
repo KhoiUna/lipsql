@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const { query } = await request.json();
+		let { query } = await request.json();
+		query = query.trim();
 
 		// Validate input
 		if (!query || typeof query !== 'string' || query.trim().length === 0) {
