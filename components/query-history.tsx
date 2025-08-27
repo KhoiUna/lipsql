@@ -34,7 +34,7 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 			{/* Toggle Button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="fixed top-20 left-4 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
+				className="cursor-pointer fixed top-20 left-4 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
 				title="Query History"
 			>
 				<History size={20} />
