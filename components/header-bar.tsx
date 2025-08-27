@@ -40,9 +40,14 @@ export default function HeaderBar() {
 							height={32}
 							className="rounded-lg"
 						/>
-						<span className="text-xl font-bold text-black">
-							PlainSQL
-						</span>
+						<div className="flex flex-col">
+							<span className="text-xl font-bold text-black">
+								PlainSQL
+							</span>
+							<span className="text-xs text-gray-500">
+								v{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
+							</span>
+						</div>
 					</Link>
 
 					{/* Navigation and Auth */}
@@ -57,8 +62,8 @@ export default function HeaderBar() {
 								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
 							>
 								{logoutMutation.isPending
-									? 'Signing out...'
-									: 'Sign Out'}
+									? 'Logging out...'
+									: 'Log Out'}
 							</button>
 						) : (
 							<button
@@ -66,7 +71,7 @@ export default function HeaderBar() {
 								onClick={handleLogin}
 								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
 							>
-								Sign In
+								Log In
 							</button>
 						)}
 					</div>

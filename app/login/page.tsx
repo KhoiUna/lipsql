@@ -36,11 +36,8 @@ export default function LoginPage() {
 				<div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-200 p-8">
 					<div className="text-center mb-8">
 						<h1 className="text-2xl font-bold text-black mb-2">
-							Welcome Back
+							Log In
 						</h1>
-						<p className="text-gray-600">
-							Sign in to access your database
-						</p>
 					</div>
 
 					<form onSubmit={handleLogin} className="space-y-4">
@@ -94,10 +91,10 @@ export default function LoginPage() {
 							{loginMutation.isPending ? (
 								<div className="flex items-center justify-center space-x-2">
 									<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-									<span>Signing in...</span>
+									<span>Logging In...</span>
 								</div>
 							) : (
-								'Sign In'
+								'Log In'
 							)}
 						</button>
 					</form>
