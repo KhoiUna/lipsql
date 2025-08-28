@@ -1,7 +1,5 @@
 'use client';
-
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import HeaderBar from '@/components/header-bar';
 import { useLogin } from '@/lib/hooks/use-api';
 import { toast } from 'sonner';
@@ -9,7 +7,6 @@ import { toast } from 'sonner';
 export default function LoginPage() {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
-	const router = useRouter();
 	const loginMutation = useLogin();
 
 	const handleLogin = async (e: React.FormEvent) => {
@@ -19,7 +16,8 @@ export default function LoginPage() {
 			{ username, password },
 			{
 				onSuccess: () => {
-					router.push('/');
+					// router.push('/');
+					window.location.reload();
 				},
 				onError: (error) => {
 					toast.error(error.message);
