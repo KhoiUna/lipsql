@@ -93,18 +93,11 @@ export default function page() {
 
 			<div className="flex-1 flex items-center justify-center p-8">
 				<div className="w-full max-w-4xl">
-					{/* Header */}
-					<div className="text-center mb-8">
-						<p className="text-gray-600 italic text-sm">
-							Speak to your database using natural language
-						</p>
-					</div>
-
 					{/* Input Section */}
 					<form onSubmit={handleSubmit} className="space-y-4 mb-8">
 						<div className="relative">
 							<Textarea
-								placeholder="Show me all users from New York City"
+								placeholder="Speak to your database using natural language"
 								value={naturalLanguageQuery}
 								onChange={(e) =>
 									setNaturalLanguageQuery(e.target.value)
