@@ -101,7 +101,7 @@ export default function page() {
 					<form onSubmit={handleSubmit} className="space-y-4 mb-8">
 						<div className="relative">
 							<Textarea
-								className="shadow-sm"
+								className="shadow-sm p-3"
 								placeholder="Speak to your database using natural language"
 								value={naturalLanguageQuery}
 								onChange={(e) =>
@@ -109,7 +109,7 @@ export default function page() {
 								}
 								onKeyDown={handleKeyDown}
 								disabled={isLoading}
-								rows={4}
+								rows={5}
 							/>
 						</div>
 
