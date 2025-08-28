@@ -6,7 +6,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,11 +26,12 @@ export default function page() {
 
 	const queryExecution = useQueryExecution();
 
-	const handleQuery = () => {
-		if (!naturalLanguageQuery.trim()) return;
+	const handleQuery = (queryToExecute?: string) => {
+		const query = queryToExecute || naturalLanguageQuery;
+		if (!query.trim()) return;
 
 		queryExecution.mutate(
-			{ query: naturalLanguageQuery },
+			{ query },
 			{
 				onError: (error) => {
 					toast.error(error.message);
@@ -78,8 +79,11 @@ export default function page() {
 
 	const handleHistorySelect = (query: string) => {
 		setNaturalLanguageQuery(query);
-		// Optional: Auto-execute the query
-		// handleQuery();
+	};
+
+	const handleHistoryExecute = (query: string) => {
+		setNaturalLanguageQuery(query);
+		handleQuery(query);
 	};
 
 	const isLoading = queryExecution.isPending;
@@ -284,7 +288,10 @@ export default function page() {
 			</div>
 
 			{/* Query History Sidebar */}
-			<QueryHistory onSelectQuery={handleHistorySelect} />
+			<QueryHistory
+				onSelectQuery={handleHistorySelect}
+				onExecuteQuery={handleHistoryExecute}
+			/>
 
 			{/* Row Details Modal */}
 			{selectedRow && (

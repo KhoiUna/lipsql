@@ -1,14 +1,18 @@
 'use client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ChevronLeft, Clock, Copy, History } from 'lucide-react';
+import { ChevronLeft, Clock, Copy, History, Play } from 'lucide-react';
 import { useHistory } from '@/lib/hooks/use-api';
 
 interface QueryHistoryProps {
 	onSelectQuery: (query: string) => void;
+	onExecuteQuery: (query: string) => void;
 }
 
-export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
+export default function QueryHistory({
+	onSelectQuery,
+	onExecuteQuery,
+}: QueryHistoryProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const historyQuery = useHistory();
 
@@ -109,15 +113,29 @@ export default function QueryHistory({ onSelectQuery }: QueryHistoryProps) {
 										>
 											{item.natural_query}
 										</button>
-										<button
-											onClick={() =>
-												copySql(item.generated_sql)
-											}
-											className="p-1 hover:bg-gray-200 rounded transition-colors"
-											title="Copy SQL"
-										>
-											<Copy size={14} />
-										</button>
+										<div className="flex items-center gap-1">
+											<button
+												onClick={() => {
+													onExecuteQuery(
+														item.natural_query
+													);
+													setIsOpen(false);
+												}}
+												className="cursor-pointer p-1 hover:bg-green-100 rounded-lg transition-colors text-green-600"
+												title="Execute this query"
+											>
+												<Play size={14} />
+											</button>
+											<button
+												onClick={() =>
+													copySql(item.generated_sql)
+												}
+												className="cursor-pointer p-1 hover:bg-gray-200 rounded-lg transition-colors"
+												title="Copy SQL"
+											>
+												<Copy size={14} />
+											</button>
+										</div>
 									</div>
 
 									<div className="text-xs text-gray-500 flex items-center gap-1 mb-2">
