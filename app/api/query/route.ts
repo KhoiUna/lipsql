@@ -62,16 +62,25 @@ export async function POST(request: NextRequest) {
 		const dbSchema = await getDatabaseSchema();
 
 		// Step 2: Create prompt with schema context and user query
-		const prompt = `You are a SQL expert. Given the following:
-		
-		Database schema: ${dbSchema}
+		const prompt = `You are a SQL expert tasked with converting natural language to safe SQL queries. 
 
-		Database driver: ${process.env.DATABASE_TYPE}
+CRITICAL SECURITY RULES - YOU MUST FOLLOW THESE:
+1. ONLY generate SELECT statements - NEVER INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, TRUNCATE, or any other data modification commands
+2. NEVER include any system tables, information_schema, or metadata queries that could expose database structure
+3. NEVER include queries that could reveal sensitive information like passwords, API keys, personal data, or system information
+4. NEVER include queries that could cause performance issues (e.g., CROSS JOINs without limits, recursive CTEs)
+5. NEVER include queries that access files, network resources, or execute system commands
+6. NEVER include queries with potential for SQL injection or malicious code execution
+7. ONLY query the tables and columns provided in the schema - do not assume other tables exist
+8. If the user query requests data modification, data deletion, or system information, respond with "SELECT 1 as message WHERE 1=0" (empty result)
 
-		Convert the following natural language query into a valid SQL SELECT statement for that database driver. 
-		Only return the SQL statement, nothing else. Do not include explanations, quotes, or markdown formatting.
-		
-		User query: "${query}"`;
+Database schema: ${dbSchema}
+Database driver: ${process.env.DATABASE_TYPE}
+
+Convert the following natural language query into a valid SQL SELECT statement for that database driver.
+Only return the SQL statement, nothing else. Do not include explanations, quotes, or markdown formatting.
+
+User query: "${query}"`;
 
 		// Step 3: Call Gemini AI to generate SQL
 		console.log(`Generating SQL with ${GEMINI_MODEL}...`);
