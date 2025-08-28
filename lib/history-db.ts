@@ -67,6 +67,11 @@ export function getQueryHistory(
 		.all(userId, limit) as QueryHistoryItem[];
 }
 
+export function clearQueryHistory(userId: string = 'default'): void {
+	const db = getDb();
+	db.prepare(`DELETE FROM query_history WHERE user_id = ?`).run(userId);
+}
+
 export function closeDb(): void {
 	if (db) {
 		db.close();

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ChevronLeft, Clock, Copy, History, Play } from 'lucide-react';
+import { ChevronLeft, Clock, Copy, History, Play, Trash2 } from 'lucide-react';
 import { useHistory } from '@/lib/hooks/use-api';
 
 interface QueryHistoryProps {
@@ -22,6 +22,23 @@ export default function QueryHistory({
 			toast.success('SQL copied to clipboard');
 		} catch (error) {
 			toast.error('Failed to copy SQL');
+		}
+	};
+
+	const clearHistory = async () => {
+		try {
+			const response = await fetch('/api/history/clear', {
+				method: 'DELETE',
+			});
+
+			if (response.ok) {
+				toast.success('Query history cleared');
+				historyQuery.refetch();
+			} else {
+				toast.error('Failed to clear history');
+			}
+		} catch (error) {
+			toast.error('Failed to clear history');
 		}
 	};
 
@@ -64,12 +81,23 @@ export default function QueryHistory({
 						<Clock size={20} />
 						Query History
 					</h2>
-					<button
-						onClick={() => setIsOpen(false)}
-						className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-					>
-						<ChevronLeft size={20} />
-					</button>
+					<div className="flex items-center gap-2">
+						{history.length > 0 && (
+							<button
+								onClick={clearHistory}
+								className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-600"
+								title="Clear all history"
+							>
+								<Trash2 size={16} />
+							</button>
+						)}
+						<button
+							onClick={() => setIsOpen(false)}
+							className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+						>
+							<ChevronLeft size={20} />
+						</button>
+					</div>
 				</div>
 
 				{/* Content */}
