@@ -97,6 +97,7 @@ export default function page() {
 					<form onSubmit={handleSubmit} className="space-y-4 mb-8">
 						<div className="relative">
 							<Textarea
+								className="shadow-sm"
 								placeholder="Speak to your database using natural language"
 								value={naturalLanguageQuery}
 								onChange={(e) =>
