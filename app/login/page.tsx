@@ -3,8 +3,10 @@ import { useState } from 'react';
 import HeaderBar from '@/components/header-bar';
 import { useLogin } from '@/lib/hooks/use-api';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+	const router = useRouter();
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const loginMutation = useLogin();
@@ -16,8 +18,7 @@ export default function LoginPage() {
 			{ username, password },
 			{
 				onSuccess: () => {
-					// router.push('/');
-					window.location.reload();
+					router.push('/');
 				},
 				onError: (error) => {
 					toast.error(error.message);

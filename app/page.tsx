@@ -109,6 +109,7 @@ export default function page() {
 								}
 								onKeyDown={handleKeyDown}
 								disabled={isLoading}
+								rows={4}
 							/>
 						</div>
 
