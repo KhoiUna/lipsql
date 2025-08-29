@@ -1,8 +1,8 @@
 'use client';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthCheck, useLogout } from '@/lib/hooks/use-api';
+import Image from 'next/image';
 
 export default function HeaderBar() {
 	const router = useRouter();
@@ -32,22 +32,17 @@ export default function HeaderBar() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo and Title */}
-					<Link href="/" className="flex items-center space-x-3">
+					<Link href="/" className="flex items-center">
 						<Image
 							src="/images/android-chrome-192x192.png"
 							alt="PlainSQL Logo"
-							width={32}
-							height={32}
+							width={40}
+							height={40}
 							className="rounded-lg"
 						/>
-						<div className="flex flex-col">
-							<span className="text-xl font-bold text-black">
-								PlainSQL
-							</span>
-							<span className="text-xs text-gray-500">
-								v{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
-							</span>
-						</div>
+						<span className="text-xs text-gray-500">
+							v{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
+						</span>
 					</Link>
 
 					{/* Navigation and Auth */}
