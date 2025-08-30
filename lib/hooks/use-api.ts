@@ -51,6 +51,24 @@ interface SaveHistoryRequest {
 	generatedSql: string;
 }
 
+interface DirectSqlRequest {
+	sql: string;
+}
+
+interface DirectSqlResponse {
+	success: boolean;
+	sql: string;
+	result: {
+		rows: any[];
+		rowCount: number;
+		fields: Array<{
+			name: string;
+			dataTypeID: number;
+		}>;
+	};
+	timestamp: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -115,6 +133,21 @@ const api = {
 			throw new Error('Failed to save history');
 		}
 	},
+
+	async executeDirectSql(data: DirectSqlRequest): Promise<DirectSqlResponse> {
+		const response = await fetch('/api/query/direct', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Direct SQL execution failed');
+		}
+
+		return response.json();
+	},
 };
 
 // Custom hooks
@@ -165,5 +198,11 @@ export function useHistory() {
 	return useQuery({
 		queryKey: ['history'],
 		queryFn: api.getHistory,
+	});
+}
+
+export function useDirectSqlExecution() {
+	return useMutation({
+		mutationFn: api.executeDirectSql,
 	});
 }
