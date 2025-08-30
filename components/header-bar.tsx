@@ -41,7 +41,7 @@ export default function HeaderBar() {
 							className="rounded-lg"
 						/>
 						<span className="text-xs text-gray-500">
-							v{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
+							{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
 						</span>
 					</Link>
 
