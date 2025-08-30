@@ -1,39 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQueryHistory, saveQuery } from '@/lib/history-db';
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
-
-const JWT_SECRET = process.env.JWT_SECRET as string;
-
-async function verifyAuth(): Promise<{
-	success: boolean;
-	username?: string;
-	error?: string;
-}> {
-	try {
-		const cookieStore = await cookies();
-		const authCookie = cookieStore.get('plainsql-auth');
-
-		if (!authCookie) {
-			return { success: false, error: 'Authentication required' };
-		}
-
-		const secret = new TextEncoder().encode(JWT_SECRET);
-		const { payload } = await jwtVerify(authCookie.value, secret);
-
-		if (!payload.authenticated || !payload.username) {
-			return { success: false, error: 'Invalid authentication token' };
-		}
-
-		return { success: true, username: payload.username as string };
-	} catch {
-		return { success: false, error: 'Authentication failed' };
-	}
-}
+import { verifyAuthentication } from '../api-utils';
 
 export async function GET() {
 	try {
-		const auth = await verifyAuth();
+		const auth = await verifyAuthentication();
 		if (!auth.success) {
 			return NextResponse.json({ error: auth.error }, { status: 401 });
 		}
@@ -50,7 +21,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
 	try {
-		const auth = await verifyAuth();
+		const auth = await verifyAuthentication();
 		if (!auth.success) {
 			return NextResponse.json({ error: auth.error }, { status: 401 });
 		}
