@@ -12,7 +12,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import { cn } from '@/lib/utils';
-import { useQueryExecution } from '@/lib/hooks/use-api';
+import { useQueryExecution, useDirectSqlExecution } from '@/lib/hooks/use-api';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -20,11 +20,13 @@ interface QueryRow {
 
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
+	const [sqlQuery, setSqlQuery] = useState('');
 	const [selectedRow, setSelectedRow] = useState<QueryRow | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isSqlExpanded, setIsSqlExpanded] = useState(true);
 
 	const queryExecution = useQueryExecution();
+	const directSqlExecution = useDirectSqlExecution();
 
 	const handleQuery = (queryToExecute?: string) => {
 		const query = queryToExecute || naturalLanguageQuery;
@@ -63,7 +65,13 @@ export default function page() {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!queryExecution.isPending && naturalLanguageQuery.trim()) {
+		if (isLoading) return;
+
+		if (sqlQuery.trim()) {
+			// We're in SQL mode
+			handleDirectSql(sqlQuery);
+		} else if (naturalLanguageQuery.trim()) {
+			// We're in natural language mode
 			handleQuery();
 		}
 	};
@@ -71,7 +79,11 @@ export default function page() {
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.ctrlKey && e.key === 'Enter') {
 			e.preventDefault();
-			if (!queryExecution.isPending && naturalLanguageQuery.trim()) {
+			if (isLoading) return;
+
+			if (sqlQuery.trim()) {
+				handleDirectSql(sqlQuery);
+			} else if (naturalLanguageQuery.trim()) {
 				handleQuery();
 			}
 		}
@@ -79,17 +91,42 @@ export default function page() {
 
 	const handleHistorySelect = (query: string) => {
 		setNaturalLanguageQuery(query);
+		setSqlQuery('');
 	};
 
-	const handleHistoryExecute = (query: string) => {
-		setNaturalLanguageQuery(query);
-		handleQuery(query);
+	const handleHistoryExecute = (sql: string) => {
+		setSqlQuery(sql);
+		setNaturalLanguageQuery(''); // Clear natural language query
+		handleDirectSql(sql);
 	};
 
-	const isLoading = queryExecution.isPending;
-	const error = queryExecution.error?.message;
-	const generatedSql = queryExecution.data?.sql;
-	const queryResult = queryExecution.data?.result;
+	const clearSqlQuery = () => {
+		setSqlQuery('');
+		setNaturalLanguageQuery('');
+	};
+
+	const handleDirectSql = (sqlToExecute: string) => {
+		directSqlExecution.mutate(
+			{ sql: sqlToExecute },
+			{
+				onError: (error) => {
+					toast.error(error.message);
+				},
+			}
+		);
+	};
+
+	const isLoading = queryExecution.isPending || directSqlExecution.isPending;
+	const error =
+		queryExecution.error?.message || directSqlExecution.error?.message;
+	const generatedSql = sqlQuery
+		? directSqlExecution.data?.sql
+		: queryExecution.data?.sql;
+	const queryResult = sqlQuery
+		? directSqlExecution.data?.result
+		: queryExecution.data?.result;
+
+	console.log(queryResult);
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -106,36 +143,58 @@ export default function page() {
 						<div className="relative">
 							<Textarea
 								className="shadow-sm p-3"
-								placeholder="Speak to your database using natural language"
-								value={naturalLanguageQuery}
-								onChange={(e) =>
-									setNaturalLanguageQuery(e.target.value)
+								placeholder={
+									'Speak to your database using natural language'
 								}
+								value={sqlQuery || naturalLanguageQuery}
+								onChange={(e) => {
+									const value = e.target.value;
+									if (sqlQuery) setSqlQuery('');
+									setNaturalLanguageQuery(value);
+								}}
 								onKeyDown={handleKeyDown}
 								disabled={isLoading}
 								rows={5}
 							/>
 						</div>
 
-						<button
-							type="submit"
-							className={cn(
-								'cursor-pointer w-full py-3 rounded-lg font-semibold text-white transition-all duration-200',
-								isLoading || !naturalLanguageQuery.trim()
-									? 'bg-gray-300 cursor-not-allowed'
-									: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
+						<div className="flex gap-2">
+							<button
+								type="submit"
+								className={cn(
+									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-white transition-all duration-200',
+									isLoading ||
+										(!naturalLanguageQuery.trim() &&
+											!sqlQuery.trim())
+										? 'bg-gray-300 cursor-not-allowed'
+										: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
+								)}
+								disabled={
+									isLoading ||
+									(!naturalLanguageQuery.trim() &&
+										!sqlQuery.trim())
+								}
+							>
+								{isLoading ? (
+									<div className="flex items-center justify-center space-x-2">
+										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+										<span>Processing...</span>
+									</div>
+								) : (
+									'Submit'
+								)}
+							</button>
+							{(sqlQuery.trim() ||
+								naturalLanguageQuery.trim()) && (
+								<button
+									type="button"
+									onClick={clearSqlQuery}
+									className="px-4 py-3 rounded-lg font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all duration-200"
+								>
+									Clear
+								</button>
 							)}
-							disabled={isLoading || !naturalLanguageQuery.trim()}
-						>
-							{isLoading ? (
-								<div className="flex items-center justify-center space-x-2">
-									<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-									<span>Processing...</span>
-								</div>
-							) : (
-								'Submit'
-							)}
-						</button>
+						</div>
 					</form>
 
 					{/* Error Display */}
@@ -167,9 +226,11 @@ export default function page() {
 										<h2 className="text-lg font-semibold text-black flex items-center justify-between">
 											<span className="flex items-center">
 												<span className="text-black mr-2">
-													📝
+													{sqlQuery ? '⚡' : '📝'}
 												</span>
-												Generated SQL Query
+												{sqlQuery
+													? 'Executed SQL Query'
+													: 'Generated SQL Query'}
 											</span>
 											<span className="text-gray-500 text-sm">
 												{isSqlExpanded ? (
