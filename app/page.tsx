@@ -126,8 +126,6 @@ export default function page() {
 		? directSqlExecution.data?.result
 		: queryExecution.data?.result;
 
-	console.log(queryResult);
-
 	return (
 		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
