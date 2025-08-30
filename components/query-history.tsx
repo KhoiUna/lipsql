@@ -6,7 +6,7 @@ import { useHistory } from '@/lib/hooks/use-api';
 
 interface QueryHistoryProps {
 	onSelectQuery: (query: string) => void;
-	onExecuteQuery: (query: string) => void;
+	onExecuteQuery: (sql: string) => void;
 }
 
 export default function QueryHistory({
@@ -145,12 +145,12 @@ export default function QueryHistory({
 											<button
 												onClick={() => {
 													onExecuteQuery(
-														item.natural_query
+														item.generated_sql
 													);
 													setIsOpen(false);
 												}}
 												className="cursor-pointer p-1 hover:bg-green-100 rounded-lg transition-colors text-green-600"
-												title="Execute this query"
+												title="Execute this SQL"
 											>
 												<Play size={14} />
 											</button>
