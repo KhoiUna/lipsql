@@ -69,6 +69,14 @@ interface DirectSqlResponse {
 	timestamp: string;
 }
 
+interface SchemaResponse {
+	success: boolean;
+	databaseType: string;
+	schema: string;
+	relationships: any[];
+	timestamp: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -148,6 +156,16 @@ const api = {
 
 		return response.json();
 	},
+
+	async getSchema(): Promise<SchemaResponse> {
+		const response = await fetch('/api/schema');
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch schema information');
+		}
+
+		return response.json();
+	},
 };
 
 // Custom hooks
@@ -204,5 +222,12 @@ export function useHistory() {
 export function useDirectSqlExecution() {
 	return useMutation({
 		mutationFn: api.executeDirectSql,
+	});
+}
+
+export function useSchema() {
+	return useQuery({
+		queryKey: ['schema'],
+		queryFn: api.getSchema,
 	});
 }
