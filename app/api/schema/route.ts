@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
 	getDatabaseSchema,
-	getDatabaseType,
+	getDriver,
 	getTableRelationships,
 } from '@/lib/db-utils';
 import { verifyAuthentication } from '../api-utils';
@@ -19,14 +19,14 @@ export async function GET() {
 
 		// Get database schema information
 		const schema = await getDatabaseSchema();
-		const dbType = getDatabaseType();
+		const databaseDriver = getDriver();
 		const relationships = await getTableRelationships();
 
 		return NextResponse.json({
 			success: true,
-			databaseType: dbType,
-			schema: schema,
-			relationships: relationships,
+			databaseDriver,
+			schema,
+			relationships,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
