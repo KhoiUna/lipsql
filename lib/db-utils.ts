@@ -8,6 +8,7 @@ interface DatabaseDriver {
 	connect(): Promise<any>;
 	query(sql: string): Promise<any>;
 	getSchema(): Promise<string>;
+	getRelationships(): Promise<any[]>;
 	close(): Promise<void>;
 }
 
@@ -92,6 +93,41 @@ class PostgresDriver implements DatabaseDriver {
 			}
 
 			return schemaString;
+		} finally {
+			client.release();
+		}
+	}
+
+	async getRelationships(): Promise<any[]> {
+		const client = await this.connect();
+
+		try {
+			// Get foreign key relationships
+			const relationshipsQuery = `
+				SELECT
+					tc.table_name,
+					kcu.column_name,
+					ccu.table_name AS foreign_table_name,
+					ccu.column_name AS foreign_column_name
+				FROM information_schema.table_constraints AS tc
+				JOIN information_schema.key_column_usage AS kcu
+					ON tc.constraint_name = kcu.constraint_name
+					AND tc.table_schema = kcu.table_schema
+				JOIN information_schema.constraint_column_usage AS ccu
+					ON ccu.constraint_name = tc.constraint_name
+					AND ccu.table_schema = tc.table_schema
+				WHERE tc.constraint_type = 'FOREIGN KEY'
+				AND tc.table_schema = 'public'
+				ORDER BY tc.table_name, kcu.column_name
+			`;
+
+			const result = await client.query(relationshipsQuery);
+			return result.rows.map((row: any) => ({
+				table: row.table_name,
+				column: row.column_name,
+				foreignTable: row.foreign_table_name,
+				foreignColumn: row.foreign_column_name,
+			}));
 		} finally {
 			client.release();
 		}
@@ -189,6 +225,36 @@ class SqlServerDriver implements DatabaseDriver {
 		}
 	}
 
+	async getRelationships(): Promise<any[]> {
+		const connection = await this.connect();
+
+		try {
+			// Get foreign key relationships for SQL Server
+			const relationshipsQuery = `
+				SELECT
+					fk.name AS constraint_name,
+					OBJECT_NAME(fk.parent_object_id) AS table_name,
+					COL_NAME(fkc.parent_object_id, fkc.parent_column_id) AS column_name,
+					OBJECT_NAME(fk.referenced_object_id) AS foreign_table_name,
+					COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) AS foreign_column_name
+				FROM sys.foreign_keys fk
+				INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+				ORDER BY table_name, column_name
+			`;
+
+			const result = await connection.request().query(relationshipsQuery);
+			return result.recordset.map((row: any) => ({
+				table: row.table_name,
+				column: row.column_name,
+				foreignTable: row.foreign_table_name,
+				foreignColumn: row.foreign_column_name,
+			}));
+		} catch (error) {
+			console.error('SQL Server relationships extraction error:', error);
+			return [];
+		}
+	}
+
 	async close() {
 		if (this.connection) {
 			await this.connection.close();
@@ -228,7 +294,7 @@ function getGeminiAI(): GoogleGenerativeAI {
 // Updated functions using the driver abstraction
 let dbDriver: DatabaseDriver | null = null;
 
-function getDriver(): DatabaseDriver {
+export function getDriver(): DatabaseDriver {
 	if (!dbDriver) {
 		dbDriver = getDatabaseDriver();
 	}
@@ -238,6 +304,11 @@ function getDriver(): DatabaseDriver {
 // Get database schema information
 export async function getDatabaseSchema(): Promise<string> {
 	return await getDriver().getSchema();
+}
+
+// Get table relationships
+export async function getTableRelationships(): Promise<any[]> {
+	return await getDriver().getRelationships();
 }
 
 // Call Gemini AI to convert natural language to SQL
