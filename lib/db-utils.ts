@@ -5,6 +5,7 @@ import { GEMINI_MODEL } from './constants';
 
 // Database driver abstraction
 interface DatabaseDriver {
+	databaseType: string;
 	connect(): Promise<any>;
 	query(sql: string): Promise<any>;
 	getSchema(): Promise<string>;
@@ -15,6 +16,7 @@ interface DatabaseDriver {
 // PostgreSQL driver implementation
 class PostgresDriver implements DatabaseDriver {
 	private pool: Pool | null = null;
+	databaseType: string = process.env.DATABASE_TYPE as string;
 
 	async connect() {
 		if (!this.pool) {
@@ -144,6 +146,7 @@ class PostgresDriver implements DatabaseDriver {
 // SQL Server driver implementation
 class SqlServerDriver implements DatabaseDriver {
 	private connection: sql.ConnectionPool | null = null;
+	databaseType: string = process.env.DATABASE_TYPE as string;
 
 	async connect() {
 		if (!this.connection) {
