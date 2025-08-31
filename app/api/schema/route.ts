@@ -19,24 +19,18 @@ export async function GET() {
 
 		// Get database schema information
 		const schema = await getDatabaseSchema();
-		const databaseDriver = getDriver();
+		const databaseType = getDriver().databaseType;
 		const relationships = await getTableRelationships();
 
 		return NextResponse.json({
 			success: true,
-			databaseDriver,
+			databaseType,
 			schema,
 			relationships,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
 		console.error('Schema API Error:', error);
-
-		const errorMessage =
-			error instanceof Error
-				? error.message
-				: 'An unknown error occurred';
-
 		return NextResponse.json(
 			{
 				success: false,
