@@ -3,7 +3,7 @@ import { clearQueryHistory } from '@/lib/history-db';
 
 export async function DELETE(request: NextRequest) {
 	try {
-		clearQueryHistory(process.env.PLAINSQL_USERNAME);
+		clearQueryHistory(process.env.LIPSQL_USERNAME);
 		return NextResponse.json({ success: true });
 	} catch (error) {
 		console.error('Error clearing query history:', error);

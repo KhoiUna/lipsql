@@ -1,6 +1,6 @@
 {
-	"name": "PlainSQL | Speak to your database using natural language",
-	"short_name": "PlainSQL",
+	"name": "LipSQL | Speak to your database using natural language",
+	"short_name": "LipSQL",
 	"icons": [
 		{
 			"src": "/images/android-chrome-192x192.png",

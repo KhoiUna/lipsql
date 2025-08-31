@@ -1,6 +1,6 @@
 services:
     client:
-        container_name: plainsql_container
+        container_name: lipsql_container
         build:
             context: .
         ports:
@@ -8,8 +8,8 @@ services:
         environment:
             - NODE_ENV=production
         networks:
-            - plainsql_network
+            - lipsql_network
 
 networks:
-    plainsql_network:
+    lipsql_network:
         driver: bridge

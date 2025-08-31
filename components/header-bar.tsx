@@ -41,7 +41,7 @@ export default function HeaderBar() {
 						<Link href="/" className="flex items-center">
 							<Image
 								src="/images/android-chrome-192x192.png"
-								alt="PlainSQL Logo"
+								alt="LipSQL Logo"
 								width={40}
 								height={40}
 								className="rounded-lg"

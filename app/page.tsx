@@ -132,9 +132,7 @@ export default function page() {
 
 			<div className="flex-1 flex items-center justify-center p-8">
 				<div className="w-full max-w-4xl">
-					<h1 className="font-bold text-center mb-3 text-2xl">
-						PlainSQL
-					</h1>
+					<h1 className="text-center mb-4 text-2xl">LipSQL</h1>
 
 					{/* Input Section */}
 					<form onSubmit={handleSubmit} className="space-y-4 mb-8">

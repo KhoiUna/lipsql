@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 const DB_DIR = path.join(process.cwd(), 'db');
-const DB_PATH = path.join(DB_DIR, 'plainsql-sqlite.db');
+const DB_PATH = path.join(DB_DIR, 'lipsql-sqlite.db');
 
 // Ensure db directory exists
 if (!fs.existsSync(DB_DIR)) {

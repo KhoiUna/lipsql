@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
 	try {
 		const { username, password } = await request.json();
 
-		const expectedUsername = process.env.PLAINSQL_USERNAME;
-		const expectedPassword = process.env.PLAINSQL_PASSWORD;
+		const expectedUsername = process.env.LIPSQL_USERNAME;
+		const expectedPassword = process.env.LIPSQL_PASSWORD;
 
 		if (username === expectedUsername && password === expectedPassword) {
 			// Generate a secure JWT token using jose
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 				.sign(secret);
 
 			// Set secure session cookie with JWT token
-			(await cookies()).set('plainsql-auth', token, {
+			(await cookies()).set('lipsql-auth', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'strict',

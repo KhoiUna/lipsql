@@ -10,7 +10,7 @@ export async function verifyAuthentication(): Promise<{
 }> {
 	try {
 		const cookieStore = await cookies();
-		const authCookie = cookieStore.get('plainsql-auth');
+		const authCookie = cookieStore.get('lipsql-auth');
 
 		if (!authCookie) {
 			return { success: false, error: 'Authentication required' };

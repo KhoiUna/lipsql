@@ -20,18 +20,18 @@ export const generateStaticMetadata = ({
 }): Metadata => {
 	return {
 		title:
-			title || 'PlainSQL | Speak to your database using natural language',
+			title || 'LipSQL | Speak to your database using natural language',
 		description:
 			description ||
-			'PlainSQL | Speak to your database using natural language',
-		manifest: 'https://plainsql.platopunk.com/manifest.json',
+			'LipSQL | Speak to your database using natural language',
+		manifest: 'https://lipsql.platopunk.com/manifest.json',
 		openGraph: {
 			title,
 			description,
-			siteName: 'PlainSQL',
+			siteName: 'LipSQL',
 			images: [
 				{
-					url: 'https://plainsql.platopunk.com/images/og.png',
+					url: 'https://lipsql.platopunk.com/images/og.png',
 					width: 1200,
 					height: 800,
 				},
@@ -43,7 +43,7 @@ export const generateStaticMetadata = ({
 			title,
 			card: 'summary_large_image',
 			description,
-			images: ['https://plainsql.platopunk.com/images/og.png'],
+			images: ['https://lipsql.platopunk.com/images/og.png'],
 		},
 		icons: {
 			apple: '/images/apple-touch-icon.png',
