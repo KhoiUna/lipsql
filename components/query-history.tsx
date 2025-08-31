@@ -64,7 +64,7 @@ export default function QueryHistory({
 			{/* Backdrop */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/20 z-50"
+					className="fixed inset-0 bg-black/60 z-50"
 					onClick={() => setIsOpen(false)}
 				/>
 			)}
