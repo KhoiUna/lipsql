@@ -1,13 +1,18 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuthCheck, useLogout } from '@/lib/hooks/use-api';
+import { useAuthCheck, useLogout, useSchema } from '@/lib/hooks/use-api';
 import Image from 'next/image';
+import { useState } from 'react';
+import { Info } from 'lucide-react';
+import SchemaInfoModal from './ui/schema-info-modal';
 
 export default function HeaderBar() {
 	const router = useRouter();
 	const authCheck = useAuthCheck();
 	const logoutMutation = useLogout();
+	const schemaQuery = useSchema();
+	const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
 
 	const handleLogout = () => {
 		logoutMutation.mutate(undefined, {
@@ -28,50 +33,79 @@ export default function HeaderBar() {
 	const isLoading = authCheck.isLoading;
 
 	return (
-		<header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex justify-between items-center h-16">
-					{/* Logo and Title */}
-					<Link href="/" className="flex items-center">
-						<Image
-							src="/images/android-chrome-192x192.png"
-							alt="PlainSQL Logo"
-							width={40}
-							height={40}
-							className="rounded-lg"
-						/>
-						<span className="text-xs text-gray-500">
-							{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
-						</span>
-					</Link>
+		<>
+			<header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="flex justify-between items-center h-16">
+						{/* Logo and Title */}
+						<Link href="/" className="flex items-center">
+							<Image
+								src="/images/android-chrome-192x192.png"
+								alt="PlainSQL Logo"
+								width={40}
+								height={40}
+								className="rounded-lg"
+							/>
+							<span className="text-xs text-gray-500">
+								{process.env.NEXT_PUBLIC_VERSION || '0.0.0'}
+							</span>
+						</Link>
 
-					{/* Navigation and Auth */}
-					<div className="flex items-center space-x-4">
-						{isLoading ? (
-							<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-						) : isAuthenticated ? (
-							<button
-								type="button"
-								onClick={handleLogout}
-								disabled={logoutMutation.isPending}
-								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
-							>
-								{logoutMutation.isPending
-									? 'Logging out...'
-									: 'Log Out'}
-							</button>
-						) : (
-							<button
-								type="button"
-								onClick={handleLogin}
-								className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
-							>
-								Log In
-							</button>
-						)}
+						{/* Navigation and Auth */}
+						<div className="flex items-center space-x-4">
+							{isAuthenticated && (
+								<button
+									type="button"
+									onClick={() => setIsSchemaModalOpen(true)}
+									disabled={schemaQuery.isLoading}
+									className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+									title="View Database Schema"
+								>
+									{schemaQuery.isLoading ? (
+										<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+									) : (
+										<Info className="w-4 h-4" />
+									)}
+									<span>Schema Info</span>
+								</button>
+							)}
+							{isLoading ? (
+								<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+							) : isAuthenticated ? (
+								<button
+									type="button"
+									onClick={handleLogout}
+									disabled={logoutMutation.isPending}
+									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+								>
+									{logoutMutation.isPending
+										? 'Logging out...'
+										: 'Log Out'}
+								</button>
+							) : (
+								<button
+									type="button"
+									onClick={handleLogin}
+									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+								>
+									Log In
+								</button>
+							)}
+						</div>
 					</div>
 				</div>
-			</div>
-		</header>
+			</header>
+
+			{/* Schema Info Modal */}
+			{schemaQuery.data && (
+				<SchemaInfoModal
+					isOpen={isSchemaModalOpen}
+					onClose={() => setIsSchemaModalOpen(false)}
+					databaseType={schemaQuery.data.databaseType}
+					schema={schemaQuery.data.schema}
+					relationships={schemaQuery.data.relationships}
+				/>
+			)}
+		</>
 	);
 }
