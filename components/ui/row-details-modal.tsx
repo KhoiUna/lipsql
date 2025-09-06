@@ -24,7 +24,7 @@ export default function RowDetailsModal({
 			onClick={onClose}
 		>
 			<div
-				className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden"
+				className="bg-secondary rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between p-6 border-b border-gray-200">

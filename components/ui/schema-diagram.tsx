@@ -68,7 +68,7 @@ export default function SchemaDiagram({
 			<svg
 				width={maxX + diagramData.tableWidth + 100}
 				height={maxY + diagramData.tableHeight + 100}
-				className="bg-white"
+				className="bg-secondary"
 			>
 				{/* Relationship lines */}
 				{diagramData.lines.map((line, index) => (

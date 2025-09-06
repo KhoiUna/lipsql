@@ -253,7 +253,7 @@ export default function page() {
 							<button
 								type="submit"
 								className={cn(
-									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-white transition-all duration-200',
+									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-secondary transition-all duration-200',
 									isLoading || !naturalLanguageQuery.trim()
 										? 'bg-gray-300 cursor-not-allowed'
 										: 'bg-primary hover:bg-gray-800 active:bg-gray-900 shadow-sm'
@@ -264,7 +264,7 @@ export default function page() {
 							>
 								{isLoading ? (
 									<div className="flex items-center justify-center space-x-2">
-										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+										<div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></div>
 										<span>Processing...</span>
 									</div>
 								) : isCurrentInputSql ? (
@@ -332,7 +332,7 @@ export default function page() {
 									<CollapsibleContent className="px-6 pb-6">
 										<div className="space-y-4">
 											<div
-												className="bg-white rounded-md border border-gray-200 p-4 cursor-pointer"
+												className="bg-secondary rounded-md border border-gray-200 p-4 cursor-pointer"
 												onClick={copyToClipboard}
 											>
 												<code className="text-sm text-primary font-mono whitespace-pre-wrap break-all pr-12">
@@ -343,7 +343,7 @@ export default function page() {
 												onClick={() =>
 													setShowSaveDialog(true)
 												}
-												className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+												className="w-full py-2 px-4 bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
 											>
 												💾 Save Query
 											</button>
@@ -370,7 +370,7 @@ export default function page() {
 									{/* Results Table */}
 									{queryResult.rows &&
 									queryResult.rows.length > 0 ? (
-										<div className="bg-white rounded-md border border-gray-200 overflow-hidden">
+										<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
 											<div className="overflow-x-auto">
 												<table className="w-full text-sm">
 													<thead className="bg-gray-100 border-b border-gray-200">
@@ -440,7 +440,7 @@ export default function page() {
 											</div>
 										</div>
 									) : (
-										<div className="bg-white rounded-md border border-gray-200 p-4 text-center text-gray-600">
+										<div className="bg-secondary rounded-md border border-gray-200 p-4 text-center text-gray-600">
 											No results found
 										</div>
 									)}
@@ -476,7 +476,7 @@ export default function page() {
 			{/* Save Query Dialog */}
 			{showSaveDialog && (
 				<div className="fixed inset-0 bg-primary/60 z-50 flex items-center justify-center p-4">
-					<div className="bg-white rounded-lg p-6 w-full max-w-md">
+					<div className="bg-secondary rounded-lg p-6 w-full max-w-md">
 						<h3 className="text-lg font-semibold mb-4">
 							Save Query
 						</h3>
@@ -503,7 +503,7 @@ export default function page() {
 										saveQuery.isPending ||
 										!saveQueryName.trim()
 									}
-									className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+									className="flex-1 py-2 px-4 bg-blue-600 text-secondary rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
 								>
 									{saveQuery.isPending ? 'Saving...' : 'Save'}
 								</button>

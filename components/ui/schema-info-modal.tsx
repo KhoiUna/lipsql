@@ -65,7 +65,7 @@ export default function SchemaInfoModal({
 
 	return (
 		<div className="fixed inset-0 bg-primary/60 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-			<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-[90vh] overflow-hidden">
+			<div className="bg-secondary rounded-lg shadow-xl max-w-4xl w-full h-[90vh] overflow-hidden">
 				{/* Header */}
 				<div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
 					<div className="flex items-center space-x-2 sm:space-x-3">
@@ -121,7 +121,7 @@ export default function SchemaInfoModal({
 						<Link className="w-3 h-3 sm:w-4 sm:h-4" />
 						<span>Relationships</span>
 						{relationships.length > 0 && (
-							<span className="bg-primary text-white text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full">
+							<span className="bg-primary text-secondary text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full">
 								{relationships.length}
 							</span>
 						)}
@@ -153,7 +153,7 @@ export default function SchemaInfoModal({
 											<Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
 											{table.name}
 										</h3>
-										<div className="bg-white rounded-md border border-gray-200 overflow-hidden">
+										<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
 											<div className="overflow-x-auto">
 												<table className="w-full text-xs sm:text-sm">
 													<thead className="bg-gray-100 border-b border-gray-200">
@@ -191,7 +191,7 @@ export default function SchemaInfoModal({
 																			className={`inline-flex items-center px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
 																				column.nullable
 																					? 'bg-gray-100 text-gray-800'
-																					: 'bg-primary text-white'
+																					: 'bg-primary text-secondary'
 																			}`}
 																		>
 																			{column.nullable

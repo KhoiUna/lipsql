@@ -82,7 +82,7 @@ export default function SavedQueries({
 			{/* Toggle Button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="cursor-pointer fixed bottom-22 left-5 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
+				className="cursor-pointer fixed bottom-22 left-5 bg-primary text-secondary p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
 				title="Saved Queries"
 			>
 				<Star size={20} />
@@ -98,7 +98,7 @@ export default function SavedQueries({
 
 			{/* Side Panel */}
 			<div
-				className={`fixed left-0 top-0 h-full bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-50 w-80 ${
+				className={`fixed left-0 top-0 h-full bg-secondary border-l border-gray-200 shadow-xl transition-transform duration-300 z-50 w-80 ${
 					isOpen ? 'translate-x-0' : '-translate-x-full'
 				}`}
 			>
@@ -263,7 +263,7 @@ export default function SavedQueries({
 										)}
 									</div>
 
-									<code className="text-xs text-gray-700 bg-white p-2 rounded border block overflow-hidden">
+									<code className="text-xs text-gray-700 bg-secondary p-2 rounded border block overflow-hidden">
 										{item.generated_sql}
 									</code>
 								</div>

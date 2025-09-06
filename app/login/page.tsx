@@ -32,7 +32,7 @@ export default function LoginPage() {
 			<HeaderBar />
 
 			<div className="flex-1 flex items-center justify-center p-4">
-				<div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+				<div className="w-full max-w-md bg-secondary rounded-xl shadow-sm border border-gray-200 p-8">
 					<div className="text-center mb-8">
 						<h1 className="text-2xl font-bold text-primary mb-2">
 							Log In
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
 						<button
 							type="submit"
-							className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
+							className={`w-full py-3 rounded-lg font-semibold text-secondary transition-all duration-200 ${
 								loginMutation.isPending
 									? 'bg-gray-300 cursor-not-allowed'
 									: 'bg-primary hover:bg-gray-800 active:bg-gray-900 shadow-sm'
@@ -89,7 +89,7 @@ export default function LoginPage() {
 						>
 							{loginMutation.isPending ? (
 								<div className="flex items-center justify-center space-x-2">
-									<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+									<div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></div>
 									<span>Logging In...</span>
 								</div>
 							) : (
