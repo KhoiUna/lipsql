@@ -72,6 +72,7 @@ interface DirectSqlResponse {
 interface SchemaResponse {
 	success: boolean;
 	databaseType: string;
+	databaseName: string;
 	schema: string;
 	relationships: any[];
 	timestamp: string;
