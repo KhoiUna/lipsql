@@ -3,6 +3,7 @@ import {
 	getDatabaseSchema,
 	getDriver,
 	getTableRelationships,
+	getDatabaseName,
 } from '@/lib/db-utils';
 import { verifyAuthentication } from '../api-utils';
 
@@ -20,11 +21,13 @@ export async function GET() {
 		// Get database schema information
 		const schema = await getDatabaseSchema();
 		const databaseType = getDriver().databaseType;
+		const databaseName = await getDatabaseName();
 		const relationships = await getTableRelationships();
 
 		return NextResponse.json({
 			success: true,
 			databaseType,
+			databaseName,
 			schema,
 			relationships,
 			timestamp: new Date().toISOString(),

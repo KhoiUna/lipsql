@@ -102,6 +102,7 @@ export default function HeaderBar() {
 					isOpen={isSchemaModalOpen}
 					onClose={() => setIsSchemaModalOpen(false)}
 					databaseType={schemaQuery.data.databaseType}
+					databaseName={schemaQuery.data.databaseName}
 					schema={schemaQuery.data.schema}
 					relationships={schemaQuery.data.relationships}
 				/>

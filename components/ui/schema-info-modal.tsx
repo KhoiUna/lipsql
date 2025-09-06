@@ -7,6 +7,7 @@ interface SchemaInfoModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	databaseType: string;
+	databaseName: string;
 	schema: string;
 	relationships: any[];
 }
@@ -15,6 +16,7 @@ export default function SchemaInfoModal({
 	isOpen,
 	onClose,
 	databaseType,
+	databaseName,
 	schema,
 	relationships,
 }: SchemaInfoModalProps) {
@@ -72,10 +74,17 @@ export default function SchemaInfoModal({
 							<h2 className="text-lg sm:text-xl font-semibold text-black">
 								Database Schema Information
 							</h2>
+
 							<p className="text-xs sm:text-sm text-gray-600">
-								Database Type:{' '}
-								<span className="font-medium text-black">
+								Database Type:
+								<span className="ml-1 font-medium text-black">
 									{databaseType}
+								</span>
+							</p>
+							<p className="text-xs sm:text-sm text-gray-600">
+								Database Name:
+								<span className="ml-1 font-medium text-black">
+									{databaseName}
 								</span>
 							</p>
 						</div>
