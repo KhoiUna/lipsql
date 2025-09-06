@@ -18,6 +18,52 @@ interface QueryRow {
 	[key: string]: string | number | boolean | null;
 }
 
+// Function to detect if input is a valid SQL statement
+const isSqlStatement = (input: string): boolean => {
+	const trimmed = input.trim().toLowerCase();
+
+	// Check if it starts with common SQL keywords
+	const sqlKeywords = [
+		'select',
+		'with',
+		'insert',
+		'update',
+		'delete',
+		'create',
+		'drop',
+		'alter',
+		'truncate',
+		'explain',
+		'describe',
+		'show',
+		'declare',
+	];
+
+	const startsWithSqlKeyword = sqlKeywords.some((keyword) =>
+		trimmed.startsWith(keyword)
+	);
+
+	// Additional checks for more complex SQL patterns
+	const hasSqlPatterns =
+		trimmed.includes(' from ') ||
+		trimmed.includes(' where ') ||
+		trimmed.includes(' join ') ||
+		trimmed.includes(' group by ') ||
+		trimmed.includes(' order by ') ||
+		trimmed.includes(' having ') ||
+		trimmed.includes(' union ') ||
+		trimmed.includes(';') ||
+		(trimmed.includes('(') && trimmed.includes(')')) ||
+		trimmed.includes(' as ') ||
+		trimmed.includes(' count(') ||
+		trimmed.includes(' sum(') ||
+		trimmed.includes(' avg(') ||
+		trimmed.includes(' max(') ||
+		trimmed.includes(' min(');
+
+	return startsWithSqlKeyword && hasSqlPatterns;
+};
+
 export default function page() {
 	const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
 	const [sqlQuery, setSqlQuery] = useState('');
@@ -67,11 +113,13 @@ export default function page() {
 		e.preventDefault();
 		if (isLoading) return;
 
-		if (sqlQuery.trim()) {
-			// We're in SQL mode
-			handleDirectSql(sqlQuery);
-		} else if (naturalLanguageQuery.trim()) {
-			// We're in natural language mode
+		const currentInput = naturalLanguageQuery.trim();
+
+		if (isSqlStatement(currentInput)) {
+			// Input is detected as SQL, run as direct SQL
+			handleDirectSql(currentInput);
+		} else if (currentInput) {
+			// Input is natural language, use AI to convert to SQL
 			handleQuery();
 		}
 	};
@@ -81,9 +129,11 @@ export default function page() {
 			e.preventDefault();
 			if (isLoading) return;
 
-			if (sqlQuery.trim()) {
-				handleDirectSql(sqlQuery);
-			} else if (naturalLanguageQuery.trim()) {
+			const currentInput = naturalLanguageQuery.trim();
+
+			if (isSqlStatement(currentInput)) {
+				handleDirectSql(currentInput);
+			} else if (currentInput) {
 				handleQuery();
 			}
 		}
@@ -100,9 +150,9 @@ export default function page() {
 		handleDirectSql(sql);
 	};
 
-	const clearSqlQuery = () => {
-		setSqlQuery('');
+	const clearInput = () => {
 		setNaturalLanguageQuery('');
+		setSqlQuery('');
 	};
 
 	const handleDirectSql = (sqlToExecute: string) => {
@@ -126,6 +176,10 @@ export default function page() {
 		? directSqlExecution.data?.result
 		: queryExecution.data?.result;
 
+	// Determine if current input is SQL for button text
+	const currentInput = naturalLanguageQuery.trim();
+	const isCurrentInputSql = isSqlStatement(currentInput);
+
 	return (
 		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
@@ -140,13 +194,14 @@ export default function page() {
 							<Textarea
 								className="shadow-sm p-3"
 								placeholder={
-									'Speak to your database using natural language'
+									'Speak to your database using natural language or type SQL directly'
 								}
-								value={sqlQuery || naturalLanguageQuery}
+								value={naturalLanguageQuery}
 								onChange={(e) => {
 									const value = e.target.value;
-									if (sqlQuery) setSqlQuery('');
 									setNaturalLanguageQuery(value);
+									// Clear sqlQuery when user types in main input
+									if (sqlQuery) setSqlQuery('');
 								}}
 								onKeyDown={handleKeyDown}
 								disabled={isLoading}
@@ -159,16 +214,12 @@ export default function page() {
 								type="submit"
 								className={cn(
 									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-white transition-all duration-200',
-									isLoading ||
-										(!naturalLanguageQuery.trim() &&
-											!sqlQuery.trim())
+									isLoading || !naturalLanguageQuery.trim()
 										? 'bg-gray-300 cursor-not-allowed'
 										: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
 								)}
 								disabled={
-									isLoading ||
-									(!naturalLanguageQuery.trim() &&
-										!sqlQuery.trim())
+									isLoading || !naturalLanguageQuery.trim()
 								}
 							>
 								{isLoading ? (
@@ -176,15 +227,16 @@ export default function page() {
 										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
 										<span>Processing...</span>
 									</div>
+								) : isCurrentInputSql ? (
+									'Run SQL'
 								) : (
 									'Submit'
 								)}
 							</button>
-							{(sqlQuery.trim() ||
-								naturalLanguageQuery.trim()) && (
+							{naturalLanguageQuery.trim() && (
 								<button
 									type="button"
-									onClick={clearSqlQuery}
+									onClick={clearInput}
 									className="px-4 py-3 rounded-lg font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all duration-200"
 								>
 									Clear
