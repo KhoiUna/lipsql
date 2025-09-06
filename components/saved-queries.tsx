@@ -142,7 +142,7 @@ export default function SavedQueries({
 							{savedQueries.map((item) => (
 								<div
 									key={item.id}
-									className="bg-blue-50 rounded-lg p-3 border border-blue-200"
+									className="bg-gray-50 rounded-lg p-3 border border-gray-200"
 								>
 									<div className="flex items-start justify-between gap-2 mb-2">
 										{editingId === item.id ? (
@@ -155,7 +155,7 @@ export default function SavedQueries({
 															e.target.value
 														)
 													}
-													className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+													className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-500"
 													autoFocus
 													onKeyDown={(e) => {
 														if (e.key === 'Enter') {
@@ -197,59 +197,64 @@ export default function SavedQueries({
 													);
 													setIsOpen(false);
 												}}
-												className="text-left flex-1 hover:text-primary transition-colors cursor-pointer text-sm font-medium text-blue-900 line-clamp-2"
+												className="text-left flex-1 hover:text-primary transition-colors cursor-pointer text-sm font-medium text-gray-900 line-clamp-2"
 												title="Click to reuse this query"
 											>
 												{item.saved_name}
 											</button>
 										)}
-										<div className="flex items-center gap-1">
-											<button
-												onClick={() => {
-													onExecuteQuery(
-														item.generated_sql
-													);
-													setIsOpen(false);
-												}}
-												className="cursor-pointer p-1 hover:bg-green-100 rounded-lg transition-colors text-green-600"
-												title="Execute this SQL"
-											>
-												<Play size={14} />
-											</button>
-											<button
-												onClick={() =>
-													copySql(item.generated_sql)
-												}
-												className="cursor-pointer p-1 hover:bg-gray-200 rounded-lg transition-colors"
-												title="Copy SQL"
-											>
-												<Copy size={14} />
-											</button>
-											<button
-												onClick={() =>
-													handleRename(
-														item.id,
-														item.saved_name
-													)
-												}
-												className="cursor-pointer p-1 hover:bg-blue-100 rounded-lg transition-colors text-primary"
-												title="Rename"
-											>
-												<Edit3 size={14} />
-											</button>
-											<button
-												onClick={() =>
-													handleDelete(
-														item.id,
-														item.saved_name
-													)
-												}
-												className="cursor-pointer p-1 hover:bg-red-100 rounded-lg transition-colors text-red-600"
-												title="Delete"
-											>
-												<Trash2 size={14} />
-											</button>
-										</div>
+
+										{!editingId && (
+											<div className="flex items-center gap-1">
+												<button
+													onClick={() => {
+														onExecuteQuery(
+															item.generated_sql
+														);
+														setIsOpen(false);
+													}}
+													className="cursor-pointer p-1 hover:bg-green-100 rounded-lg transition-colors text-green-600"
+													title="Execute this SQL"
+												>
+													<Play size={14} />
+												</button>
+												<button
+													onClick={() =>
+														copySql(
+															item.generated_sql
+														)
+													}
+													className="cursor-pointer p-1 hover:bg-gray-200 rounded-lg transition-colors"
+													title="Copy SQL"
+												>
+													<Copy size={14} />
+												</button>
+												<button
+													onClick={() =>
+														handleRename(
+															item.id,
+															item.saved_name
+														)
+													}
+													className="cursor-pointer p-1 hover:bg-gray-100 rounded-lg transition-colors text-primary"
+													title="Rename"
+												>
+													<Edit3 size={14} />
+												</button>
+												<button
+													onClick={() =>
+														handleDelete(
+															item.id,
+															item.saved_name
+														)
+													}
+													className="cursor-pointer p-1 hover:bg-red-100 rounded-lg transition-colors text-red-600"
+													title="Delete"
+												>
+													<Trash2 size={14} />
+												</button>
+											</div>
+										)}
 									</div>
 
 									<div className="text-xs text-primary mb-2">
