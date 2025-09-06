@@ -64,26 +64,26 @@ export default function SchemaInfoModal({
 	const tables = parseSchema(schema);
 
 	return (
-		<div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-			<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+		<div className="fixed inset-0 bg-primary/60 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+			<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-[90vh] overflow-hidden">
 				{/* Header */}
 				<div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
 					<div className="flex items-center space-x-2 sm:space-x-3">
-						<Database className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
+						<Database className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
 						<div>
-							<h2 className="text-lg sm:text-xl font-semibold text-black">
+							<h2 className="text-lg sm:text-xl font-semibold text-primary">
 								Database Schema Information
 							</h2>
 
 							<p className="text-xs sm:text-sm text-gray-600">
 								Database Type:
-								<span className="ml-1 font-medium text-black">
+								<span className="ml-1 font-medium text-primary">
 									{databaseType}
 								</span>
 							</p>
 							<p className="text-xs sm:text-sm text-gray-600">
 								Database Name:
-								<span className="ml-1 font-medium text-black">
+								<span className="ml-1 font-medium text-primary">
 									{databaseName}
 								</span>
 							</p>
@@ -91,7 +91,7 @@ export default function SchemaInfoModal({
 					</div>
 					<button
 						onClick={onClose}
-						className="text-gray-400 hover:text-gray-600 transition-colors"
+						className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
 					>
 						<X className="w-6 h-6" />
 					</button>
@@ -103,8 +103,8 @@ export default function SchemaInfoModal({
 						onClick={() => setActiveTab('schema')}
 						className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
 							activeTab === 'schema'
-								? 'text-black border-b-2 border-black'
-								: 'text-gray-500 hover:text-black'
+								? 'text-primary border-b-2 border-primary'
+								: 'text-gray-500 hover:text-primary'
 						}`}
 					>
 						<Table className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -114,14 +114,14 @@ export default function SchemaInfoModal({
 						onClick={() => setActiveTab('relationships')}
 						className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
 							activeTab === 'relationships'
-								? 'text-black border-b-2 border-black'
-								: 'text-gray-500 hover:text-black'
+								? 'text-primary border-b-2 border-primary'
+								: 'text-gray-500 hover:text-primary'
 						}`}
 					>
 						<Link className="w-3 h-3 sm:w-4 sm:h-4" />
 						<span>Relationships</span>
 						{relationships.length > 0 && (
-							<span className="bg-black text-white text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full">
+							<span className="bg-primary text-white text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full">
 								{relationships.length}
 							</span>
 						)}
@@ -130,8 +130,8 @@ export default function SchemaInfoModal({
 						onClick={() => setActiveTab('diagram')}
 						className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
 							activeTab === 'diagram'
-								? 'text-black border-b-2 border-black'
-								: 'text-gray-500 hover:text-black'
+								? 'text-primary border-b-2 border-primary'
+								: 'text-gray-500 hover:text-primary'
 						}`}
 					>
 						<BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -149,8 +149,8 @@ export default function SchemaInfoModal({
 										key={table.name}
 										className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
 									>
-										<h3 className="text-base sm:text-lg font-semibold text-black mb-3 flex items-center">
-											<Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-black" />
+										<h3 className="text-base sm:text-lg font-semibold text-primary mb-3 flex items-center">
+											<Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
 											{table.name}
 										</h3>
 										<div className="bg-white rounded-md border border-gray-200 overflow-hidden">
@@ -158,13 +158,13 @@ export default function SchemaInfoModal({
 												<table className="w-full text-xs sm:text-sm">
 													<thead className="bg-gray-100 border-b border-gray-200">
 														<tr>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-black">
+															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
 																Column
 															</th>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-black">
+															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
 																Type
 															</th>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-black">
+															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
 																Nullable
 															</th>
 														</tr>
@@ -176,7 +176,7 @@ export default function SchemaInfoModal({
 																	key={index}
 																	className="border-b border-gray-100 last:border-b-0"
 																>
-																	<td className="px-2 sm:px-4 py-2 font-medium text-black">
+																	<td className="px-2 sm:px-4 py-2 font-medium text-primary">
 																		{
 																			column.name
 																		}
@@ -191,7 +191,7 @@ export default function SchemaInfoModal({
 																			className={`inline-flex items-center px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
 																				column.nullable
 																					? 'bg-gray-100 text-gray-800'
-																					: 'bg-black text-white'
+																					: 'bg-primary text-white'
 																			}`}
 																		>
 																			{column.nullable
@@ -224,13 +224,13 @@ export default function SchemaInfoModal({
 											<div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
 												<div className="flex-1">
 													<div className="flex items-center space-x-2">
-														<span className="font-semibold text-black text-sm sm:text-base">
+														<span className="font-semibold text-primary text-sm sm:text-base">
 															{rel.table}
 														</span>
 														<span className="text-gray-500">
 															.
 														</span>
-														<span className="text-black font-medium text-sm sm:text-base">
+														<span className="text-primary font-medium text-sm sm:text-base">
 															{rel.column}
 														</span>
 													</div>
@@ -238,13 +238,13 @@ export default function SchemaInfoModal({
 												<Link className="w-4 h-4 text-gray-400 hidden sm:block" />
 												<div className="flex-1">
 													<div className="flex items-center space-x-2">
-														<span className="font-semibold text-black text-sm sm:text-base">
+														<span className="font-semibold text-primary text-sm sm:text-base">
 															{rel.foreignTable}
 														</span>
 														<span className="text-gray-500">
 															.
 														</span>
-														<span className="text-black font-medium text-sm sm:text-base">
+														<span className="text-primary font-medium text-sm sm:text-base">
 															{rel.foreignColumn}
 														</span>
 													</div>

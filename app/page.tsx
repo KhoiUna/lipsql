@@ -256,7 +256,7 @@ export default function page() {
 									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-white transition-all duration-200',
 									isLoading || !naturalLanguageQuery.trim()
 										? 'bg-gray-300 cursor-not-allowed'
-										: 'bg-black hover:bg-gray-800 active:bg-gray-900 shadow-sm'
+										: 'bg-primary hover:bg-gray-800 active:bg-gray-900 shadow-sm'
 								)}
 								disabled={
 									isLoading || !naturalLanguageQuery.trim()
@@ -311,9 +311,9 @@ export default function page() {
 									className="bg-gray-50 rounded-lg border border-gray-200"
 								>
 									<CollapsibleTrigger className="w-full p-6 text-left hover:bg-gray-100 transition-colors rounded-lg">
-										<h2 className="text-lg font-semibold text-black flex items-center justify-between">
+										<h2 className="text-lg font-semibold text-primary flex items-center justify-between">
 											<span className="flex items-center">
-												<span className="text-black mr-2">
+												<span className="text-primary mr-2">
 													{sqlQuery ? '⚡' : '📝'}
 												</span>
 												{sqlQuery
@@ -335,7 +335,7 @@ export default function page() {
 												className="bg-white rounded-md border border-gray-200 p-4 cursor-pointer"
 												onClick={copyToClipboard}
 											>
-												<code className="text-sm text-black font-mono whitespace-pre-wrap break-all pr-12">
+												<code className="text-sm text-primary font-mono whitespace-pre-wrap break-all pr-12">
 													{generatedSql}
 												</code>
 											</div>
@@ -355,7 +355,7 @@ export default function page() {
 							{/* Query Results */}
 							{queryResult && (
 								<div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-									<h2 className="text-lg font-semibold text-black mb-3 flex items-center">
+									<h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
 										<span className="text-green-600 mr-2">
 											📊
 										</span>
@@ -381,7 +381,7 @@ export default function page() {
 															).map((column) => (
 																<th
 																	key={column}
-																	className="px-4 py-3 text-left font-semibold text-black"
+																	className="px-4 py-3 text-left font-semibold text-primary"
 																>
 																	{column}
 																</th>
@@ -414,7 +414,7 @@ export default function page() {
 																				key={
 																					colIndex
 																				}
-																				className="px-4 py-3 text-black max-w-xs truncate"
+																				className="px-4 py-3 text-primary max-w-xs truncate"
 																				title={String(
 																					value
 																				)}
@@ -475,7 +475,7 @@ export default function page() {
 
 			{/* Save Query Dialog */}
 			{showSaveDialog && (
-				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+				<div className="fixed inset-0 bg-primary/60 z-50 flex items-center justify-center p-4">
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<h3 className="text-lg font-semibold mb-4">
 							Save Query

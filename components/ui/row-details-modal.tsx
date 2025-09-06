@@ -20,7 +20,7 @@ export default function RowDetailsModal({
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+			className="fixed inset-0 bg-primary/60 flex items-center justify-center p-4 z-50"
 			onClick={onClose}
 		>
 			<div
@@ -28,7 +28,7 @@ export default function RowDetailsModal({
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between p-6 border-b border-gray-200">
-					<h3 className="text-lg font-semibold text-black">
+					<h3 className="text-lg font-semibold text-primary">
 						Row Details
 					</h3>
 					<button
@@ -49,7 +49,7 @@ export default function RowDetailsModal({
 								<div className="font-semibold text-gray-700 mb-1">
 									{column}
 								</div>
-								<div className="text-black break-words">
+								<div className="text-primary break-words">
 									{row[column] === null ? (
 										<span className="text-gray-400 italic">
 											null

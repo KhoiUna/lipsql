@@ -91,7 +91,7 @@ export default function SavedQueries({
 			{/* Backdrop */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/60 z-50"
+					className="fixed inset-0 bg-primary/60 z-50"
 					onClick={() => setIsOpen(false)}
 				/>
 			)}

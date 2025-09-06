@@ -55,7 +55,7 @@ export default function QueryHistory({
 			{/* Toggle Button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="cursor-pointer fixed bottom-5 left-5 bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
+				className="cursor-pointer fixed bottom-5 left-5 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
 				title="Query History"
 			>
 				<History size={20} />
@@ -64,7 +64,7 @@ export default function QueryHistory({
 			{/* Backdrop */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/60 z-50"
+					className="fixed inset-0 bg-primary/60 z-50"
 					onClick={() => setIsOpen(false)}
 				/>
 			)}
@@ -104,7 +104,7 @@ export default function QueryHistory({
 				<div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
 					{isLoading ? (
 						<div className="flex items-center justify-center py-8">
-							<div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
+							<div className="w-6 h-6 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
 						</div>
 					) : error ? (
 						<div className="text-center text-red-500 py-8">
@@ -136,7 +136,7 @@ export default function QueryHistory({
 												);
 												setIsOpen(false);
 											}}
-											className="text-left flex-1 hover:text-black/50 transition-colors cursor-pointer text-sm font-medium text-gray-900 line-clamp-2"
+											className="text-left flex-1 hover:text-primary/50 transition-colors cursor-pointer text-sm font-medium text-gray-900 line-clamp-2"
 											title="Click to reuse this query"
 										>
 											{item.natural_query}

@@ -58,7 +58,7 @@ export default function HeaderBar() {
 									type="button"
 									onClick={() => setIsSchemaModalOpen(true)}
 									disabled={schemaQuery.isLoading}
-									className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+									className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 									title="View Database Schema"
 								>
 									{schemaQuery.isLoading ? (
@@ -76,7 +76,7 @@ export default function HeaderBar() {
 									type="button"
 									onClick={handleLogout}
 									disabled={logoutMutation.isPending}
-									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 								>
 									{logoutMutation.isPending
 										? 'Logging out...'
@@ -86,7 +86,7 @@ export default function HeaderBar() {
 								<button
 									type="button"
 									onClick={handleLogin}
-									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 								>
 									Log In
 								</button>
