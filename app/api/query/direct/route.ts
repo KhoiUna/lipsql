@@ -24,6 +24,16 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		if (
+			sql.includes('insert') ||
+			sql.includes('update') ||
+			sql.includes('delete')
+		) {
+			throw new Error(
+				`Only SELECT queries are allowed for security reasons: ${sql}`
+			);
+		}
+
 		// Execute the SQL query directly
 		console.log('Executing SQL query directly:', sql, '...');
 		const result = await executeSql(sql);
