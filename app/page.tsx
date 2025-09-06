@@ -342,14 +342,14 @@ export default function page() {
 													{generatedSql}
 												</code>
 											</div>
-											<button
+											<Button
 												onClick={() =>
 													setShowSaveDialog(true)
 												}
-												className="w-full py-2 px-4 bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+												className="font-medium w-full bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
 											>
 												💾 Save Query
-											</button>
+											</Button>
 										</div>
 									</CollapsibleContent>
 								</Collapsible>
@@ -505,7 +505,7 @@ export default function page() {
 										saveQuery.isPending ||
 										!saveQueryName.trim()
 									}
-									className="flex-1 py-2 px-4 cursor-pointer"
+									className="flex-1 cursor-pointer"
 								>
 									{saveQuery.isPending ? 'Saving...' : 'Save'}
 								</Button>
@@ -514,7 +514,7 @@ export default function page() {
 										setShowSaveDialog(false);
 										setSaveQueryName('');
 									}}
-									className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+									className="flex-1 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
 								>
 									Cancel
 								</Button>
