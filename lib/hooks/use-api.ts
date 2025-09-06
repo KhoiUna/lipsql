@@ -78,6 +78,31 @@ interface SchemaResponse {
 	timestamp: string;
 }
 
+interface SavedQueryItem {
+	id: number;
+	saved_name: string;
+	natural_query: string | null;
+	generated_sql: string;
+	timestamp: string;
+	user_id: string;
+}
+
+interface SavedQueriesResponse {
+	success: boolean;
+	savedQueries: SavedQueryItem[];
+	timestamp: string;
+}
+
+interface SaveQueryRequest {
+	savedName: string;
+	naturalQuery?: string | null;
+	generatedSql: string;
+}
+
+interface UpdateQueryNameRequest {
+	savedName: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -167,6 +192,56 @@ const api = {
 
 		return response.json();
 	},
+
+	async getSavedQueries(): Promise<SavedQueriesResponse> {
+		const response = await fetch('/api/saved-queries');
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch saved queries');
+		}
+
+		return response.json();
+	},
+
+	async saveQuery(data: SaveQueryRequest): Promise<void> {
+		const response = await fetch('/api/saved-queries', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to save query');
+		}
+	},
+
+	async updateSavedQueryName(
+		id: number,
+		data: UpdateQueryNameRequest
+	): Promise<void> {
+		const response = await fetch(`/api/saved-queries/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to update query name');
+		}
+	},
+
+	async deleteSavedQuery(id: number): Promise<void> {
+		const response = await fetch(`/api/saved-queries/${id}`, {
+			method: 'DELETE',
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to delete query');
+		}
+	},
 };
 
 // Custom hooks
@@ -230,5 +305,54 @@ export function useSchema() {
 	return useQuery({
 		queryKey: ['schema'],
 		queryFn: api.getSchema,
+	});
+}
+
+export function useSavedQueries() {
+	return useQuery({
+		queryKey: ['savedQueries'],
+		queryFn: api.getSavedQueries,
+	});
+}
+
+export function useSaveQuery() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.saveQuery,
+		onSuccess: () => {
+			// Invalidate saved queries to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['savedQueries'] });
+		},
+	});
+}
+
+export function useUpdateSavedQueryName() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({
+			id,
+			data,
+		}: {
+			id: number;
+			data: UpdateQueryNameRequest;
+		}) => api.updateSavedQueryName(id, data),
+		onSuccess: () => {
+			// Invalidate saved queries to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['savedQueries'] });
+		},
+	});
+}
+
+export function useDeleteSavedQuery() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.deleteSavedQuery,
+		onSuccess: () => {
+			// Invalidate saved queries to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['savedQueries'] });
+		},
 	});
 }

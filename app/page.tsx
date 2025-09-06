@@ -11,8 +11,13 @@ import { toast } from 'sonner';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
+import SavedQueries from '@/components/saved-queries';
 import { cn } from '@/lib/utils';
-import { useQueryExecution, useDirectSqlExecution } from '@/lib/hooks/use-api';
+import {
+	useQueryExecution,
+	useDirectSqlExecution,
+	useSaveQuery,
+} from '@/lib/hooks/use-api';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -70,9 +75,12 @@ export default function page() {
 	const [selectedRow, setSelectedRow] = useState<QueryRow | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isSqlExpanded, setIsSqlExpanded] = useState(true);
+	const [showSaveDialog, setShowSaveDialog] = useState(false);
+	const [saveQueryName, setSaveQueryName] = useState('');
 
 	const queryExecution = useQueryExecution();
 	const directSqlExecution = useDirectSqlExecution();
+	const saveQuery = useSaveQuery();
 
 	const handleQuery = (queryToExecute?: string) => {
 		const query = queryToExecute || naturalLanguageQuery;
@@ -159,6 +167,38 @@ export default function page() {
 		directSqlExecution.mutate(
 			{ sql: sqlToExecute },
 			{
+				onError: (error) => {
+					toast.error(error.message);
+				},
+			}
+		);
+	};
+
+	const handleSaveQuery = () => {
+		if (!generatedSql) {
+			toast.error('No query to save');
+			return;
+		}
+
+		if (!saveQueryName.trim()) {
+			toast.error('Please enter a name for the query');
+			return;
+		}
+
+		saveQuery.mutate(
+			{
+				savedName: saveQueryName.trim(),
+				naturalQuery: sqlQuery
+					? null
+					: naturalLanguageQuery.trim() || null,
+				generatedSql: generatedSql,
+			},
+			{
+				onSuccess: () => {
+					toast.success('Query saved successfully');
+					setShowSaveDialog(false);
+					setSaveQueryName('');
+				},
 				onError: (error) => {
 					toast.error(error.message);
 				},
@@ -290,13 +330,23 @@ export default function page() {
 										</h2>
 									</CollapsibleTrigger>
 									<CollapsibleContent className="px-6 pb-6">
-										<div
-											className="bg-white rounded-md border border-gray-200 p-4 cursor-pointer"
-											onClick={copyToClipboard}
-										>
-											<code className="text-sm text-black font-mono whitespace-pre-wrap break-all pr-12">
-												{generatedSql}
-											</code>
+										<div className="space-y-4">
+											<div
+												className="bg-white rounded-md border border-gray-200 p-4 cursor-pointer"
+												onClick={copyToClipboard}
+											>
+												<code className="text-sm text-black font-mono whitespace-pre-wrap break-all pr-12">
+													{generatedSql}
+												</code>
+											</div>
+											<button
+												onClick={() =>
+													setShowSaveDialog(true)
+												}
+												className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+											>
+												💾 Save Query
+											</button>
 										</div>
 									</CollapsibleContent>
 								</Collapsible>
@@ -407,6 +457,12 @@ export default function page() {
 				onExecuteQuery={handleHistoryExecute}
 			/>
 
+			{/* Saved Queries Sidebar */}
+			<SavedQueries
+				onSelectQuery={handleHistorySelect}
+				onExecuteQuery={handleHistoryExecute}
+			/>
+
 			{/* Row Details Modal */}
 			{selectedRow && (
 				<RowDetailsModal
@@ -415,6 +471,55 @@ export default function page() {
 					isOpen={isModalOpen}
 					onClose={closeModal}
 				/>
+			)}
+
+			{/* Save Query Dialog */}
+			{showSaveDialog && (
+				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+					<div className="bg-white rounded-lg p-6 w-full max-w-md">
+						<h3 className="text-lg font-semibold mb-4">
+							Save Query
+						</h3>
+						<div className="space-y-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Query Name
+								</label>
+								<input
+									type="text"
+									value={saveQueryName}
+									onChange={(e) =>
+										setSaveQueryName(e.target.value)
+									}
+									placeholder="Enter a name for this query"
+									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+									autoFocus
+								/>
+							</div>
+							<div className="flex gap-3">
+								<button
+									onClick={handleSaveQuery}
+									disabled={
+										saveQuery.isPending ||
+										!saveQueryName.trim()
+									}
+									className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+								>
+									{saveQuery.isPending ? 'Saving...' : 'Save'}
+								</button>
+								<button
+									onClick={() => {
+										setShowSaveDialog(false);
+										setSaveQueryName('');
+									}}
+									className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+								>
+									Cancel
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	);
