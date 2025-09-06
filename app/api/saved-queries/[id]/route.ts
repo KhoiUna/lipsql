@@ -1,23 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { verifyAuthentication } from '../../api-utils';
 import { updateSavedQueryName, deleteSavedQuery } from '@/lib/history-db';
 
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	ctx: RouteContext<'/api/saved-queries/[id]'>
 ) {
 	try {
 		const authResult = await verifyAuthentication();
 		if (!authResult.success) {
-			return NextResponse.json(
-				{ error: authResult.error },
-				{ status: 401 }
-			);
+			return Response.json({ error: authResult.error }, { status: 401 });
 		}
 
-		const id = parseInt(params.id);
-		if (isNaN(id)) {
-			return NextResponse.json(
+		const { id } = await ctx.params;
+		if (!id) {
+			return Response.json(
 				{ error: 'Invalid query ID' },
 				{ status: 400 }
 			);
@@ -31,7 +28,7 @@ export async function PUT(
 			typeof savedName !== 'string' ||
 			savedName.trim().length === 0
 		) {
-			return NextResponse.json(
+			return Response.json(
 				{
 					error: 'Saved name is required and must be a non-empty string',
 				},
@@ -42,14 +39,14 @@ export async function PUT(
 		// Update the query name
 		updateSavedQueryName(id, savedName.trim());
 
-		return NextResponse.json({
+		return Response.json({
 			success: true,
 			message: 'Query name updated successfully',
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
 		console.error('Update saved query API Error:', error);
-		return NextResponse.json(
+		return Response.json(
 			{
 				success: false,
 				error: 'Failed to update query name',
@@ -63,37 +60,33 @@ export async function PUT(
 // DELETE - Delete saved query
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	ctx: RouteContext<'/api/saved-queries/[id]'>
 ) {
 	try {
 		// Authentication check
 		const authResult = await verifyAuthentication();
 		if (!authResult.success) {
-			return NextResponse.json(
-				{ error: authResult.error },
-				{ status: 401 }
-			);
+			return Response.json({ error: authResult.error }, { status: 401 });
 		}
 
-		const id = parseInt(params.id);
-		if (isNaN(id)) {
-			return NextResponse.json(
+		const { id } = await ctx.params;
+		if (!id) {
+			return Response.json(
 				{ error: 'Invalid query ID' },
 				{ status: 400 }
 			);
 		}
 
-		// Delete the query
 		deleteSavedQuery(id);
 
-		return NextResponse.json({
+		return Response.json({
 			success: true,
 			message: 'Query deleted successfully',
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
 		console.error('Delete saved query API Error:', error);
-		return NextResponse.json(
+		return Response.json(
 			{
 				success: false,
 				error: 'Failed to delete query',

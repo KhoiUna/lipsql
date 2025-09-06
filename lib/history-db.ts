@@ -125,7 +125,7 @@ export function getSavedQueries(
 }
 
 export function updateSavedQueryName(
-	id: number,
+	id: string,
 	newName: string,
 	userId: string = 'default'
 ): void {
@@ -139,7 +139,7 @@ export function updateSavedQueryName(
 	).run(newName, id, userId);
 }
 
-export function deleteSavedQuery(id: number, userId: string = 'default'): void {
+export function deleteSavedQuery(id: string, userId: string = 'default'): void {
 	const db = getDb();
 	db.prepare(`DELETE FROM saved_queries WHERE id = ? AND user_id = ?`).run(
 		id,
