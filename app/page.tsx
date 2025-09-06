@@ -178,7 +178,8 @@ export default function page() {
 		);
 	};
 
-	const handleSaveQuery = () => {
+	const handleSaveQuery = (e: React.FormEvent) => {
+		e.preventDefault();
 		if (!generatedSql) {
 			toast.error('No query to save');
 			return;
@@ -483,11 +484,12 @@ export default function page() {
 						<h3 className="text-lg font-semibold mb-4">
 							Save Query
 						</h3>
-						<div className="space-y-4">
+						<form className="space-y-4" onSubmit={handleSaveQuery}>
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">
 									Query Name
 								</label>
+
 								<Input
 									type="text"
 									value={saveQueryName}
@@ -498,9 +500,10 @@ export default function page() {
 									autoFocus
 								/>
 							</div>
+
 							<div className="flex gap-3">
 								<Button
-									onClick={handleSaveQuery}
+									type="submit"
 									disabled={
 										saveQuery.isPending ||
 										!saveQueryName.trim()
@@ -510,6 +513,7 @@ export default function page() {
 									{saveQuery.isPending ? 'Saving...' : 'Save'}
 								</Button>
 								<Button
+									type="button"
 									onClick={() => {
 										setShowSaveDialog(false);
 										setSaveQueryName('');
@@ -519,7 +523,7 @@ export default function page() {
 									Cancel
 								</Button>
 							</div>
-						</div>
+						</form>
 					</div>
 				</div>
 			)}
