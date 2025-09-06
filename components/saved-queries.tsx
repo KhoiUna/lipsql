@@ -73,10 +73,6 @@ export default function SavedQueries({
 		}
 	};
 
-	const formatTimestamp = (timestamp: string) => {
-		return new Date(timestamp).toLocaleString();
-	};
-
 	const savedQueries = savedQueriesQuery.data?.savedQueries || [];
 	const isLoading = savedQueriesQuery.isLoading;
 	const error = savedQueriesQuery.error;
@@ -86,7 +82,7 @@ export default function SavedQueries({
 			{/* Toggle Button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="cursor-pointer fixed bottom-5 right-5 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-40"
+				className="cursor-pointer fixed bottom-22 left-5 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors z-40"
 				title="Saved Queries"
 			>
 				<Star size={20} />
@@ -102,8 +98,8 @@ export default function SavedQueries({
 
 			{/* Side Panel */}
 			<div
-				className={`fixed right-0 top-0 h-full bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-50 w-80 ${
-					isOpen ? 'translate-x-0' : 'translate-x-full'
+				className={`fixed left-0 top-0 h-full bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-50 w-80 ${
+					isOpen ? 'translate-x-0' : '-translate-x-full'
 				}`}
 			>
 				{/* Header */}
@@ -124,7 +120,7 @@ export default function SavedQueries({
 				<div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
 					{isLoading ? (
 						<div className="flex items-center justify-center py-8">
-							<div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+							<div className="w-6 h-6 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
 						</div>
 					) : error ? (
 						<div className="text-center text-red-500 py-8">
@@ -201,7 +197,7 @@ export default function SavedQueries({
 													);
 													setIsOpen(false);
 												}}
-												className="text-left flex-1 hover:text-blue-600 transition-colors cursor-pointer text-sm font-medium text-blue-900 line-clamp-2"
+												className="text-left flex-1 hover:text-primary transition-colors cursor-pointer text-sm font-medium text-blue-900 line-clamp-2"
 												title="Click to reuse this query"
 											>
 												{item.saved_name}
@@ -236,7 +232,7 @@ export default function SavedQueries({
 														item.saved_name
 													)
 												}
-												className="cursor-pointer p-1 hover:bg-blue-100 rounded-lg transition-colors text-blue-600"
+												className="cursor-pointer p-1 hover:bg-blue-100 rounded-lg transition-colors text-primary"
 												title="Rename"
 											>
 												<Edit3 size={14} />
@@ -256,7 +252,7 @@ export default function SavedQueries({
 										</div>
 									</div>
 
-									<div className="text-xs text-blue-600 mb-2">
+									<div className="text-xs text-primary mb-2">
 										{item.natural_query && (
 											<div className="mb-1">
 												<span className="font-medium">
