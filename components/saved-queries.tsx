@@ -1,12 +1,22 @@
 'use client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ChevronLeft, Copy, Edit3, Play, Star, Trash2, X } from 'lucide-react';
+import {
+	ChevronLeft,
+	Clock,
+	Copy,
+	Edit3,
+	Play,
+	Star,
+	Trash2,
+	X,
+} from 'lucide-react';
 import {
 	useSavedQueries,
 	useUpdateSavedQueryName,
 	useDeleteSavedQuery,
 } from '@/lib/hooks/use-api';
+import { formatTimestamp } from '@/lib/utils';
 
 interface SavedQueriesProps {
 	onSelectQuery: (query: string) => void;
@@ -266,6 +276,11 @@ export default function SavedQueries({
 												{item.natural_query}
 											</div>
 										)}
+									</div>
+
+									<div className="text-xs text-gray-500 flex items-center gap-1 mb-2">
+										<Clock size={12} />
+										{formatTimestamp(item.timestamp)}
 									</div>
 
 									<code className="text-xs text-gray-700 bg-secondary p-2 rounded border block overflow-hidden">

@@ -6,6 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+export function formatTimestamp(timestamp: string) {
+	return new Date(timestamp).toLocaleString();
+}
+
 export const truncateMetadataTitle = (title: string): string => {
 	if (title.length <= 30) return title;
 	return title.slice(0, 27) + '...';

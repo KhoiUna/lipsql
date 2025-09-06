@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronLeft, Clock, Copy, History, Play, Trash2 } from 'lucide-react';
 import { useHistory } from '@/lib/hooks/use-api';
+import { formatTimestamp } from '@/lib/utils';
 
 interface QueryHistoryProps {
 	onSelectQuery: (query: string) => void;
@@ -40,10 +41,6 @@ export default function QueryHistory({
 		} catch (error) {
 			toast.error('Failed to clear history');
 		}
-	};
-
-	const formatTimestamp = (timestamp: string) => {
-		return new Date(timestamp).toLocaleString();
 	};
 
 	const history = historyQuery.data?.history || [];
