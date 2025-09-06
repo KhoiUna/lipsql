@@ -10,6 +10,7 @@ interface DatabaseDriver {
 	query(sql: string): Promise<any>;
 	getSchema(): Promise<string>;
 	getRelationships(): Promise<any[]>;
+	getDatabaseName(): Promise<string>;
 	close(): Promise<void>;
 }
 
@@ -130,6 +131,18 @@ class PostgresDriver implements DatabaseDriver {
 				foreignTable: row.foreign_table_name,
 				foreignColumn: row.foreign_column_name,
 			}));
+		} finally {
+			client.release();
+		}
+	}
+
+	async getDatabaseName(): Promise<string> {
+		// For PostgreSQL, we can get the database name from environment variable
+		// or query the current database
+		const client = await this.connect();
+		try {
+			const result = await client.query('SELECT current_database()');
+			return result.rows[0].current_database;
 		} finally {
 			client.release();
 		}
@@ -258,6 +271,23 @@ class SqlServerDriver implements DatabaseDriver {
 		}
 	}
 
+	async getDatabaseName(): Promise<string> {
+		const connection = await this.connect();
+		try {
+			const result = await connection
+				.request()
+				.query('SELECT DB_NAME() AS database_name');
+			return result.recordset[0].database_name;
+		} catch (error) {
+			console.error('SQL Server database name extraction error:', error);
+			// Fallback to parsing from connection string
+			const connectionString =
+				process.env.SQLSERVER_CONNECTION_STRING || '';
+			const dbMatch = connectionString.match(/Database=([^;]+)/i);
+			return dbMatch ? dbMatch[1] : 'Unknown';
+		}
+	}
+
 	async close() {
 		if (this.connection) {
 			await this.connection.close();
@@ -312,6 +342,11 @@ export async function getDatabaseSchema(): Promise<string> {
 // Get table relationships
 export async function getTableRelationships(): Promise<any[]> {
 	return await getDriver().getRelationships();
+}
+
+// Get database name
+export async function getDatabaseName(): Promise<string> {
+	return await getDriver().getDatabaseName();
 }
 
 // Call Gemini AI to convert natural language to SQL
