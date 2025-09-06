@@ -19,9 +19,6 @@ The backend code connects to the database engine and get the database schemas (i
 ## Tech stack
 
 -   NextJS
-
 -   shadcn/ui + TailwindCSS
-
 -   Gemini
-
 -   SQLite
