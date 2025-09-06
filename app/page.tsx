@@ -18,6 +18,8 @@ import {
 	useDirectSqlExecution,
 	useSaveQuery,
 } from '@/lib/hooks/use-api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -97,10 +99,10 @@ export default function page() {
 	};
 
 	const copyToClipboard = async () => {
-		if (!queryExecution.data?.sql) return;
+		if (!generatedSql) return;
 
 		try {
-			await navigator.clipboard.writeText(queryExecution.data.sql);
+			await navigator.clipboard.writeText(generatedSql);
 			toast.success('SQL copied to clipboard');
 		} catch (error) {
 			console.error('Failed to copy to clipboard:', error);
@@ -164,6 +166,8 @@ export default function page() {
 	};
 
 	const handleDirectSql = (sqlToExecute: string) => {
+		setSqlQuery(sqlToExecute);
+
 		directSqlExecution.mutate(
 			{ sql: sqlToExecute },
 			{
@@ -212,9 +216,8 @@ export default function page() {
 	const generatedSql = sqlQuery
 		? directSqlExecution.data?.sql
 		: queryExecution.data?.sql;
-	const queryResult = sqlQuery
-		? directSqlExecution.data?.result
-		: queryExecution.data?.result;
+	const queryResult =
+		directSqlExecution.data?.result || queryExecution.data?.result;
 
 	// Determine if current input is SQL for button text
 	const currentInput = naturalLanguageQuery.trim();
@@ -250,7 +253,7 @@ export default function page() {
 						</div>
 
 						<div className="flex gap-2">
-							<button
+							<Button
 								type="submit"
 								className={cn(
 									'cursor-pointer flex-1 py-3 rounded-lg font-semibold text-secondary transition-all duration-200',
@@ -272,15 +275,15 @@ export default function page() {
 								) : (
 									'Submit'
 								)}
-							</button>
+							</Button>
 							{naturalLanguageQuery.trim() && (
-								<button
+								<Button
 									type="button"
 									onClick={clearInput}
 									className="px-4 py-3 rounded-lg font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all duration-200"
 								>
 									Clear
-								</button>
+								</Button>
 							)}
 						</div>
 					</form>
@@ -485,37 +488,36 @@ export default function page() {
 								<label className="block text-sm font-medium text-gray-700 mb-2">
 									Query Name
 								</label>
-								<input
+								<Input
 									type="text"
 									value={saveQueryName}
 									onChange={(e) =>
 										setSaveQueryName(e.target.value)
 									}
 									placeholder="Enter a name for this query"
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 									autoFocus
 								/>
 							</div>
 							<div className="flex gap-3">
-								<button
+								<Button
 									onClick={handleSaveQuery}
 									disabled={
 										saveQuery.isPending ||
 										!saveQueryName.trim()
 									}
-									className="flex-1 py-2 px-4 bg-blue-600 text-secondary rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+									className="flex-1 py-2 px-4 cursor-pointer"
 								>
 									{saveQuery.isPending ? 'Saving...' : 'Save'}
-								</button>
-								<button
+								</Button>
+								<Button
 									onClick={() => {
 										setShowSaveDialog(false);
 										setSaveQueryName('');
 									}}
-									className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+									className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
 								>
 									Cancel
-								</button>
+								</Button>
 							</div>
 						</div>
 					</div>
