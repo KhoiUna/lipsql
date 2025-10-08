@@ -163,14 +163,29 @@ class SqlServerDriver implements DatabaseDriver {
 
 	async connect() {
 		if (!this.connection) {
-			const connectionString = process.env.SQLSERVER_CONNECTION_STRING;
-			if (!connectionString) {
+			const server = process.env.SQLSERVER_HOST;
+			const database = process.env.SQLSERVER_DATABASE;
+			const user = process.env.SQLSERVER_UID;
+			const password = process.env.SQLSERVER_PASSWORD;
+
+			if (!server || !database || !user || !password) {
 				throw new Error(
-					'SQLSERVER_CONNECTION_STRING environment variable is required for SQL Server'
+					'SQL Server env vars required: SQLSERVER_HOST, SQLSERVER_DATABASE, SQLSERVER_USER, SQLSERVER_PASSWORD'
 				);
 			}
 
-			this.connection = await sql.connect(connectionString);
+			const port = parseInt(process.env.SQLSERVER_PORT as string);
+
+			this.connection = await sql.connect({
+				server,
+				port,
+				database,
+				user,
+				password,
+				requestTimeout: parseInt(
+					process.env.SQLSERVER_TIMEOUT as string
+				), // 10 minutes
+			});
 		}
 		return this.connection;
 	}
