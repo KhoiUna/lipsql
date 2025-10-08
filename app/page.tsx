@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/collapsible';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import SavedQueries from '@/components/saved-queries';
@@ -430,7 +430,8 @@ export default function page() {
 													onClick={downloadCSV}
 													className="cursor-pointer"
 												>
-													⬇️ Download CSV
+													<Download size={16} />
+													Download CSV
 												</Button>
 											)}
 									</div>
