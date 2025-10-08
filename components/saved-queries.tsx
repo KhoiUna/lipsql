@@ -203,7 +203,8 @@ export default function SavedQueries({
 											<button
 												onClick={() => {
 													onSelectQuery(
-														item.natural_query || ''
+														item.natural_query ||
+															item.generated_sql
 													);
 													setIsOpen(false);
 												}}
