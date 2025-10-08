@@ -109,6 +109,57 @@ export default function page() {
 		}
 	};
 
+	const downloadCSV = () => {
+		if (!queryResult?.rows || queryResult.rows.length === 0) return;
+
+		// Get column headers
+		const headers = Object.keys(queryResult.rows[0]);
+
+		// Convert rows to CSV format
+		const csvRows = [];
+		csvRows.push(headers.join(','));
+
+		for (const row of queryResult.rows) {
+			const values = headers.map((header) => {
+				const value = row[header];
+				// Handle null values
+				if (value === null) return '';
+				// Escape quotes and wrap in quotes if contains comma, quote, or newline
+				const stringValue = String(value);
+				if (
+					stringValue.includes(',') ||
+					stringValue.includes('"') ||
+					stringValue.includes('\n')
+				) {
+					return `"${stringValue.replace(/"/g, '""')}"`;
+				}
+				return stringValue;
+			});
+			csvRows.push(values.join(','));
+		}
+
+		const csvContent = csvRows.join('\n');
+
+		// Create blob and download
+		const blob = new Blob([csvContent], {
+			type: 'text/csv;charset=utf-8;',
+		});
+		const link = document.createElement('a');
+		const url = URL.createObjectURL(blob);
+
+		link.setAttribute('href', url);
+		link.setAttribute(
+			'download',
+			`query_results_${new Date().toISOString().slice(0, 10)}.csv`
+		);
+		link.style.visibility = 'hidden';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		toast.success('CSV downloaded successfully');
+	};
+
 	const handleRowClick = (row: QueryRow) => {
 		setSelectedRow(row);
 		setIsModalOpen(true);
@@ -359,17 +410,30 @@ export default function page() {
 							{/* Query Results */}
 							{queryResult && (
 								<div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-									<h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
-										<span className="text-green-600 mr-2">
-											📊
-										</span>
-										Query Results
-										{queryResult.rowCount !== undefined && (
-											<span className="ml-2 text-sm font-normal text-gray-600">
-												({queryResult.rowCount} rows)
+									<div className="flex items-center justify-between mb-3">
+										<h2 className="text-lg font-semibold text-primary flex items-center">
+											<span className="text-green-600 mr-2">
+												📊
 											</span>
-										)}
-									</h2>
+											Query Results
+											{queryResult.rowCount !==
+												undefined && (
+												<span className="ml-2 text-sm font-normal text-gray-600">
+													({queryResult.rowCount}{' '}
+													rows)
+												</span>
+											)}
+										</h2>
+										{queryResult.rows &&
+											queryResult.rows.length > 0 && (
+												<Button
+													onClick={downloadCSV}
+													className="cursor-pointer"
+												>
+													⬇️ Download CSV
+												</Button>
+											)}
+									</div>
 
 									{/* Results Table */}
 									{queryResult.rows &&
