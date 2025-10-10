@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
-import { X, Database, Table, Link, BarChart3 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Database, Table, Link, BarChart3, Search } from 'lucide-react';
 import SchemaDiagram from './schema-diagram';
+import { Input } from './input';
 
 interface SchemaInfoModalProps {
 	isOpen: boolean;
@@ -23,8 +24,7 @@ export default function SchemaInfoModal({
 	const [activeTab, setActiveTab] = useState<
 		'schema' | 'relationships' | 'diagram'
 	>('schema');
-
-	if (!isOpen) return null;
+	const [searchQuery, setSearchQuery] = useState('');
 
 	// Parse schema string to extract table information
 	const parseSchema = (schemaString: string) => {
@@ -62,6 +62,36 @@ export default function SchemaInfoModal({
 	};
 
 	const tables = parseSchema(schema);
+
+	// Filter tables based on search query
+	const filteredTables = useMemo(() => {
+		if (!searchQuery.trim()) return tables;
+
+		const query = searchQuery.toLowerCase();
+		return tables
+			.map((table) => {
+				// Check if table name matches
+				const tableMatches = table.name.toLowerCase().includes(query);
+
+				// Filter columns that match
+				const matchingColumns = table.columns.filter((column) =>
+					column.name.toLowerCase().includes(query)
+				);
+
+				// Include table if table name matches OR has matching columns
+				if (tableMatches || matchingColumns.length > 0) {
+					return {
+						...table,
+						columns: tableMatches ? table.columns : matchingColumns,
+					};
+				}
+
+				return null;
+			})
+			.filter(Boolean) as typeof tables;
+	}, [searchQuery, tables]);
+
+	if (!isOpen) return null;
 
 	return (
 		<div className="fixed inset-0 bg-primary/60 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -143,71 +173,109 @@ export default function SchemaInfoModal({
 				<div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)]">
 					{activeTab === 'schema' && (
 						<div className="p-4 sm:p-6">
-							<div className="grid gap-4 sm:gap-6">
-								{tables.map((table) => (
-									<div
-										key={table.name}
-										className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
+							{/* Search Bar */}
+							<div className="mb-6 relative">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+								<Input
+									type="text"
+									placeholder="Search tables or fields..."
+									value={searchQuery}
+									onChange={(e) =>
+										setSearchQuery(e.target.value)
+									}
+									className="pl-10 pr-10"
+								/>
+								{searchQuery && (
+									<button
+										onClick={() => setSearchQuery('')}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
 									>
-										<h3 className="text-base sm:text-lg font-semibold text-primary mb-3 flex items-center">
-											<Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
-											{table.name}
-										</h3>
-										<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
-											<div className="overflow-x-auto">
-												<table className="w-full text-xs sm:text-sm">
-													<thead className="bg-gray-100 border-b border-gray-200">
-														<tr>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
-																Column
-															</th>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
-																Type
-															</th>
-															<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
-																Nullable
-															</th>
-														</tr>
-													</thead>
-													<tbody>
-														{table.columns.map(
-															(column, index) => (
-																<tr
-																	key={index}
-																	className="border-b border-gray-100 last:border-b-0"
-																>
-																	<td className="px-2 sm:px-4 py-2 font-medium text-primary">
-																		{
-																			column.name
+										<X className="w-4 h-4" />
+									</button>
+								)}
+							</div>
+
+							{/* Tables Grid */}
+							<div className="grid gap-4 sm:gap-6">
+								{filteredTables.length === 0 ? (
+									<div className="text-center py-12">
+										<Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+										<p className="text-gray-500">
+											No tables or fields found matching "
+											{searchQuery}"
+										</p>
+									</div>
+								) : (
+									filteredTables.map((table) => (
+										<div
+											key={table.name}
+											className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
+										>
+											<h3 className="text-base sm:text-lg font-semibold text-primary mb-3 flex items-center">
+												<Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
+												{table.name}
+											</h3>
+											<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
+												<div className="overflow-x-auto">
+													<table className="w-full text-xs sm:text-sm">
+														<thead className="bg-gray-100 border-b border-gray-200">
+															<tr>
+																<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
+																	Column
+																</th>
+																<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
+																	Type
+																</th>
+																<th className="px-2 sm:px-4 py-2 text-left font-semibold text-primary">
+																	Nullable
+																</th>
+															</tr>
+														</thead>
+														<tbody>
+															{table.columns.map(
+																(
+																	column,
+																	index
+																) => (
+																	<tr
+																		key={
+																			index
 																		}
-																	</td>
-																	<td className="px-2 sm:px-4 py-2 text-gray-700">
-																		{
-																			column.type
-																		}
-																	</td>
-																	<td className="px-2 sm:px-4 py-2">
-																		<span
-																			className={`inline-flex items-center px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
-																				column.nullable
-																					? 'bg-gray-100 text-gray-800'
-																					: 'bg-primary text-secondary'
-																			}`}
-																		>
-																			{column.nullable
-																				? 'NULL'
-																				: 'NOT NULL'}
-																		</span>
-																	</td>
-																</tr>
-															)
-														)}
-													</tbody>
-												</table>
+																		className="border-b border-gray-100 last:border-b-0"
+																	>
+																		<td className="px-2 sm:px-4 py-2 font-medium text-primary">
+																			{
+																				column.name
+																			}
+																		</td>
+																		<td className="px-2 sm:px-4 py-2 text-gray-700">
+																			{
+																				column.type
+																			}
+																		</td>
+																		<td className="px-2 sm:px-4 py-2">
+																			<span
+																				className={`inline-flex items-center px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
+																					column.nullable
+																						? 'bg-gray-100 text-gray-800'
+																						: 'bg-primary text-secondary'
+																				}`}
+																			>
+																				{column.nullable
+																					? 'NULL'
+																					: 'NOT NULL'}
+																			</span>
+																		</td>
+																	</tr>
+																)
+															)}
+														</tbody>
+													</table>
+												</div>
 											</div>
 										</div>
-									</div>
-								))}
+									))
+								)}
 							</div>
 						</div>
 					)}
