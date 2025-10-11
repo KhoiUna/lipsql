@@ -170,7 +170,7 @@ export default function SchemaInfoModal({
 				</div>
 
 				{/* Content */}
-				<div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)]">
+				<div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)] pb-4">
 					{activeTab === 'schema' && (
 						<div className="p-4 sm:p-6">
 							{/* Search Bar */}
