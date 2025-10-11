@@ -12,7 +12,7 @@ import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import SavedQueries from '@/components/saved-queries';
-import { cn } from '@/lib/utils';
+import { cn, formatSql } from '@/lib/utils';
 import {
 	useQueryExecution,
 	useDirectSqlExecution,
@@ -222,6 +222,12 @@ export default function page() {
 		directSqlExecution.mutate(
 			{ sql: sqlToExecute },
 			{
+				onSuccess: () => {
+					const formattedSql = formatSql(sqlToExecute);
+					setNaturalLanguageQuery(formattedSql);
+					setSqlQuery(formattedSql);
+				},
+
 				onError: (error) => {
 					toast.error(error.message);
 				},
@@ -440,9 +446,9 @@ export default function page() {
 									{queryResult.rows &&
 									queryResult.rows.length > 0 ? (
 										<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
-											<div className="overflow-x-auto">
+											<div className="overflow-auto max-h-[500px]">
 												<table className="w-full text-sm">
-													<thead className="bg-gray-100 border-b border-gray-200">
+													<thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
 														<tr>
 															{Object.keys(
 																queryResult
