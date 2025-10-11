@@ -16,6 +16,13 @@ The backend code connects to the database engine and get the database schemas (i
 -   **Direct SQL Execution**: Execute raw SQL queries directly
 -   **Secure**: Only SELECT queries are allowed for security
 
+## Documentation
+
+Additional documentation is available in the `docs/` folder:
+
+-   [SQL Server Setup Guide](docs/SQL_SERVER_SETUP.md) - Instructions for configuring SQL Server connections
+-   [Visual Query Builder Guide](docs/VISUAL_QUERY_BUILDER_GUIDE.md) - How to use the visual query builder feature
+
 ## Tech stack
 
 -   NextJS
