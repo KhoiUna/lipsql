@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeSql } from '@/lib/db-utils';
 import { verifyAuthentication } from '../../api-utils';
+import { formatSql } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
 	try {
@@ -41,8 +42,8 @@ export async function POST(request: NextRequest) {
 		// Return results to frontend
 		return NextResponse.json({
 			success: true,
-			sql: sql,
-			result: result,
+			sql: formatSql(sql),
+			result,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
