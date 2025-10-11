@@ -68,7 +68,7 @@ const isSqlStatement = (input: string): boolean => {
 		trimmed.includes(' max(') ||
 		trimmed.includes(' min(');
 
-	return startsWithSqlKeyword && hasSqlPatterns;
+	return startsWithSqlKeyword || hasSqlPatterns;
 };
 
 export default function page() {
