@@ -405,23 +405,45 @@ export async function callGeminiApi(prompt: string): Promise<string> {
 	}
 }
 
+function validateSqlSecurity(sql: string): void {
+	const trimmedSql = sql.trim();
+
+	// Check if SQL starts with dangerous keywords (case-insensitive)
+	// Using word boundaries (\b) ensures we match whole words, not substrings like "updated_at"
+	const dangerousKeywords =
+		/^\s*(insert|update|delete|drop|truncate|alter|create|grant|revoke)\b/i;
+
+	// Check for multiple statements (could try to sneak in dangerous commands)
+	const statements = trimmedSql
+		.split(';')
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0);
+
+	// Validate each statement
+	for (const stmt of statements) {
+		// Block dangerous commands
+		if (dangerousKeywords.test(stmt)) {
+			throw new Error(
+				'Only SELECT queries are allowed for security reasons'
+			);
+		}
+	}
+
+	// Extra safety: ensure at least one statement starts with SELECT
+	if (
+		statements.length > 0 &&
+		!statements.some((s) => /^\s*select\b/i.test(s))
+	) {
+		throw new Error('Only SELECT queries are allowed for security reasons');
+	}
+}
+
 // Execute SQL query safely
 export async function executeSql(sqlStatement: string): Promise<any> {
 	const driver = getDriver();
 
 	try {
-		// Basic security check - only allow SELECT queries for now
-		const trimmedSql = sqlStatement.trim().toLowerCase();
-
-		if (
-			trimmedSql.includes('insert') ||
-			trimmedSql.includes('update') ||
-			trimmedSql.includes('delete')
-		) {
-			throw new Error(
-				`Only SELECT queries are allowed for security reasons: ${sqlStatement}`
-			);
-		}
+		validateSqlSecurity(sqlStatement);
 
 		const result = await driver.query(sqlStatement);
 
