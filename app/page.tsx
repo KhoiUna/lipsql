@@ -8,15 +8,17 @@ import {
 } from '@/components/ui/collapsible';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download, Blocks } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import SavedQueries from '@/components/saved-queries';
+import VisualQueryBuilder from '@/components/visual-query-builder';
 import { cn, formatSql } from '@/lib/utils';
 import {
 	useQueryExecution,
 	useDirectSqlExecution,
 	useSaveQuery,
+	useSchema,
 } from '@/lib/hooks/use-api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -79,10 +81,12 @@ export default function page() {
 	const [isSqlExpanded, setIsSqlExpanded] = useState(true);
 	const [showSaveDialog, setShowSaveDialog] = useState(false);
 	const [saveQueryName, setSaveQueryName] = useState('');
+	const [isVisualBuilderOpen, setIsVisualBuilderOpen] = useState(false);
 
 	const queryExecution = useQueryExecution();
 	const directSqlExecution = useDirectSqlExecution();
 	const saveQuery = useSaveQuery();
+	const { data: schemaData } = useSchema();
 
 	const handleQuery = (queryToExecute?: string) => {
 		const query = queryToExecute || naturalLanguageQuery;
@@ -397,6 +401,16 @@ export default function page() {
 									'Submit'
 								)}
 							</Button>
+
+							<Button
+								type="button"
+								onClick={() => setIsVisualBuilderOpen(true)}
+								className="px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
+							>
+								<Blocks size={18} />
+								Visual Builder
+							</Button>
+
 							{naturalLanguageQuery.trim() && (
 								<Button
 									type="button"
@@ -586,6 +600,14 @@ export default function page() {
 					</div>
 				</div>
 			)}
+
+			{/* Visual Query Builder Modal */}
+			<VisualQueryBuilder
+				isOpen={isVisualBuilderOpen}
+				onClose={() => setIsVisualBuilderOpen(false)}
+				onExecuteQuery={handleDirectSql}
+				schemaData={schemaData || null}
+			/>
 		</div>
 	);
 }
