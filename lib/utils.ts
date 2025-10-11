@@ -10,7 +10,6 @@ export function cn(...inputs: ClassValue[]) {
 export function formatSql(sql: string) {
 	return format(sql, {
 		language: 'sql',
-		tabWidth: 2,
 		keywordCase: 'upper',
 	});
 }
