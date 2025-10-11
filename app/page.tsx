@@ -6,7 +6,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -68,7 +68,7 @@ const isSqlStatement = (input: string): boolean => {
 		trimmed.includes(' max(') ||
 		trimmed.includes(' min(');
 
-	return startsWithSqlKeyword || hasSqlPatterns;
+	return startsWithSqlKeyword && hasSqlPatterns;
 };
 
 export default function page() {
@@ -281,6 +281,69 @@ export default function page() {
 	const currentInput = naturalLanguageQuery.trim();
 	const isCurrentInputSql = isSqlStatement(currentInput);
 
+	// Memoize the results table to prevent re-rendering on every keystroke
+	const memoizedResultsTable = useMemo(() => {
+		if (!queryResult?.rows || queryResult.rows.length === 0) {
+			return (
+				<div className="bg-secondary rounded-md border border-gray-200 p-4 text-center text-gray-600">
+					No results found
+				</div>
+			);
+		}
+
+		return (
+			<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
+				<div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+					<table className="w-full text-sm">
+						<thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
+							<tr>
+								{Object.keys(queryResult.rows[0]).map(
+									(column) => (
+										<th
+											key={column}
+											className="px-4 py-3 text-left font-semibold text-primary"
+										>
+											{column}
+										</th>
+									)
+								)}
+							</tr>
+						</thead>
+						<tbody>
+							{queryResult.rows.map(
+								(row: QueryRow, index: number) => (
+									<tr
+										key={index}
+										className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors"
+										onClick={() => handleRowClick(row)}
+									>
+										{Object.values(row).map(
+											(value: any, colIndex: number) => (
+												<td
+													key={colIndex}
+													className="px-4 py-3 text-primary max-w-xs truncate"
+													title={String(value)}
+												>
+													{value === null ? (
+														<span className="text-gray-400 italic">
+															null
+														</span>
+													) : (
+														String(value)
+													)}
+												</td>
+											)
+										)}
+									</tr>
+								)
+							)}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		);
+	}, [queryResult]);
+
 	return (
 		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
@@ -443,82 +506,7 @@ export default function page() {
 									</div>
 
 									{/* Results Table */}
-									{queryResult.rows &&
-									queryResult.rows.length > 0 ? (
-										<div className="bg-secondary rounded-md border border-gray-200 overflow-hidden">
-											<div className="overflow-auto max-h-[500px]">
-												<table className="w-full text-sm">
-													<thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
-														<tr>
-															{Object.keys(
-																queryResult
-																	.rows[0]
-															).map((column) => (
-																<th
-																	key={column}
-																	className="px-4 py-3 text-left font-semibold text-primary"
-																>
-																	{column}
-																</th>
-															))}
-														</tr>
-													</thead>
-													<tbody>
-														{queryResult.rows.map(
-															(
-																row: QueryRow,
-																index: number
-															) => (
-																<tr
-																	key={index}
-																	className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors"
-																	onClick={() =>
-																		handleRowClick(
-																			row
-																		)
-																	}
-																>
-																	{Object.values(
-																		row
-																	).map(
-																		(
-																			value: any,
-																			colIndex: number
-																		) => (
-																			<td
-																				key={
-																					colIndex
-																				}
-																				className="px-4 py-3 text-primary max-w-xs truncate"
-																				title={String(
-																					value
-																				)}
-																			>
-																				{value ===
-																				null ? (
-																					<span className="text-gray-400 italic">
-																						null
-																					</span>
-																				) : (
-																					String(
-																						value
-																					)
-																				)}
-																			</td>
-																		)
-																	)}
-																</tr>
-															)
-														)}
-													</tbody>
-												</table>
-											</div>
-										</div>
-									) : (
-										<div className="bg-secondary rounded-md border border-gray-200 p-4 text-center text-gray-600">
-											No results found
-										</div>
-									)}
+									{memoizedResultsTable}
 								</div>
 							)}
 						</div>
