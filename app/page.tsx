@@ -266,7 +266,7 @@ export default function page() {
 					setSaveQueryName('');
 				},
 				onError: (error) => {
-					toast.error(error.message);
+					console.error(error.message);
 				},
 			}
 		);
