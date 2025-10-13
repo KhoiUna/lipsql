@@ -70,6 +70,42 @@ export default function ConditionBuilder({
 			</div>
 
 			<div className="space-y-3">
+				{/* Parenthesis Grouping */}
+				<div className="flex items-center gap-2">
+					<label className="flex items-center gap-2">
+						<input
+							type="checkbox"
+							checked={condition.groupStart || false}
+							onChange={(e) =>
+								onUpdate({
+									...condition,
+									groupStart: e.target.checked,
+								})
+							}
+							className="w-4 h-4"
+						/>
+						<span className="text-sm text-gray-700">
+							Start group (
+						</span>
+					</label>
+					<label className="flex items-center gap-2">
+						<input
+							type="checkbox"
+							checked={condition.groupEnd || false}
+							onChange={(e) =>
+								onUpdate({
+									...condition,
+									groupEnd: e.target.checked,
+								})
+							}
+							className="w-4 h-4"
+						/>
+						<span className="text-sm text-gray-700">
+							End group )
+						</span>
+					</label>
+				</div>
+
 				{/* Column Selection */}
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-1">

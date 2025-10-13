@@ -1,4 +1,5 @@
 export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
+export type JoinOperatorType = '=' | '!=' | '>' | '<' | '>=' | '<=';
 export type OperatorType =
 	| '='
 	| '!='
@@ -22,6 +23,31 @@ export type AggregateFunction =
 	| 'MIN'
 	| 'NONE';
 export type OrderDirection = 'ASC' | 'DESC';
+export type SqlFunction =
+	| 'CONCAT'
+	| 'CAST'
+	| 'FORMAT'
+	| 'CASE'
+	| 'UPPER'
+	| 'LOWER'
+	| 'SUBSTRING'
+	| 'COALESCE'
+	| 'TRIM'
+	| 'LENGTH'
+	| 'NONE';
+
+export interface FunctionArgument {
+	type: 'column' | 'literal' | 'expression';
+	value: string; // column name (table.column), literal value, or sub-expression
+}
+
+export interface CustomExpression {
+	id: string;
+	expression: string; // raw SQL expression or generated from function
+	alias?: string;
+	function?: SqlFunction; // for function builder
+	functionArgs?: FunctionArgument[]; // arguments for function builder
+}
 
 export interface ColumnSelection {
 	tableName: string;
@@ -35,16 +61,24 @@ export interface TableBlock {
 	tableName: string;
 	alias: string;
 	selectedColumns: ColumnSelection[];
+	customExpressions: CustomExpression[]; // Custom SQL expressions for this table
 	allColumns: string[]; // Available columns from schema
+}
+
+export interface JoinCondition {
+	id: string;
+	leftColumn: string;
+	operator: JoinOperatorType;
+	rightColumn: string;
+	logicOperator?: LogicOperator; // connects to next condition
 }
 
 export interface JoinBlock {
 	id: string;
 	joinType: JoinType;
 	leftTable: string;
-	leftColumn: string;
 	rightTable: string;
-	rightColumn: string;
+	conditions: JoinCondition[]; // multiple join conditions
 }
 
 export interface WhereCondition {
@@ -68,6 +102,7 @@ export interface GroupByClause {
 }
 
 export interface VisualQuery {
+	distinct: boolean; // DISTINCT keyword
 	tables: TableBlock[];
 	joins: JoinBlock[];
 	conditions: WhereCondition[];

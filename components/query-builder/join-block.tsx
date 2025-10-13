@@ -1,12 +1,13 @@
 'use client';
-
 import {
 	JoinBlock as JoinBlockType,
+	JoinCondition,
 	JoinType,
+	JoinOperatorType,
 	Relationship,
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
-import { X, Link2 } from 'lucide-react';
+import { X, Link2, Plus } from 'lucide-react';
 
 interface JoinBlockProps {
 	join: JoinBlockType;
@@ -30,37 +31,85 @@ export default function JoinBlock({
 	};
 
 	const handleLeftTableChange = (leftTable: string) => {
-		const columns = availableColumns.get(leftTable) || [];
+		// Reset conditions when changing left table
+		const leftColumns = availableColumns.get(leftTable) || [];
+		// const rightColumns = availableColumns.get(join.rightTable) || [];
+
 		onUpdate({
 			...join,
 			leftTable,
-			leftColumn: columns.length > 0 ? columns[0] : '',
+			conditions: join.conditions.map((cond) => ({
+				...cond,
+				leftColumn: leftColumns.length > 0 ? leftColumns[0] : '',
+			})),
 		});
 	};
 
 	const handleRightTableChange = (rightTable: string) => {
-		const columns = availableColumns.get(rightTable) || [];
+		// Reset conditions when changing right table
+		const leftColumns = availableColumns.get(join.leftTable) || [];
+		const rightColumns = availableColumns.get(rightTable) || [];
+
 		onUpdate({
 			...join,
 			rightTable,
-			rightColumn: columns.length > 0 ? columns[0] : '',
+			conditions: join.conditions.map((cond) => ({
+				...cond,
+				rightColumn: rightColumns.length > 0 ? rightColumns[0] : '',
+			})),
+		});
+	};
+
+	const handleAddCondition = () => {
+		const leftColumns = availableColumns.get(join.leftTable) || [];
+		const rightColumns = availableColumns.get(join.rightTable) || [];
+
+		const newCondition: JoinCondition = {
+			id: `jcond-${Date.now()}`,
+			leftColumn: leftColumns.length > 0 ? leftColumns[0] : '',
+			operator: '=',
+			rightColumn: rightColumns.length > 0 ? rightColumns[0] : '',
+			logicOperator: 'AND',
+		};
+
+		onUpdate({
+			...join,
+			conditions: [...join.conditions, newCondition],
+		});
+	};
+
+	const handleRemoveCondition = (conditionId: string) => {
+		onUpdate({
+			...join,
+			conditions: join.conditions.filter((c) => c.id !== conditionId),
+		});
+	};
+
+	const handleUpdateCondition = (updatedCondition: JoinCondition) => {
+		onUpdate({
+			...join,
+			conditions: join.conditions.map((c) =>
+				c.id === updatedCondition.id ? updatedCondition : c
+			),
 		});
 	};
 
 	const leftColumns = availableColumns.get(join.leftTable) || [];
 	const rightColumns = availableColumns.get(join.rightTable) || [];
 
-	// Check if this join is based on a FK relationship
-	const isAutoDetected = relationships.some(
-		(rel) =>
-			(rel.table === join.leftTable &&
-				rel.column === join.leftColumn &&
-				rel.foreignTable === join.rightTable &&
-				rel.foreignColumn === join.rightColumn) ||
-			(rel.table === join.rightTable &&
-				rel.column === join.rightColumn &&
-				rel.foreignTable === join.leftTable &&
-				rel.foreignColumn === join.leftColumn)
+	// Check if any condition is based on a FK relationship
+	const isAutoDetected = join.conditions.some((cond) =>
+		relationships.some(
+			(rel) =>
+				(rel.table === join.leftTable &&
+					rel.column === cond.leftColumn &&
+					rel.foreignTable === join.rightTable &&
+					rel.foreignColumn === cond.rightColumn) ||
+				(rel.table === join.rightTable &&
+					rel.column === cond.rightColumn &&
+					rel.foreignTable === join.leftTable &&
+					rel.foreignColumn === cond.leftColumn)
+		)
 	);
 
 	return (
@@ -104,7 +153,7 @@ export default function JoinBlock({
 					</select>
 				</div>
 
-				{/* Left Table */}
+				{/* Tables Selection */}
 				<div className="grid grid-cols-2 gap-2">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -126,40 +175,6 @@ export default function JoinBlock({
 					</div>
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Left Column
-						</label>
-						<select
-							value={join.leftColumn}
-							onChange={(e) =>
-								onUpdate({
-									...join,
-									leftColumn: e.target.value,
-								})
-							}
-							className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-sm font-mono"
-						>
-							{leftColumns.map((col) => (
-								<option key={col} value={col}>
-									{col}
-								</option>
-							))}
-						</select>
-					</div>
-				</div>
-
-				{/* Visual connector */}
-				<div className="flex items-center justify-center text-gray-500 text-sm">
-					<div className="flex items-center gap-2">
-						<div className="h-px w-12 bg-gray-300"></div>
-						<span>=</span>
-						<div className="h-px w-12 bg-gray-300"></div>
-					</div>
-				</div>
-
-				{/* Right Table */}
-				<div className="grid grid-cols-2 gap-2">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Right Table
 						</label>
 						<select
@@ -176,26 +191,142 @@ export default function JoinBlock({
 							))}
 						</select>
 					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Right Column
+				</div>
+
+				{/* Join Conditions */}
+				<div>
+					<div className="flex items-center justify-between mb-2">
+						<label className="block text-sm font-medium text-gray-700">
+							ON Conditions
 						</label>
-						<select
-							value={join.rightColumn}
-							onChange={(e) =>
-								onUpdate({
-									...join,
-									rightColumn: e.target.value,
-								})
-							}
-							className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-sm font-mono"
+						<Button
+							onClick={handleAddCondition}
+							size="sm"
+							variant="outline"
+							className="text-xs px-2 py-1 h-auto"
 						>
-							{rightColumns.map((col) => (
-								<option key={col} value={col}>
-									{col}
-								</option>
-							))}
-						</select>
+							<Plus size={14} className="mr-1" />
+							Add Condition
+						</Button>
+					</div>
+
+					<div className="space-y-2">
+						{join.conditions.map((condition, index) => (
+							<div key={condition.id}>
+								<div className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
+									{/* Left Column */}
+									<select
+										value={condition.leftColumn}
+										onChange={(e) =>
+											handleUpdateCondition({
+												...condition,
+												leftColumn: e.target.value,
+											})
+										}
+										className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm font-mono bg-white"
+									>
+										{leftColumns.map((col) => (
+											<option key={col} value={col}>
+												{join.leftTable}.{col}
+											</option>
+										))}
+									</select>
+
+									{/* Operator */}
+									<select
+										value={condition.operator}
+										onChange={(e) =>
+											handleUpdateCondition({
+												...condition,
+												operator: e.target
+													.value as JoinOperatorType,
+											})
+										}
+										className="border border-gray-300 rounded-md px-2 py-1 text-sm bg-white"
+									>
+										<option value="=">=</option>
+										<option value="!=">!=</option>
+										<option value=">">&gt;</option>
+										<option value="<">&lt;</option>
+										<option value=">=">&gt;=</option>
+										<option value="<=">&lt;=</option>
+									</select>
+
+									{/* Right Column */}
+									<select
+										value={condition.rightColumn}
+										onChange={(e) =>
+											handleUpdateCondition({
+												...condition,
+												rightColumn: e.target.value,
+											})
+										}
+										className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm font-mono bg-white"
+									>
+										{rightColumns.map((col) => (
+											<option key={col} value={col}>
+												{join.rightTable}.{col}
+											</option>
+										))}
+									</select>
+
+									{/* Remove Button */}
+									{join.conditions.length > 1 && (
+										<Button
+											onClick={() =>
+												handleRemoveCondition(
+													condition.id
+												)
+											}
+											variant="ghost"
+											className="p-1 h-auto text-red-600"
+										>
+											<X size={16} />
+										</Button>
+									)}
+								</div>
+
+								{/* Logic Operator for next condition */}
+								{index < join.conditions.length - 1 && (
+									<div className="flex items-center justify-center my-1">
+										<div className="flex gap-2">
+											<button
+												onClick={() =>
+													handleUpdateCondition({
+														...condition,
+														logicOperator: 'AND',
+													})
+												}
+												className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+													condition.logicOperator ===
+													'AND'
+														? 'bg-green-600 text-white'
+														: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+												}`}
+											>
+												AND
+											</button>
+											<button
+												onClick={() =>
+													handleUpdateCondition({
+														...condition,
+														logicOperator: 'OR',
+													})
+												}
+												className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+													condition.logicOperator ===
+													'OR'
+														? 'bg-green-600 text-white'
+														: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+												}`}
+											>
+												OR
+											</button>
+										</div>
+									</div>
+								)}
+							</div>
+						))}
 					</div>
 				</div>
 			</div>

@@ -2,16 +2,20 @@
 import {
 	TableBlock as TableBlockType,
 	AggregateFunction,
+	CustomExpression,
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
-import { X, Table, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Table, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
+import ExpressionBuilder from './expression-builder';
 
 interface TableBlockProps {
 	table: TableBlockType;
 	onUpdate: (table: TableBlockType) => void;
 	onRemove: () => void;
 	hasAggregates: boolean;
+	availableColumns: Array<{ table: string; column: string }>;
+	databaseType: string;
 }
 
 export default function TableBlock({
@@ -19,6 +23,8 @@ export default function TableBlock({
 	onUpdate,
 	onRemove,
 	hasAggregates,
+	availableColumns,
+	databaseType,
 }: TableBlockProps) {
 	const [isExpanded, setIsExpanded] = useState(true);
 
@@ -96,6 +102,41 @@ export default function TableBlock({
 			(c) => c.columnName === columnName
 		);
 		return col?.aggregateFunction || 'NONE';
+	};
+
+	const handleAddExpression = () => {
+		const newExpression: CustomExpression = {
+			id: `expr-${Date.now()}`,
+			expression: '',
+			function: 'NONE',
+			functionArgs: [],
+		};
+
+		onUpdate({
+			...table,
+			customExpressions: [
+				...(table.customExpressions || []),
+				newExpression,
+			],
+		});
+	};
+
+	const handleUpdateExpression = (updatedExpression: CustomExpression) => {
+		onUpdate({
+			...table,
+			customExpressions: (table.customExpressions || []).map((expr) =>
+				expr.id === updatedExpression.id ? updatedExpression : expr
+			),
+		});
+	};
+
+	const handleRemoveExpression = (expressionId: string) => {
+		onUpdate({
+			...table,
+			customExpressions: (table.customExpressions || []).filter(
+				(expr) => expr.id !== expressionId
+			),
+		});
 	};
 
 	return (
@@ -194,6 +235,38 @@ export default function TableBlock({
 									)}
 							</div>
 						))}
+					</div>
+
+					{/* Custom Expressions */}
+					<div className="mt-4 pt-4 border-t">
+						<div className="flex items-center justify-between mb-2">
+							<span className="text-sm font-medium text-gray-700">
+								Custom Expressions
+							</span>
+							<Button
+								onClick={handleAddExpression}
+								size="sm"
+								variant="outline"
+								className="text-xs px-2 py-1 h-auto"
+							>
+								<Plus size={14} className="mr-1" />
+								Add Expression
+							</Button>
+						</div>
+						<div className="space-y-2">
+							{(table.customExpressions || []).map((expr) => (
+								<ExpressionBuilder
+									key={expr.id}
+									expression={expr}
+									onUpdate={handleUpdateExpression}
+									onRemove={() =>
+										handleRemoveExpression(expr.id)
+									}
+									availableColumns={availableColumns}
+									databaseType={databaseType}
+								/>
+							))}
+						</div>
 					</div>
 				</>
 			)}

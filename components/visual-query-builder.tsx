@@ -1,12 +1,13 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import {
 	VisualQuery,
 	TableBlock as TableBlockType,
 	JoinBlock as JoinBlockType,
+	JoinCondition,
 	WhereCondition,
 	OrderByClause,
+	GroupByClause,
 	SchemaData,
 } from '@/lib/query-builder-types';
 import {
@@ -18,9 +19,18 @@ import {
 import TableBlock from './query-builder/table-block';
 import JoinBlock from './query-builder/join-block';
 import ConditionBuilder from './query-builder/condition-builder';
+import GroupByBuilder from './query-builder/group-by-builder';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { X, Play, Plus, Trash2, Eye } from 'lucide-react';
+import {
+	X,
+	Play,
+	Plus,
+	Trash2,
+	Eye,
+	ChevronDown,
+	ChevronRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VisualQueryBuilderProps {
@@ -37,6 +47,7 @@ export default function VisualQueryBuilder({
 	schemaData,
 }: VisualQueryBuilderProps) {
 	const [query, setQuery] = useState<VisualQuery>({
+		distinct: false,
 		tables: [],
 		joins: [],
 		conditions: [],
@@ -59,6 +70,7 @@ export default function VisualQueryBuilder({
 	useEffect(() => {
 		if (isOpen) {
 			setQuery({
+				distinct: false,
 				tables: [],
 				joins: [],
 				conditions: [],
@@ -106,6 +118,7 @@ export default function VisualQueryBuilder({
 			tableName,
 			alias,
 			selectedColumns: [],
+			customExpressions: [],
 			allColumns: columns,
 		};
 
@@ -133,13 +146,18 @@ export default function VisualQueryBuilder({
 			);
 
 			if (fkToExisting) {
+				const condition: JoinCondition = {
+					id: `jcond-${Date.now()}`,
+					leftColumn: fkToExisting.foreignColumn,
+					operator: '=',
+					rightColumn: fkToExisting.column,
+				};
 				potentialJoins.push({
 					id: `join-${Date.now()}-${potentialJoins.length}`,
 					joinType: 'INNER',
 					leftTable: existingTable.tableName,
-					leftColumn: fkToExisting.foreignColumn,
 					rightTable: newTableName,
-					rightColumn: fkToExisting.column,
+					conditions: [condition],
 				});
 			}
 
@@ -151,13 +169,18 @@ export default function VisualQueryBuilder({
 			);
 
 			if (fkFromExisting) {
+				const condition: JoinCondition = {
+					id: `jcond-${Date.now()}`,
+					leftColumn: fkFromExisting.column,
+					operator: '=',
+					rightColumn: fkFromExisting.foreignColumn,
+				};
 				potentialJoins.push({
 					id: `join-${Date.now()}-${potentialJoins.length}`,
 					joinType: 'INNER',
 					leftTable: existingTable.tableName,
-					leftColumn: fkFromExisting.column,
 					rightTable: newTableName,
-					rightColumn: fkFromExisting.foreignColumn,
+					conditions: [condition],
 				});
 			}
 		}
@@ -199,13 +222,19 @@ export default function VisualQueryBuilder({
 		const firstColumns = tablesMap.get(firstTable.tableName) || [];
 		const secondColumns = tablesMap.get(secondTable.tableName) || [];
 
+		const condition: JoinCondition = {
+			id: `jcond-${Date.now()}`,
+			leftColumn: firstColumns[0] || '',
+			operator: '=',
+			rightColumn: secondColumns[0] || '',
+		};
+
 		const newJoin: JoinBlockType = {
 			id: `join-${Date.now()}`,
 			joinType: 'INNER',
 			leftTable: firstTable.tableName,
-			leftColumn: firstColumns[0] || '',
 			rightTable: secondTable.tableName,
-			rightColumn: secondColumns[0] || '',
+			conditions: [condition],
 		};
 
 		setQuery((prev) => ({
@@ -307,8 +336,44 @@ export default function VisualQueryBuilder({
 		}));
 	};
 
+	const handleAddGroupBy = () => {
+		if (query.tables.length === 0) {
+			toast.error('Add at least one table first');
+			return;
+		}
+
+		const firstTable = query.tables[0];
+		const firstColumn = tablesMap.get(firstTable.tableName)?.[0] || '';
+
+		const newGroupBy: GroupByClause = {
+			column: `${firstTable.tableName}.${firstColumn}`,
+		};
+
+		setQuery((prev) => ({
+			...prev,
+			groupBy: [...prev.groupBy, newGroupBy],
+		}));
+	};
+
+	const handleRemoveGroupBy = (index: number) => {
+		setQuery((prev) => ({
+			...prev,
+			groupBy: prev.groupBy.filter((_, i) => i !== index),
+		}));
+	};
+
+	const handleUpdateGroupBy = (index: number, column: string) => {
+		setQuery((prev) => ({
+			...prev,
+			groupBy: prev.groupBy.map((g, i) =>
+				i === index ? { ...g, column } : g
+			),
+		}));
+	};
+
 	const handleClearQuery = () => {
 		setQuery({
+			distinct: false,
 			tables: [],
 			joins: [],
 			conditions: [],
@@ -355,9 +420,27 @@ export default function VisualQueryBuilder({
 			<div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col shadow-xl">
 				{/* Header */}
 				<div className="flex items-center justify-between p-6 border-b">
-					<h2 className="text-2xl font-bold text-primary">
-						Visual Query Builder
-					</h2>
+					<div className="flex items-center gap-4">
+						<h2 className="text-2xl font-bold text-primary">
+							Visual Query Builder
+						</h2>
+						<label className="flex items-center gap-2 text-sm">
+							<input
+								type="checkbox"
+								checked={query.distinct}
+								onChange={(e) =>
+									setQuery((prev) => ({
+										...prev,
+										distinct: e.target.checked,
+									}))
+								}
+								className="w-4 h-4"
+							/>
+							<span className="font-medium text-gray-700">
+								DISTINCT
+							</span>
+						</label>
+					</div>
 					<button
 						onClick={onClose}
 						className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -405,6 +488,11 @@ export default function VisualQueryBuilder({
 											handleRemoveTable(table.id)
 										}
 										hasAggregates={hasAggregates}
+										availableColumns={allAvailableColumns}
+										databaseType={
+											schemaData?.databaseType ||
+											'postgres'
+										}
 									/>
 								))}
 								{query.tables.length === 0 && (
@@ -472,6 +560,37 @@ export default function VisualQueryBuilder({
 											index ===
 											query.conditions.length - 1
 										}
+									/>
+								))}
+							</div>
+						</div>
+
+						{/* Group By Section */}
+						<div>
+							<div className="flex items-center justify-between mb-3">
+								<h3 className="text-lg font-semibold text-primary">
+									Group By
+								</h3>
+								<Button onClick={handleAddGroupBy} size="sm">
+									<Plus size={16} className="mr-1" />
+									Add Group By
+								</Button>
+							</div>
+							<div className="space-y-2">
+								{query.groupBy.map((groupBy, index) => (
+									<GroupByBuilder
+										key={index}
+										groupBy={groupBy}
+										onUpdate={(updated) =>
+											handleUpdateGroupBy(
+												index,
+												updated.column
+											)
+										}
+										onRemove={() =>
+											handleRemoveGroupBy(index)
+										}
+										availableColumns={allAvailableColumns}
 									/>
 								))}
 							</div>
@@ -575,11 +694,15 @@ export default function VisualQueryBuilder({
 									onClick={() =>
 										setShowSqlPreview(!showSqlPreview)
 									}
-									className="flex items-center gap-2 text-lg font-semibold text-primary mb-3 hover:text-gray-700 transition-colors"
+									className="flex items-center gap-2 text-lg font-semibold text-primary mb-3 cursor-pointer"
 								>
 									<Eye size={20} />
 									SQL Preview
-									{showSqlPreview ? ' ▼' : ' ►'}
+									{showSqlPreview ? (
+										<ChevronDown size={16} />
+									) : (
+										<ChevronRight size={16} />
+									)}
 								</button>
 								{showSqlPreview && (
 									<div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
@@ -598,13 +721,17 @@ export default function VisualQueryBuilder({
 					<Button
 						onClick={handleClearQuery}
 						variant="outline"
-						className="text-red-600 border-red-600 hover:bg-red-50"
+						className="text-red-600 border-red-600 hover:text-red-600 hover:bg-red-50 cursor-pointer"
 					>
 						<Trash2 size={16} className="mr-2" />
 						Clear All
 					</Button>
 					<div className="flex items-center gap-3">
-						<Button onClick={onClose} variant="outline">
+						<Button
+							onClick={onClose}
+							variant="outline"
+							className="cursor-pointer"
+						>
 							Cancel
 						</Button>
 						<Button
@@ -612,7 +739,7 @@ export default function VisualQueryBuilder({
 							disabled={
 								!generatedSql || query.tables.length === 0
 							}
-							className="bg-primary text-white hover:bg-gray-800"
+							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
 						>
 							<Play size={16} className="mr-2" />
 							Execute Query

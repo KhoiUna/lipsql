@@ -2,6 +2,8 @@ import {
 	VisualQuery,
 	ValidationResult,
 	ColumnSelection,
+	CustomExpression,
+	FunctionArgument,
 } from './query-builder-types';
 
 /**
@@ -126,6 +128,202 @@ class SqliteDialect implements SqlDialect {
 }
 
 /**
+ * Function translator for database-specific SQL functions
+ */
+class FunctionTranslator {
+	private databaseType: string;
+
+	constructor(databaseType: string) {
+		this.databaseType = (databaseType || 'postgres').toLowerCase();
+	}
+
+	translateConcat(args: FunctionArgument[], dialect: SqlDialect): string {
+		const values = args.map((arg) => this.formatArgument(arg, dialect));
+
+		switch (this.databaseType) {
+			case 'sqlserver':
+			case 'mssql':
+				return `CONCAT(${values.join(', ')})`;
+			case 'mysql':
+				return `CONCAT(${values.join(', ')})`;
+			case 'sqlite':
+			case 'sqlite3':
+				return values.join(' || ');
+			case 'postgres':
+			case 'postgresql':
+			default:
+				return `CONCAT(${values.join(', ')})`;
+		}
+	}
+
+	translateCast(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length < 2) return 'CAST(NULL AS TEXT)';
+
+		const value = this.formatArgument(args[0], dialect);
+		const targetType = args[1].value;
+
+		switch (this.databaseType) {
+			case 'sqlserver':
+			case 'mssql':
+				return `CAST(${value} AS ${targetType})`;
+			case 'mysql':
+				return `CAST(${value} AS ${targetType})`;
+			case 'sqlite':
+			case 'sqlite3':
+				return `CAST(${value} AS ${targetType})`;
+			case 'postgres':
+			case 'postgresql':
+			default:
+				return `CAST(${value} AS ${targetType})`;
+		}
+	}
+
+	translateFormat(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length < 2) return "''";
+
+		const value = this.formatArgument(args[0], dialect);
+		const format = args[1].value;
+
+		switch (this.databaseType) {
+			case 'sqlserver':
+			case 'mssql':
+				return `FORMAT(${value}, ${dialect.escapeValue(format)})`;
+			case 'mysql':
+				return `DATE_FORMAT(${value}, ${dialect.escapeValue(format)})`;
+			case 'sqlite':
+			case 'sqlite3':
+				return `strftime(${dialect.escapeValue(format)}, ${value})`;
+			case 'postgres':
+			case 'postgresql':
+			default:
+				return `TO_CHAR(${value}, ${dialect.escapeValue(format)})`;
+		}
+	}
+
+	translateUpper(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length === 0) return 'UPPER(NULL)';
+		const value = this.formatArgument(args[0], dialect);
+		return `UPPER(${value})`;
+	}
+
+	translateLower(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length === 0) return 'LOWER(NULL)';
+		const value = this.formatArgument(args[0], dialect);
+		return `LOWER(${value})`;
+	}
+
+	translateSubstring(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length < 3) return 'SUBSTRING(NULL, 1, 1)';
+
+		const value = this.formatArgument(args[0], dialect);
+		const start = this.formatArgument(args[1], dialect);
+		const length = this.formatArgument(args[2], dialect);
+
+		switch (this.databaseType) {
+			case 'sqlserver':
+			case 'mssql':
+			case 'mysql':
+			case 'sqlite':
+			case 'sqlite3':
+			case 'postgres':
+			case 'postgresql':
+			default:
+				return `SUBSTRING(${value}, ${start}, ${length})`;
+		}
+	}
+
+	translateCoalesce(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length === 0) return 'COALESCE(NULL)';
+		const values = args.map((arg) => this.formatArgument(arg, dialect));
+		return `COALESCE(${values.join(', ')})`;
+	}
+
+	translateTrim(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length === 0) return 'TRIM(NULL)';
+		const value = this.formatArgument(args[0], dialect);
+		return `TRIM(${value})`;
+	}
+
+	translateLength(args: FunctionArgument[], dialect: SqlDialect): string {
+		if (args.length === 0) return 'LENGTH(NULL)';
+		const value = this.formatArgument(args[0], dialect);
+
+		switch (this.databaseType) {
+			case 'sqlserver':
+			case 'mssql':
+				return `LEN(${value})`;
+			default:
+				return `LENGTH(${value})`;
+		}
+	}
+
+	translateCase(args: FunctionArgument[], dialect: SqlDialect): string {
+		// CASE statements are raw expressions, return as-is
+		if (args.length > 0 && args[0].type === 'expression') {
+			return args[0].value;
+		}
+		return 'CASE END';
+	}
+
+	translateCustomExpression(
+		expr: CustomExpression,
+		dialect: SqlDialect
+	): string {
+		if (!expr.function || expr.function === 'NONE') {
+			// Raw SQL expression
+			return expr.expression;
+		}
+
+		const args = expr.functionArgs || [];
+
+		switch (expr.function) {
+			case 'CONCAT':
+				return this.translateConcat(args, dialect);
+			case 'CAST':
+				return this.translateCast(args, dialect);
+			case 'FORMAT':
+				return this.translateFormat(args, dialect);
+			case 'UPPER':
+				return this.translateUpper(args, dialect);
+			case 'LOWER':
+				return this.translateLower(args, dialect);
+			case 'SUBSTRING':
+				return this.translateSubstring(args, dialect);
+			case 'COALESCE':
+				return this.translateCoalesce(args, dialect);
+			case 'TRIM':
+				return this.translateTrim(args, dialect);
+			case 'LENGTH':
+				return this.translateLength(args, dialect);
+			case 'CASE':
+				return this.translateCase(args, dialect);
+			default:
+				return expr.expression;
+		}
+	}
+
+	private formatArgument(arg: FunctionArgument, dialect: SqlDialect): string {
+		switch (arg.type) {
+			case 'column':
+				// Column reference (already in table.column format)
+				const parts = arg.value.split('.');
+				if (parts.length === 2) {
+					return `${dialect.escapeIdentifier(
+						parts[0]
+					)}.${dialect.escapeIdentifier(parts[1])}`;
+				}
+				return dialect.escapeIdentifier(arg.value);
+			case 'literal':
+				return dialect.escapeValue(arg.value);
+			case 'expression':
+				return arg.value; // Raw expression
+			default:
+				return dialect.escapeValue(arg.value);
+		}
+	}
+}
+
+/**
  * Get dialect instance based on database type
  */
 function getDialect(databaseType: string): SqlDialect {
@@ -198,28 +396,52 @@ function formatColumnWithAggregate(
 /**
  * Builds the SELECT clause from table blocks
  */
-function buildSelectClause(query: VisualQuery, dialect: SqlDialect): string {
+function buildSelectClause(
+	query: VisualQuery,
+	dialect: SqlDialect,
+	functionTranslator: FunctionTranslator
+): string {
 	const columns: string[] = [];
 
 	for (const table of query.tables) {
+		// Add regular columns
 		for (const col of table.selectedColumns) {
 			columns.push(
 				formatColumnWithAggregate(col, table.tableName, dialect)
 			);
+		}
+
+		// Add custom expressions
+		for (const expr of table.customExpressions || []) {
+			const translatedExpr = functionTranslator.translateCustomExpression(
+				expr,
+				dialect
+			);
+			if (expr.alias) {
+				columns.push(
+					`${translatedExpr} AS ${dialect.escapeIdentifier(
+						expr.alias
+					)}`
+				);
+			} else {
+				columns.push(translatedExpr);
+			}
 		}
 	}
 
 	if (columns.length === 0) {
 		// If no columns selected, select all from first table
 		if (query.tables.length > 0) {
-			return `SELECT ${dialect.escapeIdentifier(
+			const distinctKeyword = query.distinct ? 'DISTINCT ' : '';
+			return `SELECT ${distinctKeyword}${dialect.escapeIdentifier(
 				query.tables[0].tableName
 			)}.*`;
 		}
 		return 'SELECT *';
 	}
 
-	return `SELECT ${columns.join(', ')}`;
+	const distinctKeyword = query.distinct ? 'DISTINCT ' : '';
+	return `SELECT ${distinctKeyword}${columns.join(', ')}`;
 }
 
 /**
@@ -235,7 +457,7 @@ function buildFromClause(query: VisualQuery, dialect: SqlDialect): string {
 }
 
 /**
- * Builds JOIN clauses
+ * Builds JOIN clauses with multiple conditions support
  */
 function buildJoinClauses(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.joins.length === 0) {
@@ -253,15 +475,33 @@ function buildJoinClauses(query: VisualQuery, dialect: SqlDialect): string {
 			continue; // Skip invalid joins
 		}
 
+		if (!join.conditions || join.conditions.length === 0) {
+			continue; // Skip joins without conditions
+		}
+
+		// Build ON clause with multiple conditions
+		const conditions: string[] = [];
+		for (let i = 0; i < join.conditions.length; i++) {
+			const condition = join.conditions[i];
+			const conditionStr = `${dialect.escapeIdentifier(
+				join.leftTable
+			)}.${dialect.escapeIdentifier(condition.leftColumn)} ${
+				condition.operator
+			} ${dialect.escapeIdentifier(
+				join.rightTable
+			)}.${dialect.escapeIdentifier(condition.rightColumn)}`;
+
+			conditions.push(conditionStr);
+
+			// Add logic operator for next condition (if not last)
+			if (i < join.conditions.length - 1 && condition.logicOperator) {
+				conditions.push(condition.logicOperator);
+			}
+		}
+
 		const joinClause = `${join.joinType} JOIN ${dialect.escapeIdentifier(
 			join.rightTable
-		)} ON ${dialect.escapeIdentifier(
-			join.leftTable
-		)}.${dialect.escapeIdentifier(
-			join.leftColumn
-		)} = ${dialect.escapeIdentifier(
-			join.rightTable
-		)}.${dialect.escapeIdentifier(join.rightColumn)}`;
+		)} ON ${conditions.join(' ')}`;
 		joins.push(joinClause);
 	}
 
@@ -409,8 +649,13 @@ export function generateSqlFromVisual(
 ): string {
 	try {
 		const dialect = getDialect(databaseType);
+		const functionTranslator = new FunctionTranslator(databaseType);
 
-		let selectClause = buildSelectClause(query, dialect);
+		let selectClause = buildSelectClause(
+			query,
+			dialect,
+			functionTranslator
+		);
 		const fromClause = buildFromClause(query, dialect);
 		const joinClauses = buildJoinClauses(query, dialect);
 		const whereClause = buildWhereClause(query, dialect);
@@ -449,7 +694,7 @@ export function validateQueryStructure(query: VisualQuery): ValidationResult {
 		}
 	}
 
-	// Validate joins reference existing tables
+	// Validate joins reference existing tables and have valid conditions
 	for (const join of query.joins) {
 		const leftTableExists = query.tables.some(
 			(t) => t.tableName === join.leftTable
@@ -467,6 +712,24 @@ export function validateQueryStructure(query: VisualQuery): ValidationResult {
 			errors.push(
 				`Join references non-existent table: ${join.rightTable}`
 			);
+		}
+
+		// Validate join has at least one condition
+		if (!join.conditions || join.conditions.length === 0) {
+			errors.push(
+				`Join between ${join.leftTable} and ${join.rightTable} must have at least one condition`
+			);
+		}
+
+		// Validate each join condition
+		if (join.conditions) {
+			for (const condition of join.conditions) {
+				if (!condition.leftColumn || !condition.rightColumn) {
+					errors.push(
+						`Join condition between ${join.leftTable} and ${join.rightTable} is incomplete`
+					);
+				}
+			}
 		}
 	}
 
@@ -499,6 +762,20 @@ export function validateQueryStructure(query: VisualQuery): ValidationResult {
 		}
 	}
 
+	// Validate parenthesis grouping is balanced
+	let openParens = 0;
+	for (const condition of query.conditions) {
+		if (condition.groupStart) openParens++;
+		if (condition.groupEnd) openParens--;
+		if (openParens < 0) {
+			errors.push('Unbalanced parentheses in WHERE conditions');
+			break;
+		}
+	}
+	if (openParens !== 0) {
+		errors.push('Unbalanced parentheses in WHERE conditions');
+	}
+
 	// Validate GROUP BY references existing tables
 	for (const groupBy of query.groupBy) {
 		if (groupBy.column.includes('.')) {
@@ -527,6 +804,21 @@ export function validateQueryStructure(query: VisualQuery): ValidationResult {
 				errors.push(
 					`ORDER BY references non-existent table: ${tableName}`
 				);
+			}
+		}
+	}
+
+	// Validate custom expressions
+	console.log('query.tables', query.tables);
+
+	for (const table of query.tables) {
+		if (table.customExpressions) {
+			for (const expr of table.customExpressions) {
+				if (!expr.expression || expr.expression.trim() === '') {
+					errors.push(
+						`Custom expression in ${table.tableName} is empty`
+					);
+				}
 			}
 		}
 	}
