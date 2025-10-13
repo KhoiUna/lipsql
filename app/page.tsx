@@ -514,7 +514,6 @@ export default function page() {
 													className="cursor-pointer"
 												>
 													<Download size={16} />
-													Download CSV
 												</Button>
 											)}
 									</div>
