@@ -809,8 +809,6 @@ export function validateQueryStructure(query: VisualQuery): ValidationResult {
 	}
 
 	// Validate custom expressions
-	console.log('query.tables', query.tables);
-
 	for (const table of query.tables) {
 		if (table.customExpressions) {
 			for (const expr of table.customExpressions) {
