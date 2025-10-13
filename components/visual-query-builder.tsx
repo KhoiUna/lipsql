@@ -347,6 +347,7 @@ export default function VisualQueryBuilder({
 
 	const hasAggregates = query.groupBy.length > 0;
 
+	if (process.env.NEXT_PUBLIC_EXPERIMENTAL !== 'true') return null;
 	if (!isOpen) return null;
 
 	return (

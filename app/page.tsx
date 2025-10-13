@@ -402,14 +402,17 @@ export default function page() {
 								)}
 							</Button>
 
-							<Button
-								type="button"
-								onClick={() => setIsVisualBuilderOpen(true)}
-								className="px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
-							>
-								<Blocks size={18} />
-								Visual Builder
-							</Button>
+							{process.env.NEXT_PUBLIC_EXPERIMENTAL ===
+								'true' && (
+								<Button
+									type="button"
+									onClick={() => setIsVisualBuilderOpen(true)}
+									className="px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
+								>
+									<Blocks size={18} />
+									Visual Builder
+								</Button>
+							)}
 
 							{naturalLanguageQuery.trim() && (
 								<Button
