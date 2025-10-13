@@ -5,7 +5,151 @@ import {
 } from './query-builder-types';
 
 /**
+ * SQL Dialect abstraction for database-specific syntax
+ */
+interface SqlDialect {
+	escapeIdentifier(name: string): string;
+	escapeValue(value: any): string;
+	formatLimit(limit: number): string;
+	formatSelectWithLimit(selectClause: string, limit?: number): string;
+}
+
+/**
+ * PostgreSQL dialect
+ */
+class PostgresDialect implements SqlDialect {
+	escapeIdentifier(identifier: string): string {
+		return identifier;
+	}
+
+	escapeValue(value: any): string {
+		if (value === null || value === undefined) {
+			return 'NULL';
+		}
+		if (typeof value === 'number') {
+			return value.toString();
+		}
+		return `'${String(value).replace(/'/g, "''")}'`;
+	}
+
+	formatLimit(limit: number): string {
+		return `\nLIMIT ${limit}`;
+	}
+
+	formatSelectWithLimit(selectClause: string, limit?: number): string {
+		return selectClause;
+	}
+}
+
+/**
+ * SQL Server dialect
+ */
+class SqlServerDialect implements SqlDialect {
+	escapeIdentifier(identifier: string): string {
+		return identifier;
+	}
+
+	escapeValue(value: any): string {
+		if (value === null || value === undefined) {
+			return 'NULL';
+		}
+		if (typeof value === 'number') {
+			return value.toString();
+		}
+		return `'${String(value).replace(/'/g, "''")}'`;
+	}
+
+	formatLimit(limit: number): string {
+		return ''; // SQL Server uses TOP in SELECT clause
+	}
+
+	formatSelectWithLimit(selectClause: string, limit?: number): string {
+		if (limit && limit > 0) {
+			return selectClause.replace(/^SELECT/i, `SELECT TOP ${limit}`);
+		}
+		return selectClause;
+	}
+}
+
+/**
+ * MySQL dialect
+ */
+class MySqlDialect implements SqlDialect {
+	escapeIdentifier(identifier: string): string {
+		return identifier;
+	}
+
+	escapeValue(value: any): string {
+		if (value === null || value === undefined) {
+			return 'NULL';
+		}
+		if (typeof value === 'number') {
+			return value.toString();
+		}
+		return `'${String(value).replace(/'/g, "''")}'`;
+	}
+
+	formatLimit(limit: number): string {
+		return `\nLIMIT ${limit}`;
+	}
+
+	formatSelectWithLimit(selectClause: string, limit?: number): string {
+		return selectClause;
+	}
+}
+
+/**
+ * SQLite dialect
+ */
+class SqliteDialect implements SqlDialect {
+	escapeIdentifier(identifier: string): string {
+		return identifier;
+	}
+
+	escapeValue(value: any): string {
+		if (value === null || value === undefined) {
+			return 'NULL';
+		}
+		if (typeof value === 'number') {
+			return value.toString();
+		}
+		return `'${String(value).replace(/'/g, "''")}'`;
+	}
+
+	formatLimit(limit: number): string {
+		return `\nLIMIT ${limit}`;
+	}
+
+	formatSelectWithLimit(selectClause: string, limit?: number): string {
+		return selectClause;
+	}
+}
+
+/**
+ * Get dialect instance based on database type
+ */
+function getDialect(databaseType: string): SqlDialect {
+	const dbType = (databaseType || 'postgres').toLowerCase();
+
+	switch (dbType) {
+		case 'sqlserver':
+		case 'mssql':
+			return new SqlServerDialect();
+		case 'mysql':
+			return new MySqlDialect();
+		case 'sqlite':
+		case 'sqlite3':
+			return new SqliteDialect();
+		case 'postgres':
+		case 'postgresql':
+		default:
+			return new PostgresDialect();
+	}
+}
+
+/**
  * Escapes SQL identifiers (table names, column names)
+ * @deprecated Use dialect.escapeIdentifier() instead
  */
 function escapeIdentifier(identifier: string): string {
 	// Remove any existing quotes and escape with double quotes
@@ -14,6 +158,7 @@ function escapeIdentifier(identifier: string): string {
 
 /**
  * Escapes SQL string values
+ * @deprecated Use dialect.escapeValue() instead
  */
 function escapeValue(value: any): string {
 	if (value === null || value === undefined) {
@@ -31,40 +176,45 @@ function escapeValue(value: any): string {
  */
 function formatColumnWithAggregate(
 	col: ColumnSelection,
-	tableAlias: string
+	tableName: string,
+	dialect: SqlDialect
 ): string {
-	const columnRef = `${escapeIdentifier(tableAlias)}.${escapeIdentifier(
-		col.columnName
-	)}`;
+	const columnRef = `${dialect.escapeIdentifier(
+		tableName
+	)}.${dialect.escapeIdentifier(col.columnName)}`;
 
 	if (col.aggregateFunction && col.aggregateFunction !== 'NONE') {
 		const formatted = `${col.aggregateFunction}(${columnRef})`;
 		return col.alias
-			? `${formatted} AS ${escapeIdentifier(col.alias)}`
+			? `${formatted} AS ${dialect.escapeIdentifier(col.alias)}`
 			: formatted;
 	}
 
 	return col.alias
-		? `${columnRef} AS ${escapeIdentifier(col.alias)}`
+		? `${columnRef} AS ${dialect.escapeIdentifier(col.alias)}`
 		: columnRef;
 }
 
 /**
  * Builds the SELECT clause from table blocks
  */
-function buildSelectClause(query: VisualQuery): string {
+function buildSelectClause(query: VisualQuery, dialect: SqlDialect): string {
 	const columns: string[] = [];
 
 	for (const table of query.tables) {
 		for (const col of table.selectedColumns) {
-			columns.push(formatColumnWithAggregate(col, table.alias));
+			columns.push(
+				formatColumnWithAggregate(col, table.tableName, dialect)
+			);
 		}
 	}
 
 	if (columns.length === 0) {
 		// If no columns selected, select all from first table
 		if (query.tables.length > 0) {
-			return `SELECT ${escapeIdentifier(query.tables[0].alias)}.*`;
+			return `SELECT ${dialect.escapeIdentifier(
+				query.tables[0].tableName
+			)}.*`;
 		}
 		return 'SELECT *';
 	}
@@ -75,21 +225,19 @@ function buildSelectClause(query: VisualQuery): string {
 /**
  * Builds the FROM clause
  */
-function buildFromClause(query: VisualQuery): string {
+function buildFromClause(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.tables.length === 0) {
 		throw new Error('At least one table must be selected');
 	}
 
 	const firstTable = query.tables[0];
-	return `FROM ${escapeIdentifier(firstTable.tableName)} ${escapeIdentifier(
-		firstTable.alias
-	)}`;
+	return `FROM ${dialect.escapeIdentifier(firstTable.tableName)}`;
 }
 
 /**
  * Builds JOIN clauses
  */
-function buildJoinClauses(query: VisualQuery): string {
+function buildJoinClauses(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.joins.length === 0) {
 		return '';
 	}
@@ -97,7 +245,7 @@ function buildJoinClauses(query: VisualQuery): string {
 	const joins: string[] = [];
 
 	for (const join of query.joins) {
-		// Find the table info for the right table to get its alias
+		// Find the table info for the right table
 		const rightTable = query.tables.find(
 			(t) => t.tableName === join.rightTable
 		);
@@ -105,18 +253,15 @@ function buildJoinClauses(query: VisualQuery): string {
 			continue; // Skip invalid joins
 		}
 
-		const leftTableAlias =
-			query.tables.find((t) => t.tableName === join.leftTable)?.alias ||
-			join.leftTable;
-		const rightTableAlias = rightTable.alias;
-
-		const joinClause = `${join.joinType} JOIN ${escapeIdentifier(
+		const joinClause = `${join.joinType} JOIN ${dialect.escapeIdentifier(
 			join.rightTable
-		)} ${escapeIdentifier(rightTableAlias)} ON ${escapeIdentifier(
-			leftTableAlias
-		)}.${escapeIdentifier(join.leftColumn)} = ${escapeIdentifier(
-			rightTableAlias
-		)}.${escapeIdentifier(join.rightColumn)}`;
+		)} ON ${dialect.escapeIdentifier(
+			join.leftTable
+		)}.${dialect.escapeIdentifier(
+			join.leftColumn
+		)} = ${dialect.escapeIdentifier(
+			join.rightTable
+		)}.${dialect.escapeIdentifier(join.rightColumn)}`;
 		joins.push(joinClause);
 	}
 
@@ -126,7 +271,7 @@ function buildJoinClauses(query: VisualQuery): string {
 /**
  * Builds the WHERE clause from conditions
  */
-function buildWhereClause(query: VisualQuery): string {
+function buildWhereClause(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.conditions.length === 0) {
 		return '';
 	}
@@ -144,12 +289,9 @@ function buildWhereClause(query: VisualQuery): string {
 
 		// Parse column (format: "tableName.columnName")
 		const [tableName, columnName] = condition.column.split('.');
-		const tableAlias =
-			query.tables.find((t) => t.tableName === tableName)?.alias ||
-			tableName;
-		const columnRef = `${escapeIdentifier(tableAlias)}.${escapeIdentifier(
-			columnName
-		)}`;
+		const columnRef = `${dialect.escapeIdentifier(
+			tableName
+		)}.${dialect.escapeIdentifier(columnName)}`;
 
 		// Build condition based on operator
 		switch (condition.operator) {
@@ -163,13 +305,13 @@ function buildWhereClause(query: VisualQuery): string {
 			case 'NOT IN':
 				if (Array.isArray(condition.value)) {
 					const values = condition.value
-						.map((v) => escapeValue(v))
+						.map((v) => dialect.escapeValue(v))
 						.join(', ');
 					conditionStr += `${columnRef} ${condition.operator} (${values})`;
 				} else {
 					conditionStr += `${columnRef} ${
 						condition.operator
-					} (${escapeValue(condition.value)})`;
+					} (${dialect.escapeValue(condition.value)})`;
 				}
 				break;
 			case 'BETWEEN':
@@ -177,15 +319,15 @@ function buildWhereClause(query: VisualQuery): string {
 					Array.isArray(condition.value) &&
 					condition.value.length === 2
 				) {
-					conditionStr += `${columnRef} BETWEEN ${escapeValue(
+					conditionStr += `${columnRef} BETWEEN ${dialect.escapeValue(
 						condition.value[0]
-					)} AND ${escapeValue(condition.value[1])}`;
+					)} AND ${dialect.escapeValue(condition.value[1])}`;
 				}
 				break;
 			default:
 				conditionStr += `${columnRef} ${
 					condition.operator
-				} ${escapeValue(condition.value)}`;
+				} ${dialect.escapeValue(condition.value)}`;
 		}
 
 		// Add closing parenthesis if group ends
@@ -207,7 +349,7 @@ function buildWhereClause(query: VisualQuery): string {
 /**
  * Builds the GROUP BY clause
  */
-function buildGroupByClause(query: VisualQuery): string {
+function buildGroupByClause(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.groupBy.length === 0) {
 		return '';
 	}
@@ -216,11 +358,10 @@ function buildGroupByClause(query: VisualQuery): string {
 
 	for (const groupBy of query.groupBy) {
 		const [tableName, columnName] = groupBy.column.split('.');
-		const tableAlias =
-			query.tables.find((t) => t.tableName === tableName)?.alias ||
-			tableName;
 		columns.push(
-			`${escapeIdentifier(tableAlias)}.${escapeIdentifier(columnName)}`
+			`${dialect.escapeIdentifier(tableName)}.${dialect.escapeIdentifier(
+				columnName
+			)}`
 		);
 	}
 
@@ -230,7 +371,7 @@ function buildGroupByClause(query: VisualQuery): string {
 /**
  * Builds the ORDER BY clause
  */
-function buildOrderByClause(query: VisualQuery): string {
+function buildOrderByClause(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.orderBy.length === 0) {
 		return '';
 	}
@@ -239,13 +380,10 @@ function buildOrderByClause(query: VisualQuery): string {
 
 	for (const orderBy of query.orderBy) {
 		const [tableName, columnName] = orderBy.column.split('.');
-		const tableAlias =
-			query.tables.find((t) => t.tableName === tableName)?.alias ||
-			tableName;
 		columns.push(
-			`${escapeIdentifier(tableAlias)}.${escapeIdentifier(columnName)} ${
-				orderBy.direction
-			}`
+			`${dialect.escapeIdentifier(tableName)}.${dialect.escapeIdentifier(
+				columnName
+			)} ${orderBy.direction}`
 		);
 	}
 
@@ -255,9 +393,9 @@ function buildOrderByClause(query: VisualQuery): string {
 /**
  * Builds the LIMIT clause
  */
-function buildLimitClause(query: VisualQuery): string {
+function buildLimitClause(query: VisualQuery, dialect: SqlDialect): string {
 	if (query.limit && query.limit > 0) {
-		return `\nLIMIT ${query.limit}`;
+		return dialect.formatLimit(query.limit);
 	}
 	return '';
 }
@@ -265,15 +403,23 @@ function buildLimitClause(query: VisualQuery): string {
 /**
  * Main function to generate SQL from visual query
  */
-export function generateSqlFromVisual(query: VisualQuery): string {
+export function generateSqlFromVisual(
+	query: VisualQuery,
+	databaseType: string = 'postgres'
+): string {
 	try {
-		const selectClause = buildSelectClause(query);
-		const fromClause = buildFromClause(query);
-		const joinClauses = buildJoinClauses(query);
-		const whereClause = buildWhereClause(query);
-		const groupByClause = buildGroupByClause(query);
-		const orderByClause = buildOrderByClause(query);
-		const limitClause = buildLimitClause(query);
+		const dialect = getDialect(databaseType);
+
+		let selectClause = buildSelectClause(query, dialect);
+		const fromClause = buildFromClause(query, dialect);
+		const joinClauses = buildJoinClauses(query, dialect);
+		const whereClause = buildWhereClause(query, dialect);
+		const groupByClause = buildGroupByClause(query, dialect);
+		const orderByClause = buildOrderByClause(query, dialect);
+		const limitClause = buildLimitClause(query, dialect);
+
+		// Apply SQL Server TOP clause if needed
+		selectClause = dialect.formatSelectWithLimit(selectClause, query.limit);
 
 		return `${selectClause}\n${fromClause}${joinClauses}${whereClause}${groupByClause}${orderByClause}${limitClause}`;
 	} catch (error) {
