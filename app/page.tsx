@@ -407,7 +407,7 @@ export default function page() {
 								<Button
 									type="button"
 									onClick={() => setIsVisualBuilderOpen(true)}
-									className="px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
+									className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
 								>
 									<Blocks size={18} />
 									Visual Builder
