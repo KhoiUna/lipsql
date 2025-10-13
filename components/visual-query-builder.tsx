@@ -75,7 +75,10 @@ export default function VisualQueryBuilder({
 	useEffect(() => {
 		if (query.tables.length > 0) {
 			try {
-				const sql = generateSqlFromVisual(query);
+				const sql = generateSqlFromVisual(
+					query,
+					schemaData?.databaseType || 'postgres'
+				);
 				setGeneratedSql(sql);
 			} catch (error) {
 				setGeneratedSql('');
@@ -83,7 +86,7 @@ export default function VisualQueryBuilder({
 		} else {
 			setGeneratedSql('');
 		}
-	}, [query]);
+	}, [query, schemaData?.databaseType]);
 
 	const handleAddTable = (tableName: string) => {
 		if (!tableName) return;
