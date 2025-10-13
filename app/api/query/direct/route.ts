@@ -45,25 +45,14 @@ export async function POST(request: NextRequest) {
 				? error.message
 				: 'An unknown error occurred';
 
-		let userFriendlyError: string;
+		let userFriendlyError: string = errorMessage;
 		let statusCode: number;
 
 		if (errorMessage.includes('Only SELECT queries')) {
 			userFriendlyError =
 				'Only SELECT queries are allowed for security reasons!';
 			statusCode = 400;
-		} else if (errorMessage.includes('SQL execution failed')) {
-			userFriendlyError =
-				'Database query failed. Please check your SQL and try again.';
-			statusCode = 500;
-		} else if (errorMessage.includes('SQL parameter is required')) {
-			userFriendlyError =
-				'SQL parameter is required and must be a string';
-			statusCode = 400;
 		} else {
-			// Generic server error for unknown issues
-			userFriendlyError =
-				'An unexpected error occurred. Please try again.';
 			statusCode = 500;
 		}
 
