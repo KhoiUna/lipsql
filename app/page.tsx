@@ -52,23 +52,40 @@ const isSqlStatement = (input: string): boolean => {
 		trimmed.startsWith(keyword)
 	);
 
-	// Additional checks for more complex SQL patterns
+	const additionalSqlKeywords = [
+		'from',
+		'where',
+		'join',
+		'group by',
+		'order by',
+		'having',
+		'union',
+		'as',
+	];
+
+	const sqlFunctions = ['count(', 'avg(', 'max(', 'min(', 'sum('];
+
 	const hasSqlPatterns =
-		trimmed.includes(' from ') ||
-		trimmed.includes(' where ') ||
-		trimmed.includes(' join ') ||
-		trimmed.includes(' group by ') ||
-		trimmed.includes(' order by ') ||
-		trimmed.includes(' having ') ||
-		trimmed.includes(' union ') ||
+		sqlKeywords.some((keyword) => {
+			const pattern = ` ${keyword}`;
+			return (
+				trimmed.includes(`${pattern} `) ||
+				trimmed.includes(`${pattern}\n`)
+			);
+		}) ||
+		additionalSqlKeywords.some((keyword) => {
+			const pattern = ` ${keyword}`;
+			return (
+				trimmed.includes(`${pattern} `) ||
+				trimmed.includes(`${pattern}\n`)
+			);
+		}) ||
+		sqlFunctions.some((fn) => {
+			const pattern = ` ${fn}`;
+			return trimmed.includes(pattern);
+		}) ||
 		trimmed.includes(';') ||
-		(trimmed.includes('(') && trimmed.includes(')')) ||
-		trimmed.includes(' as ') ||
-		trimmed.includes(' count(') ||
-		trimmed.includes(' sum(') ||
-		trimmed.includes(' avg(') ||
-		trimmed.includes(' max(') ||
-		trimmed.includes(' min(');
+		(trimmed.includes('(') && trimmed.includes(')'));
 
 	return startsWithSqlKeyword && hasSqlPatterns;
 };
