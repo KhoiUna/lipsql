@@ -9,7 +9,17 @@ interface SchemaInfoModalProps {
 	onClose: () => void;
 	databaseType: string;
 	databaseName: string;
-	schema: string;
+	schema: {
+		tables: {
+			name: string;
+			columns: {
+				column: string;
+				type: string;
+				nullable: boolean;
+				default?: string;
+			}[];
+		}[];
+	};
 	relationships: any[];
 }
 
@@ -26,42 +36,15 @@ export default function SchemaInfoModal({
 	>('schema');
 	const [searchQuery, setSearchQuery] = useState('');
 
-	// Parse schema string to extract table information
-	const parseSchema = (schemaString: string) => {
-		const tables: { name: string; columns: any[] }[] = [];
-		const lines = schemaString.split('\n');
-		let currentTable: { name: string; columns: any[] } | null = null;
-
-		lines.forEach((line) => {
-			if (line.startsWith('Table: ')) {
-				if (currentTable) {
-					tables.push(currentTable);
-				}
-				currentTable = {
-					name: line.replace('Table: ', '').trim(),
-					columns: [],
-				};
-			} else if (line.startsWith('  - ') && currentTable) {
-				const columnLine = line.replace('  - ', '').trim();
-				const match = columnLine.match(/^(\w+)\s*\(([^)]+)\)/);
-				if (match) {
-					currentTable.columns.push({
-						name: match[1],
-						type: match[2],
-						nullable: columnLine.includes('NULL'),
-					});
-				}
-			}
-		});
-
-		if (currentTable) {
-			tables.push(currentTable);
-		}
-
-		return tables;
-	};
-
-	const tables = parseSchema(schema);
+	// Transform schema tables to match the component's expected format
+	const tables = schema.tables.map((table) => ({
+		name: table.name,
+		columns: table.columns.map((col) => ({
+			name: col.column,
+			type: col.type,
+			nullable: col.nullable,
+		})),
+	}));
 
 	// Filter tables based on search query
 	const filteredTables = useMemo(() => {

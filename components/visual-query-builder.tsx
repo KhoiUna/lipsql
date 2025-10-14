@@ -14,7 +14,6 @@ import {
 	generateSqlFromVisual,
 	validateQueryStructure,
 	generateTableAlias,
-	parseSchemaString,
 } from '@/lib/query-builder-utils';
 import TableBlock from './query-builder/table-block';
 import JoinBlock from './query-builder/join-block';
@@ -66,7 +65,12 @@ export default function VisualQueryBuilder({
 
 	// Parse schema to get available tables and columns
 	const tablesMap = schemaData
-		? parseSchemaString(schemaData.schema)
+		? new Map(
+				schemaData.schema.tables.map((table) => [
+					table.name,
+					table.columns.map((col) => col.column),
+				])
+		  )
 		: new Map<string, string[]>();
 	const availableTables = Array.from(tablesMap.keys());
 	const relationships = schemaData?.relationships || [];

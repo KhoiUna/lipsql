@@ -137,7 +137,17 @@ export interface Relationship {
 }
 
 export interface SchemaData {
-	schema: string; // raw schema string
+	schema: {
+		tables: {
+			name: string;
+			columns: {
+				column: string;
+				type: string;
+				nullable: boolean;
+				default?: string;
+			}[];
+		}[];
+	};
 	relationships: Relationship[];
 	databaseType: string;
 	databaseName: string;

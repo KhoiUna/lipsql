@@ -3,12 +3,29 @@ import { Pool } from 'pg';
 import * as sql from 'mssql';
 import { GEMINI_MODEL } from './constants';
 
+// Schema types
+export interface SchemaColumn {
+	column: string;
+	type: string;
+	nullable: boolean;
+	default?: string;
+}
+
+export interface SchemaTable {
+	name: string;
+	columns: SchemaColumn[];
+}
+
+export interface DatabaseSchema {
+	tables: SchemaTable[];
+}
+
 // Database driver abstraction
 interface DatabaseDriver {
 	databaseType: string;
 	connect(): Promise<any>;
 	query(sql: string): Promise<any>;
-	getSchema(): Promise<string>;
+	getSchema(): Promise<DatabaseSchema>;
 	getRelationships(): Promise<any[]>;
 	getDatabaseName(): Promise<string>;
 	close(): Promise<void>;
@@ -45,7 +62,7 @@ class PostgresDriver implements DatabaseDriver {
 		}
 	}
 
-	async getSchema(): Promise<string> {
+	async getSchema(): Promise<DatabaseSchema> {
 		const client = await this.connect();
 
 		try {
@@ -66,12 +83,12 @@ class PostgresDriver implements DatabaseDriver {
 			const result = await client.query(tablesQuery);
 
 			// Group columns by table
-			const schema: Record<string, any[]> = {};
+			const tablesMap: Record<string, SchemaColumn[]> = {};
 			result.rows.forEach((row) => {
-				if (!schema[row.table_name]) {
-					schema[row.table_name] = [];
+				if (!tablesMap[row.table_name]) {
+					tablesMap[row.table_name] = [];
 				}
-				schema[row.table_name].push({
+				tablesMap[row.table_name].push({
 					column: row.column_name,
 					type: row.data_type,
 					nullable: row.is_nullable === 'YES',
@@ -79,23 +96,15 @@ class PostgresDriver implements DatabaseDriver {
 				});
 			});
 
-			// Format schema as a readable string
-			let schemaString = 'Database Schema:\n\n';
-			for (const [tableName, columns] of Object.entries(schema)) {
-				schemaString += `Table: ${tableName}\n`;
-				columns.forEach((col) => {
-					schemaString += `  - ${col.column} (${col.type})${
-						col.nullable ? ' NULL' : ' NOT NULL'
-					}`;
-					if (col.default) {
-						schemaString += ` DEFAULT ${col.default}`;
-					}
-					schemaString += '\n';
-				});
-				schemaString += '\n';
-			}
+			// Convert to array format
+			const tables: SchemaTable[] = Object.entries(tablesMap).map(
+				([name, columns]) => ({
+					name,
+					columns,
+				})
+			);
 
-			return schemaString;
+			return { tables };
 		} finally {
 			client.release();
 		}
@@ -195,7 +204,7 @@ class SqlServerDriver implements DatabaseDriver {
 		return await connection.request().query(sql);
 	}
 
-	async getSchema(): Promise<string> {
+	async getSchema(): Promise<DatabaseSchema> {
 		const connection = await this.connect();
 
 		try {
@@ -216,12 +225,12 @@ class SqlServerDriver implements DatabaseDriver {
 			const result = await connection.request().query(tablesQuery);
 
 			// Group columns by table
-			const schema: Record<string, any[]> = {};
+			const tablesMap: Record<string, SchemaColumn[]> = {};
 			result.recordset.forEach((row: any) => {
-				if (!schema[row.TABLE_NAME]) {
-					schema[row.TABLE_NAME] = [];
+				if (!tablesMap[row.TABLE_NAME]) {
+					tablesMap[row.TABLE_NAME] = [];
 				}
-				schema[row.TABLE_NAME].push({
+				tablesMap[row.TABLE_NAME].push({
 					column: row.COLUMN_NAME,
 					type: row.DATA_TYPE,
 					nullable: row.IS_NULLABLE === 'YES',
@@ -229,23 +238,15 @@ class SqlServerDriver implements DatabaseDriver {
 				});
 			});
 
-			// Format schema as a readable string
-			let schemaString = 'Database Schema:\n\n';
-			for (const [tableName, columns] of Object.entries(schema)) {
-				schemaString += `Table: ${tableName}\n`;
-				columns.forEach((col) => {
-					schemaString += `  - ${col.column} (${col.type})${
-						col.nullable ? ' NULL' : ' NOT NULL'
-					}`;
-					if (col.default) {
-						schemaString += ` DEFAULT ${col.default}`;
-					}
-					schemaString += '\n';
-				});
-				schemaString += '\n';
-			}
+			// Convert to array format
+			const tables: SchemaTable[] = Object.entries(tablesMap).map(
+				([name, columns]) => ({
+					name,
+					columns,
+				})
+			);
 
-			return schemaString;
+			return { tables };
 		} catch (error) {
 			console.error('SQL Server schema extraction error:', error);
 			throw new Error(
@@ -350,8 +351,27 @@ export function getDriver(): DatabaseDriver {
 }
 
 // Get database schema information
-export async function getDatabaseSchema(): Promise<string> {
+export async function getDatabaseSchema(): Promise<DatabaseSchema> {
 	return await getDriver().getSchema();
+}
+
+// Convert schema object to string format for AI prompts
+export function schemaToString(schema: DatabaseSchema): string {
+	let schemaString = 'Database Schema:\n\n';
+	for (const table of schema.tables) {
+		schemaString += `Table: ${table.name}\n`;
+		table.columns.forEach((col) => {
+			schemaString += `  - ${col.column} (${col.type})${
+				col.nullable ? ' NULL' : ' NOT NULL'
+			}`;
+			if (col.default) {
+				schemaString += ` DEFAULT ${col.default}`;
+			}
+			schemaString += '\n';
+		});
+		schemaString += '\n';
+	}
+	return schemaString;
 }
 
 // Get table relationships

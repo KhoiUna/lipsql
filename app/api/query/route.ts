@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseSchema, callGeminiApi, executeSql } from '@/lib/db-utils';
+import {
+	getDatabaseSchema,
+	callGeminiApi,
+	executeSql,
+	schemaToString,
+} from '@/lib/db-utils';
 import { GEMINI_MODEL } from '@/lib/constants';
 import { verifyAuthentication } from '../api-utils';
 
@@ -42,7 +47,7 @@ CRITICAL SECURITY RULES - YOU MUST FOLLOW THESE:
 7. ONLY query the tables and columns provided in the schema - do not assume other tables exist
 8. If the user query requests data modification, data deletion, or system information, respond with "SELECT 1 as message WHERE 1=0" (empty result)
 
-Database schema: ${dbSchema}
+Database schema: ${schemaToString(dbSchema)}
 Database driver: ${process.env.DATABASE_TYPE}
 
 Convert the following natural language query into a valid SQL SELECT statement for that database driver.

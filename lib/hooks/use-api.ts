@@ -73,7 +73,17 @@ interface SchemaResponse {
 	success: boolean;
 	databaseType: string;
 	databaseName: string;
-	schema: string;
+	schema: {
+		tables: {
+			name: string;
+			columns: {
+				column: string;
+				type: string;
+				nullable: boolean;
+				default?: string;
+			}[];
+		}[];
+	};
 	relationships: any[];
 	timestamp: string;
 }

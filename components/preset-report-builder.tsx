@@ -6,10 +6,7 @@ import {
 	OrderByClause,
 	SchemaData,
 } from '@/lib/query-builder-types';
-import {
-	generateSqlFromVisual,
-	parseSchemaString,
-} from '@/lib/query-builder-utils';
+import { generateSqlFromVisual } from '@/lib/query-builder-utils';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Combobox } from './ui/combobox';
@@ -50,7 +47,12 @@ export default function PresetReportBuilder({
 	>({});
 
 	const tablesMap = schemaData
-		? parseSchemaString(schemaData.schema)
+		? new Map(
+				schemaData.schema.tables.map((table) => [
+					table.name,
+					table.columns.map((col) => col.column),
+				])
+		  )
 		: new Map<string, string[]>();
 
 	// Initialize parameter values with defaults
