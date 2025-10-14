@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import {
 	VisualQuery,
 	ReportParameter,
-	WhereCondition,
 	OrderByClause,
 	SchemaData,
 } from '@/lib/query-builder-types';
@@ -14,14 +13,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Combobox } from './ui/combobox';
-import {
-	Play,
-	X,
-	Download,
-	Eye,
-	ChevronDown,
-	ChevronRight,
-} from 'lucide-react';
+import { Play, X, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PresetReportBuilderProps {
