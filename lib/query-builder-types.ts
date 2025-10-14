@@ -142,3 +142,32 @@ export interface SchemaData {
 	databaseType: string;
 	databaseName: string;
 }
+
+// Report system types
+export interface Folder {
+	id: number;
+	name: string;
+	description?: string;
+	created_at: string;
+}
+
+export interface Report {
+	id: number;
+	folder_id: number;
+	name: string;
+	description?: string;
+	query_config: VisualQuery;
+	default_visible_columns: string[];
+	created_at: string;
+}
+
+export interface ReportParameter {
+	id: number;
+	report_id: number;
+	field: string;
+	label: string;
+	type: 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number';
+	options_source?: string;
+	default_value?: any;
+	required: boolean;
+}

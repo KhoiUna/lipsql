@@ -103,6 +103,53 @@ interface UpdateQueryNameRequest {
 	savedName: string;
 }
 
+interface FoldersResponse {
+	success: boolean;
+	folders: any[];
+	timestamp: string;
+}
+
+interface CreateFolderRequest {
+	name: string;
+	description?: string;
+}
+
+interface CreateFolderResponse {
+	success: boolean;
+	folderId: number;
+	message: string;
+	timestamp: string;
+}
+
+interface FolderReportsResponse {
+	success: boolean;
+	reports: any[];
+	timestamp: string;
+}
+
+interface ReportResponse {
+	success: boolean;
+	report: any;
+	parameters: any[];
+	timestamp: string;
+}
+
+interface CreateReportRequest {
+	folder_id: number;
+	name: string;
+	description?: string;
+	query_config: any;
+	default_visible_columns?: string[];
+	parameters?: any[];
+}
+
+interface CreateReportResponse {
+	success: boolean;
+	reportId: number;
+	message: string;
+	timestamp: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -242,6 +289,70 @@ const api = {
 			throw new Error(errorData.error || 'Failed to delete query');
 		}
 	},
+
+	async getFolders(): Promise<FoldersResponse> {
+		const response = await fetch('/api/folders');
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch folders');
+		}
+
+		return response.json();
+	},
+
+	async createFolder(
+		data: CreateFolderRequest
+	): Promise<CreateFolderResponse> {
+		const response = await fetch('/api/folders', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to create folder');
+		}
+
+		return response.json();
+	},
+
+	async getFolderReports(folderId: number): Promise<FolderReportsResponse> {
+		const response = await fetch(`/api/folders/${folderId}/reports`);
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch folder reports');
+		}
+
+		return response.json();
+	},
+
+	async getReport(reportId: number): Promise<ReportResponse> {
+		const response = await fetch(`/api/reports/${reportId}`);
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch report');
+		}
+
+		return response.json();
+	},
+
+	async createReport(
+		data: CreateReportRequest
+	): Promise<CreateReportResponse> {
+		const response = await fetch('/api/reports', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to create report');
+		}
+
+		return response.json();
+	},
 };
 
 // Custom hooks
@@ -353,6 +464,56 @@ export function useDeleteSavedQuery() {
 		onSuccess: () => {
 			// Invalidate saved queries to refresh the list
 			queryClient.invalidateQueries({ queryKey: ['savedQueries'] });
+		},
+	});
+}
+
+// Folder hooks
+export function useFolders() {
+	return useQuery({
+		queryKey: ['folders'],
+		queryFn: api.getFolders,
+	});
+}
+
+export function useCreateFolder() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.createFolder,
+		onSuccess: () => {
+			// Invalidate folders to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['folders'] });
+		},
+	});
+}
+
+export function useFolderReports(folderId: number) {
+	return useQuery({
+		queryKey: ['folderReports', folderId],
+		queryFn: () => api.getFolderReports(folderId),
+		enabled: !!folderId,
+	});
+}
+
+// Report hooks
+export function useReport(reportId: number) {
+	return useQuery({
+		queryKey: ['report', reportId],
+		queryFn: () => api.getReport(reportId),
+		enabled: !!reportId,
+	});
+}
+
+export function useCreateReport() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.createReport,
+		onSuccess: () => {
+			// Invalidate folders and reports to refresh
+			queryClient.invalidateQueries({ queryKey: ['folders'] });
+			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
 		},
 	});
 }

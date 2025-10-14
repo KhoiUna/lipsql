@@ -30,8 +30,10 @@ import {
 	Eye,
 	ChevronDown,
 	ChevronRight,
+	Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import SaveReportDialog from './save-report-dialog';
 
 interface VisualQueryBuilderProps {
 	isOpen: boolean;
@@ -58,6 +60,8 @@ export default function VisualQueryBuilder({
 
 	const [generatedSql, setGeneratedSql] = useState<string>('');
 	const [showSqlPreview, setShowSqlPreview] = useState<boolean>(false);
+	const [isSaveReportDialogOpen, setIsSaveReportDialogOpen] =
+		useState<boolean>(false);
 
 	// Parse schema to get available tables and columns
 	const tablesMap = schemaData
@@ -728,6 +732,17 @@ export default function VisualQueryBuilder({
 					</Button>
 					<div className="flex items-center gap-3">
 						<Button
+							onClick={() => setIsSaveReportDialogOpen(true)}
+							disabled={
+								!generatedSql || query.tables.length === 0
+							}
+							variant="outline"
+							className="cursor-pointer"
+						>
+							<Save size={16} className="mr-2" />
+							Save as Report
+						</Button>
+						<Button
 							onClick={onClose}
 							variant="outline"
 							className="cursor-pointer"
@@ -747,6 +762,14 @@ export default function VisualQueryBuilder({
 					</div>
 				</div>
 			</div>
+
+			{/* Save Report Dialog */}
+			<SaveReportDialog
+				isOpen={isSaveReportDialogOpen}
+				onClose={() => setIsSaveReportDialogOpen(false)}
+				query={query}
+				databaseType={schemaData?.databaseType || 'postgres'}
+			/>
 		</div>
 	);
 }
