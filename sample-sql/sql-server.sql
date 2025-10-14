@@ -20,16 +20,17 @@ SELECT DISTINCT
   poeh.duedt AS "Due Date",
   poel.shipprod AS "Martin Product ID",
   icsec.prod AS "Customer Product #",
+  icsec.addprtinfo AS "Customer Product Information",
   icsw.vendprod AS "Vendor Product",
   poel.qtyord AS "Qty Ordered",
-  poel.price,
-  poel.price * poel.qtyord AS "Total"
+  poel.price * 1.12 AS "Price",
+  (poel.price*1.12) * poel.qtyord AS "Total"
 FROM
   poel
   INNER JOIN poeh ON poel.pono = poeh.pono
   AND poel.posuf = poeh.posuf
   INNER JOIN icsp ON poel.shipprod = icsp.prod
-  INNER JOIN icsec ON poel.shipprod = icsec.altprod
+  LEFT JOIN icsec ON poel.shipprod = icsec.altprod
   INNER JOIN apsv ON poeh.vendno = apsv.vendno
   INNER JOIN icsd ON poeh.whse = icsd.whse
   INNER JOIN icsw ON icsec.altprod = icsw.prod
