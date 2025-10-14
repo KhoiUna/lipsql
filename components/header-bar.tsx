@@ -69,7 +69,7 @@ export default function HeaderBar() {
 											setIsSchemaModalOpen(true)
 										}
 										disabled={schemaQuery.isLoading}
-										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										className="cursor-pointer flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 										title="View Database Schema"
 									>
 										{schemaQuery.isLoading ? (
