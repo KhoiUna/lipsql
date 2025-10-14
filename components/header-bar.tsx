@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthCheck, useLogout, useSchema } from '@/lib/hooks/use-api';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, FolderOpen } from 'lucide-react';
 import SchemaInfoModal from './ui/schema-info-modal';
 
 export default function HeaderBar() {
@@ -54,20 +54,32 @@ export default function HeaderBar() {
 						{/* Navigation and Auth */}
 						<div className="flex items-center space-x-4">
 							{isAuthenticated && (
-								<button
-									type="button"
-									onClick={() => setIsSchemaModalOpen(true)}
-									disabled={schemaQuery.isLoading}
-									className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-									title="View Database Schema"
-								>
-									{schemaQuery.isLoading ? (
-										<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-									) : (
-										<Info className="w-4 h-4" />
-									)}
-									<span>Schema Info</span>
-								</button>
+								<>
+									<Link
+										href="/folders"
+										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										title="View Reports"
+									>
+										<FolderOpen size={16} />
+										<span>Reports</span>
+									</Link>
+									<button
+										type="button"
+										onClick={() =>
+											setIsSchemaModalOpen(true)
+										}
+										disabled={schemaQuery.isLoading}
+										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										title="View Database Schema"
+									>
+										{schemaQuery.isLoading ? (
+											<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+										) : (
+											<Info size={16} />
+										)}
+										<span>Schema Info</span>
+									</button>
+								</>
 							)}
 							{isLoading ? (
 								<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
