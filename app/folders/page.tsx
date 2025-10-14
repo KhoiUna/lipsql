@@ -1,24 +1,50 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderBar from '@/components/header-bar';
-import { useFolders, useCreateFolder } from '@/lib/hooks/use-api';
+import {
+	useFolders,
+	useCreateFolder,
+	useUpdateFolder,
+	useDeleteFolder,
+} from '@/lib/hooks/use-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Folder, Plus, X } from 'lucide-react';
+import { Folder, Plus, X, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FoldersPage() {
 	const router = useRouter();
 	const foldersQuery = useFolders();
 	const createFolderMutation = useCreateFolder();
+	const updateFolderMutation = useUpdateFolder();
+	const deleteFolderMutation = useDeleteFolder();
 
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [newFolderName, setNewFolderName] = useState('');
 	const [newFolderDescription, setNewFolderDescription] = useState('');
 
+	const [editingFolder, setEditingFolder] = useState<any>(null);
+	const [editFolderName, setEditFolderName] = useState('');
+	const [editFolderDescription, setEditFolderDescription] = useState('');
+
+	const [deletingFolder, setDeletingFolder] = useState<any>(null);
+	const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+
 	const folders = foldersQuery.data?.folders || [];
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = () => {
+			if (openDropdown !== null) {
+				setOpenDropdown(null);
+			}
+		};
+
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
+	}, [openDropdown]);
 
 	const handleCreateFolder = async () => {
 		if (!newFolderName.trim()) {
@@ -48,6 +74,60 @@ export default function FoldersPage() {
 
 	const handleFolderClick = (folderId: number) => {
 		router.push(`/folders/${folderId}`);
+	};
+
+	const handleEditFolder = (folder: any) => {
+		setEditingFolder(folder);
+		setEditFolderName(folder.name);
+		setEditFolderDescription(folder.description || '');
+		setOpenDropdown(null);
+	};
+
+	const handleUpdateFolder = async () => {
+		if (!editFolderName.trim()) {
+			toast.error('Please enter a folder name');
+			return;
+		}
+
+		try {
+			await updateFolderMutation.mutateAsync({
+				id: editingFolder.id,
+				data: {
+					name: editFolderName.trim(),
+					description: editFolderDescription.trim() || undefined,
+				},
+			});
+
+			toast.success('Folder updated successfully');
+			setEditingFolder(null);
+			setEditFolderName('');
+			setEditFolderDescription('');
+		} catch (error) {
+			console.error('Update folder error:', error);
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to update folder'
+			);
+		}
+	};
+
+	const handleDeleteFolder = async () => {
+		if (!deletingFolder) return;
+
+		try {
+			await deleteFolderMutation.mutateAsync(deletingFolder.id);
+
+			toast.success('Folder deleted successfully');
+			setDeletingFolder(null);
+		} catch (error) {
+			console.error('Delete folder error:', error);
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to delete folder'
+			);
+		}
 	};
 
 	return (
@@ -121,19 +201,30 @@ export default function FoldersPage() {
 									{folders.map((folder) => (
 										<div
 											key={folder.id}
-											onClick={() =>
-												handleFolderClick(folder.id)
-											}
-											className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+											className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow relative"
 										>
 											<div className="flex items-start gap-4">
-												<div className="p-3 bg-blue-100 rounded-lg">
+												<div
+													onClick={() =>
+														handleFolderClick(
+															folder.id
+														)
+													}
+													className="p-3 bg-blue-100 rounded-lg cursor-pointer"
+												>
 													<Folder
 														size={24}
 														className="text-blue-600"
 													/>
 												</div>
-												<div className="flex-1">
+												<div
+													onClick={() =>
+														handleFolderClick(
+															folder.id
+														)
+													}
+													className="flex-1 cursor-pointer"
+												>
 													<h3 className="text-lg font-semibold text-primary mb-1">
 														{folder.name}
 													</h3>
@@ -148,6 +239,64 @@ export default function FoldersPage() {
 															folder.created_at
 														).toLocaleDateString()}
 													</p>
+												</div>
+												<div className="relative">
+													<button
+														onClick={(e) => {
+															e.stopPropagation();
+															setOpenDropdown(
+																openDropdown ===
+																	folder.id
+																	? null
+																	: folder.id
+															);
+														}}
+														className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+													>
+														<MoreVertical
+															size={20}
+														/>
+													</button>
+													{openDropdown ===
+														folder.id && (
+														<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+															<button
+																onClick={(
+																	e
+																) => {
+																	e.stopPropagation();
+																	handleEditFolder(
+																		folder
+																	);
+																}}
+																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700 rounded-t-lg"
+															>
+																<Edit
+																	size={16}
+																/>
+																Edit
+															</button>
+															<button
+																onClick={(
+																	e
+																) => {
+																	e.stopPropagation();
+																	setDeletingFolder(
+																		folder
+																	);
+																	setOpenDropdown(
+																		null
+																	);
+																}}
+																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-600 rounded-b-lg"
+															>
+																<Trash2
+																	size={16}
+																/>
+																Delete
+															</button>
+														</div>
+													)}
 												</div>
 											</div>
 										</div>
@@ -227,6 +376,136 @@ export default function FoldersPage() {
 										setNewFolderName('');
 										setNewFolderDescription('');
 									}}
+									variant="outline"
+									className="flex-1 cursor-pointer"
+								>
+									Cancel
+								</Button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Edit Folder Dialog */}
+			{editingFolder && (
+				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+					<div className="bg-white rounded-lg p-6 w-full max-w-md">
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-lg font-semibold">
+								Edit Folder
+							</h3>
+							<button
+								onClick={() => {
+									setEditingFolder(null);
+									setEditFolderName('');
+									setEditFolderDescription('');
+								}}
+								className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+							>
+								<X size={20} />
+							</button>
+						</div>
+
+						<div className="space-y-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Folder Name *
+								</label>
+								<Input
+									value={editFolderName}
+									onChange={(e) =>
+										setEditFolderName(e.target.value)
+									}
+									placeholder="Enter folder name"
+									autoFocus
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Description
+								</label>
+								<Textarea
+									value={editFolderDescription}
+									onChange={(e) =>
+										setEditFolderDescription(e.target.value)
+									}
+									placeholder="Optional description"
+									rows={3}
+								/>
+							</div>
+
+							<div className="flex gap-3">
+								<Button
+									onClick={handleUpdateFolder}
+									disabled={
+										updateFolderMutation.isPending ||
+										!editFolderName.trim()
+									}
+									className="flex-1 cursor-pointer"
+								>
+									{updateFolderMutation.isPending
+										? 'Saving...'
+										: 'Save'}
+								</Button>
+								<Button
+									onClick={() => {
+										setEditingFolder(null);
+										setEditFolderName('');
+										setEditFolderDescription('');
+									}}
+									variant="outline"
+									className="flex-1 cursor-pointer"
+								>
+									Cancel
+								</Button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Delete Folder Confirmation */}
+			{deletingFolder && (
+				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+					<div className="bg-white rounded-lg p-6 w-full max-w-md">
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-lg font-semibold text-red-600">
+								Delete Folder
+							</h3>
+							<button
+								onClick={() => setDeletingFolder(null)}
+								className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+							>
+								<X size={20} />
+							</button>
+						</div>
+
+						<div className="space-y-4">
+							<p className="text-gray-700">
+								Are you sure you want to delete{' '}
+								<strong>{deletingFolder.name}</strong>?
+							</p>
+							<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+								<p className="text-sm text-yellow-800">
+									Warning: This will also delete all reports
+									in this folder.
+								</p>
+							</div>
+
+							<div className="flex gap-3">
+								<Button
+									onClick={handleDeleteFolder}
+									disabled={deleteFolderMutation.isPending}
+									className="flex-1 bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+								>
+									{deleteFolderMutation.isPending
+										? 'Deleting...'
+										: 'Delete'}
+								</Button>
+								<Button
+									onClick={() => setDeletingFolder(null)}
 									variant="outline"
 									className="flex-1 cursor-pointer"
 								>

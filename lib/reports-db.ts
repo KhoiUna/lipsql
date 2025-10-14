@@ -136,6 +136,31 @@ export function createFolder(data: CreateFolderData): number {
 	return result.lastInsertRowid as number;
 }
 
+export function updateFolder(
+	id: number,
+	data: Partial<CreateFolderData>
+): void {
+	const db = getDb();
+	const updates: string[] = [];
+	const values: any[] = [];
+
+	if (data.name !== undefined) {
+		updates.push('name = ?');
+		values.push(data.name);
+	}
+	if (data.description !== undefined) {
+		updates.push('description = ?');
+		values.push(data.description);
+	}
+
+	if (updates.length > 0) {
+		values.push(id);
+		db.prepare(`UPDATE folders SET ${updates.join(', ')} WHERE id = ?`).run(
+			...values
+		);
+	}
+}
+
 export function deleteFolder(id: number): void {
 	const db = getDb();
 	db.prepare('DELETE FROM folders WHERE id = ?').run(id);
@@ -188,6 +213,36 @@ export function createReport(data: CreateReportData): number {
 			JSON.stringify(data.default_visible_columns || [])
 		);
 	return result.lastInsertRowid as number;
+}
+
+export function updateReport(
+	id: number,
+	data: Partial<
+		Omit<
+			CreateReportData,
+			'folder_id' | 'query_config' | 'default_visible_columns'
+		>
+	>
+): void {
+	const db = getDb();
+	const updates: string[] = [];
+	const values: any[] = [];
+
+	if (data.name !== undefined) {
+		updates.push('name = ?');
+		values.push(data.name);
+	}
+	if (data.description !== undefined) {
+		updates.push('description = ?');
+		values.push(data.description);
+	}
+
+	if (updates.length > 0) {
+		values.push(id);
+		db.prepare(`UPDATE reports SET ${updates.join(', ')} WHERE id = ?`).run(
+			...values
+		);
+	}
 }
 
 export function deleteReport(id: number): void {

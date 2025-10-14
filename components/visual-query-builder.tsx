@@ -31,6 +31,7 @@ import {
 	ChevronDown,
 	ChevronRight,
 	Save,
+	Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SaveReportDialog from './save-report-dialog';
@@ -430,7 +431,7 @@ export default function VisualQueryBuilder({
 				{/* Header */}
 				<div className="flex items-center justify-between p-6 border-b">
 					<div className="flex items-center gap-4">
-						<h2 className="text-2xl font-bold text-primary">
+						<h2 className="text-xl font-bold text-primary">
 							Visual Query Builder
 						</h2>
 						<label className="flex items-center gap-2 text-sm">
@@ -452,14 +453,19 @@ export default function VisualQueryBuilder({
 					</div>
 					<button
 						onClick={onClose}
-						className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+						className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors"
 					>
-						<X size={24} />
+						<X size={16} />
 					</button>
 				</div>
 
 				{/* Content */}
-				<div className="flex-1 overflow-y-auto p-6">
+
+				<div className="flex-1 overflow-y-auto py-3 px-6">
+					<div className="text-sm text-gray-600 flex items-center gap-2 mb-3">
+						<Info size={16} />
+						Driver: {schemaData?.databaseType}
+					</div>
 					<div className="space-y-6">
 						{/* Tables Section */}
 						<div>

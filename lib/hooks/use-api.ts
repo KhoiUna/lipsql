@@ -160,6 +160,16 @@ interface CreateReportResponse {
 	timestamp: string;
 }
 
+interface UpdateFolderRequest {
+	name?: string;
+	description?: string;
+}
+
+interface UpdateReportRequest {
+	name?: string;
+	description?: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -363,6 +373,54 @@ const api = {
 
 		return response.json();
 	},
+
+	async updateFolder(id: number, data: UpdateFolderRequest): Promise<void> {
+		const response = await fetch(`/api/folders/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to update folder');
+		}
+	},
+
+	async deleteFolder(id: number): Promise<void> {
+		const response = await fetch(`/api/folders/${id}`, {
+			method: 'DELETE',
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to delete folder');
+		}
+	},
+
+	async updateReport(id: number, data: UpdateReportRequest): Promise<void> {
+		const response = await fetch(`/api/reports/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to update report');
+		}
+	},
+
+	async deleteReport(id: number): Promise<void> {
+		const response = await fetch(`/api/reports/${id}`, {
+			method: 'DELETE',
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to delete report');
+		}
+	},
 };
 
 // Custom hooks
@@ -523,6 +581,58 @@ export function useCreateReport() {
 		onSuccess: () => {
 			// Invalidate folders and reports to refresh
 			queryClient.invalidateQueries({ queryKey: ['folders'] });
+			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
+		},
+	});
+}
+
+export function useUpdateFolder() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: number; data: UpdateFolderRequest }) =>
+			api.updateFolder(id, data),
+		onSuccess: () => {
+			// Invalidate folders to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['folders'] });
+		},
+	});
+}
+
+export function useDeleteFolder() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.deleteFolder,
+		onSuccess: () => {
+			// Invalidate folders to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['folders'] });
+			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
+		},
+	});
+}
+
+export function useUpdateReport() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: number; data: UpdateReportRequest }) =>
+			api.updateReport(id, data),
+		onSuccess: () => {
+			// Invalidate reports to refresh the list
+			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
+			queryClient.invalidateQueries({ queryKey: ['report'] });
+		},
+	});
+}
+
+export function useDeleteReport() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.deleteReport,
+		onSuccess: () => {
+			// Invalidate reports to refresh the list
 			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
 		},
 	});
