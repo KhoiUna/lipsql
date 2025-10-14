@@ -475,8 +475,20 @@ export function useHistory() {
 }
 
 export function useDirectSqlExecution() {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: api.executeDirectSql,
+		onSuccess: (data) => {
+			// Save to history on successful query
+			api.saveHistory({
+				naturalQuery: data.sql.trim(),
+				generatedSql: data.sql.trim(),
+			}).catch(console.error);
+
+			// Invalidate history to refresh it
+			queryClient.invalidateQueries({ queryKey: ['history'] });
+		},
 	});
 }
 
