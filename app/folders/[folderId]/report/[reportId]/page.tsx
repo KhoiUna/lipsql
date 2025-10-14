@@ -1,6 +1,5 @@
 'use client';
-import { use, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { use, useMemo } from 'react';
 import HeaderBar from '@/components/header-bar';
 import PresetReportBuilder from '@/components/preset-report-builder';
 import {
@@ -23,7 +22,6 @@ export default function ReportPage({
 	params: Promise<{ folderId: string; reportId: string }>;
 }) {
 	const resolvedParams = use(params);
-	const router = useRouter();
 	const folderId = parseInt(resolvedParams.folderId);
 	const reportId = parseInt(resolvedParams.reportId);
 
@@ -31,20 +29,16 @@ export default function ReportPage({
 	const schemaQuery = useSchema();
 	const directSqlExecution = useDirectSqlExecution();
 
-	const [executedSql, setExecutedSql] = useState<string>('');
-
 	const report = reportQuery.data?.report;
 	const parameters = reportQuery.data?.parameters || [];
 	const schemaData = schemaQuery.data || null;
 
 	const handleExecuteQuery = (sql: string) => {
-		setExecutedSql(sql);
-
 		directSqlExecution.mutate(
 			{ sql },
 			{
 				onError: (error) => {
-					toast.error(error.message);
+					console.error(error.message);
 				},
 			}
 		);
@@ -239,11 +233,7 @@ export default function ReportPage({
 													onClick={downloadCSV}
 													className="cursor-pointer"
 												>
-													<Download
-														size={16}
-														className="mr-2"
-													/>
-													Download CSV
+													<Download size={16} />
 												</Button>
 											)}
 									</div>
