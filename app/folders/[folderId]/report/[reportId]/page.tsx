@@ -163,11 +163,11 @@ export default function ReportPage({
 	}, [queryResult]);
 
 	return (
-		<div className="min-h-screen flex flex-col bg-gray-50">
+		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
 
 			<div className="flex-1 p-8">
-				<div className="max-w-7xl mx-auto">
+				<div>
 					{/* Breadcrumb */}
 					<div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
 						<Link href="/folders" className="hover:text-primary">
