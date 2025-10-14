@@ -7,6 +7,7 @@ import {
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Combobox } from '@/components/ui/combobox';
 import { X, Sparkles } from 'lucide-react';
 
 interface ExpressionBuilderProps {
@@ -268,36 +269,33 @@ export default function ExpressionBuilder({
 													</select>
 
 													{arg.type === 'column' ? (
-														<select
-															value={arg.value}
-															onChange={(e) =>
-																handleArgChange(
-																	index,
-																	'value',
-																	e.target
-																		.value
-																)
-															}
-															className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm font-mono bg-white"
-														>
-															<option value="">
-																Select column...
-															</option>
-															{availableColumns.map(
-																({
-																	table,
-																	column,
-																}) => (
-																	<option
-																		key={`${table}.${column}`}
-																		value={`${table}.${column}`}
-																	>
-																		{table}.
-																		{column}
-																	</option>
-																)
-															)}
-														</select>
+														<div className="flex-1">
+															<Combobox
+																options={availableColumns.map(
+																	({
+																		table,
+																		column,
+																	}) => ({
+																		value: `${table}.${column}`,
+																		label: `${table}.${column}`,
+																	})
+																)}
+																value={
+																	arg.value
+																}
+																onValueChange={(
+																	value
+																) =>
+																	handleArgChange(
+																		index,
+																		'value',
+																		value
+																	)
+																}
+																placeholder="Select column..."
+																emptyText="No column found."
+															/>
+														</div>
 													) : (
 														<Input
 															type="text"

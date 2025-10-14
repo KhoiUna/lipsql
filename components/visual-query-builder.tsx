@@ -22,6 +22,7 @@ import ConditionBuilder from './query-builder/condition-builder';
 import GroupByBuilder from './query-builder/group-by-builder';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Combobox } from './ui/combobox';
 import {
 	X,
 	Play,
@@ -463,23 +464,24 @@ export default function VisualQueryBuilder({
 									Tables
 								</h3>
 								<div className="flex items-center gap-2">
-									<select
-										onChange={(e) => {
-											handleAddTable(e.target.value);
-											e.target.value = '';
-										}}
-										className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-										value=""
-									>
-										<option value="">
-											Select table to add...
-										</option>
-										{availableTables.map((table) => (
-											<option key={table} value={table}>
-												{table}
-											</option>
-										))}
-									</select>
+									<div className="w-64">
+										<Combobox
+											options={availableTables.map(
+												(table) => ({
+													value: table,
+													label: table,
+												})
+											)}
+											value=""
+											onValueChange={(value) => {
+												if (value) {
+													handleAddTable(value);
+												}
+											}}
+											placeholder="Select table to add..."
+											emptyText="No table found."
+										/>
+									</div>
 								</div>
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -617,28 +619,26 @@ export default function VisualQueryBuilder({
 										key={orderBy.id}
 										className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-3"
 									>
-										<select
-											value={orderBy.column}
-											onChange={(e) =>
-												handleUpdateOrderBy(
-													orderBy.id,
-													e.target.value,
-													orderBy.direction
-												)
-											}
-											className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
-										>
-											{allAvailableColumns.map(
-												({ table, column }) => (
-													<option
-														key={`${table}.${column}`}
-														value={`${table}.${column}`}
-													>
-														{table}.{column}
-													</option>
-												)
-											)}
-										</select>
+										<div className="flex-1">
+											<Combobox
+												options={allAvailableColumns.map(
+													({ table, column }) => ({
+														value: `${table}.${column}`,
+														label: `${table}.${column}`,
+													})
+												)}
+												value={orderBy.column}
+												onValueChange={(value) =>
+													handleUpdateOrderBy(
+														orderBy.id,
+														value,
+														orderBy.direction
+													)
+												}
+												placeholder="Select column..."
+												emptyText="No column found."
+											/>
+										</div>
 										<select
 											value={orderBy.direction}
 											onChange={(e) =>

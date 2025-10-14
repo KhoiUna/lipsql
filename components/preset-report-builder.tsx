@@ -13,6 +13,7 @@ import {
 } from '@/lib/query-builder-utils';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Combobox } from './ui/combobox';
 import {
 	Play,
 	X,
@@ -278,30 +279,22 @@ export default function PresetReportBuilder({
 								</label>
 
 								{param.type === 'dropdown' && (
-									<select
+									<Combobox
+										options={
+											parameterOptions[param.field] || []
+										}
 										value={
 											parameterValues[param.field] || ''
 										}
-										onChange={(e) =>
+										onValueChange={(value) =>
 											handleParameterChange(
 												param.field,
-												e.target.value
+												value
 											)
 										}
-										className="w-full border border-gray-300 rounded-md px-3 py-2"
-									>
-										<option value="">Select...</option>
-										{(
-											parameterOptions[param.field] || []
-										).map((opt) => (
-											<option
-												key={opt.value}
-												value={opt.value}
-											>
-												{opt.label}
-											</option>
-										))}
-									</select>
+										placeholder="Select..."
+										emptyText="No option found."
+									/>
 								)}
 
 								{param.type === 'multiselect' && (
@@ -525,28 +518,26 @@ export default function PresetReportBuilder({
 				<div className="space-y-2">
 					{orderBy.map((order) => (
 						<div key={order.id} className="flex items-center gap-2">
-							<select
-								value={order.column}
-								onChange={(e) =>
-									handleUpdateOrderBy(
-										order.id,
-										e.target.value,
-										order.direction
-									)
-								}
-								className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
-							>
-								{allAvailableColumns.map(
-									({ table, column }) => (
-										<option
-											key={`${table}.${column}`}
-											value={`${table}.${column}`}
-										>
-											{table}.{column}
-										</option>
-									)
-								)}
-							</select>
+							<div className="flex-1">
+								<Combobox
+									options={allAvailableColumns.map(
+										({ table, column }) => ({
+											value: `${table}.${column}`,
+											label: `${table}.${column}`,
+										})
+									)}
+									value={order.column}
+									onValueChange={(value) =>
+										handleUpdateOrderBy(
+											order.id,
+											value,
+											order.direction
+										)
+									}
+									placeholder="Select column..."
+									emptyText="No column found."
+								/>
+							</div>
 							<select
 								value={order.direction}
 								onChange={(e) =>

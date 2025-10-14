@@ -5,6 +5,7 @@ import {
 	LogicOperator,
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { X, Filter } from 'lucide-react';
 
 interface ConditionBuilderProps {
@@ -111,21 +112,16 @@ export default function ConditionBuilder({
 					<label className="block text-sm font-medium text-gray-700 mb-1">
 						Column
 					</label>
-					<select
+					<Combobox
+						options={availableColumns.map(({ table, column }) => ({
+							value: `${table}.${column}`,
+							label: `${table}.${column}`,
+						}))}
 						value={condition.column}
-						onChange={(e) => handleColumnChange(e.target.value)}
-						className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-sm font-mono"
-					>
-						<option value="">Select column...</option>
-						{availableColumns.map(({ table, column }) => (
-							<option
-								key={`${table}.${column}`}
-								value={`${table}.${column}`}
-							>
-								{table}.{column}
-							</option>
-						))}
-					</select>
+						onValueChange={handleColumnChange}
+						placeholder="Select column..."
+						emptyText="No column found."
+					/>
 				</div>
 
 				{/* Operator Selection */}

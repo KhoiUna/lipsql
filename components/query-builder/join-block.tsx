@@ -7,6 +7,7 @@ import {
 	Relationship,
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { X, Link2, Plus } from 'lucide-react';
 
 interface JoinBlockProps {
@@ -159,37 +160,31 @@ export default function JoinBlock({
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Left Table
 						</label>
-						<select
+						<Combobox
+							options={availableTables.map((table) => ({
+								value: table,
+								label: table,
+							}))}
 							value={join.leftTable}
-							onChange={(e) =>
-								handleLeftTableChange(e.target.value)
-							}
-							className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-sm"
-						>
-							{availableTables.map((table) => (
-								<option key={table} value={table}>
-									{table}
-								</option>
-							))}
-						</select>
+							onValueChange={handleLeftTableChange}
+							placeholder="Select table..."
+							emptyText="No table found."
+						/>
 					</div>
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Right Table
 						</label>
-						<select
+						<Combobox
+							options={availableTables.map((table) => ({
+								value: table,
+								label: table,
+							}))}
 							value={join.rightTable}
-							onChange={(e) =>
-								handleRightTableChange(e.target.value)
-							}
-							className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-sm"
-						>
-							{availableTables.map((table) => (
-								<option key={table} value={table}>
-									{table}
-								</option>
-							))}
-						</select>
+							onValueChange={handleRightTableChange}
+							placeholder="Select table..."
+							emptyText="No table found."
+						/>
 					</div>
 				</div>
 
@@ -215,22 +210,23 @@ export default function JoinBlock({
 							<div key={condition.id}>
 								<div className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
 									{/* Left Column */}
-									<select
-										value={condition.leftColumn}
-										onChange={(e) =>
-											handleUpdateCondition({
-												...condition,
-												leftColumn: e.target.value,
-											})
-										}
-										className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm font-mono bg-white"
-									>
-										{leftColumns.map((col) => (
-											<option key={col} value={col}>
-												{join.leftTable}.{col}
-											</option>
-										))}
-									</select>
+									<div className="flex-1">
+										<Combobox
+											options={leftColumns.map((col) => ({
+												value: col,
+												label: `${join.leftTable}.${col}`,
+											}))}
+											value={condition.leftColumn}
+											onValueChange={(value) =>
+												handleUpdateCondition({
+													...condition,
+													leftColumn: value,
+												})
+											}
+											placeholder="Select column..."
+											emptyText="No column found."
+										/>
+									</div>
 
 									{/* Operator */}
 									<select
@@ -253,22 +249,25 @@ export default function JoinBlock({
 									</select>
 
 									{/* Right Column */}
-									<select
-										value={condition.rightColumn}
-										onChange={(e) =>
-											handleUpdateCondition({
-												...condition,
-												rightColumn: e.target.value,
-											})
-										}
-										className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm font-mono bg-white"
-									>
-										{rightColumns.map((col) => (
-											<option key={col} value={col}>
-												{join.rightTable}.{col}
-											</option>
-										))}
-									</select>
+									<div className="flex-1">
+										<Combobox
+											options={rightColumns.map(
+												(col) => ({
+													value: col,
+													label: `${join.rightTable}.${col}`,
+												})
+											)}
+											value={condition.rightColumn}
+											onValueChange={(value) =>
+												handleUpdateCondition({
+													...condition,
+													rightColumn: value,
+												})
+											}
+											placeholder="Select column..."
+											emptyText="No column found."
+										/>
+									</div>
 
 									{/* Remove Button */}
 									{join.conditions.length > 1 && (
