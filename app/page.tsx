@@ -622,6 +622,7 @@ export default function page() {
 
 			{/* Visual Query Builder Modal */}
 			<VisualQueryBuilder
+				mode="create"
 				isOpen={isVisualBuilderOpen}
 				onClose={() => setIsVisualBuilderOpen(false)}
 				onExecuteQuery={handleDirectSql}
