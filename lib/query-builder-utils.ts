@@ -67,6 +67,13 @@ class SqlServerDialect implements SqlDialect {
 
 	formatSelectWithLimit(selectClause: string, limit?: number): string {
 		if (limit && limit > 0) {
+			// Handle DISTINCT - it must come before TOP
+			if (selectClause.match(/^SELECT\s+DISTINCT/i)) {
+				return selectClause.replace(
+					/^SELECT\s+DISTINCT/i,
+					`SELECT DISTINCT TOP ${limit}`
+				);
+			}
 			return selectClause.replace(/^SELECT/i, `SELECT TOP ${limit}`);
 		}
 		return selectClause;
