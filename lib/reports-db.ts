@@ -245,6 +245,45 @@ export function updateReport(
 	}
 }
 
+export function updateReportQuery(
+	id: number,
+	query_config: VisualQuery,
+	parameters: CreateReportParameterData[]
+): void {
+	const db = getDb();
+
+	// Start a transaction
+	db.transaction(() => {
+		// Update the report's query_config
+		db.prepare('UPDATE reports SET query_config = ? WHERE id = ?').run(
+			JSON.stringify(query_config),
+			id
+		);
+
+		// Delete all existing parameters for this report
+		db.prepare('DELETE FROM report_parameters WHERE report_id = ?').run(id);
+
+		// Insert new parameters
+		const insertStmt = db.prepare(
+			'INSERT INTO report_parameters (report_id, field, label, type, options_source, default_value, required) VALUES (?, ?, ?, ?, ?, ?, ?)'
+		);
+
+		for (const param of parameters) {
+			insertStmt.run(
+				param.report_id,
+				param.field,
+				param.label,
+				param.type,
+				param.options_source || null,
+				param.default_value !== undefined
+					? JSON.stringify(param.default_value)
+					: null,
+				param.required ? 1 : 0
+			);
+		}
+	})();
+}
+
 export function deleteReport(id: number): void {
 	const db = getDb();
 	db.prepare('DELETE FROM reports WHERE id = ?').run(id);

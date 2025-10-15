@@ -1,13 +1,14 @@
 'use client';
-import { use, useMemo } from 'react';
+import { use, useMemo, useState } from 'react';
 import HeaderBar from '@/components/header-bar';
 import PresetReportBuilder from '@/components/preset-report-builder';
+import VisualQueryBuilder from '@/components/visual-query-builder';
 import {
 	useReport,
 	useDirectSqlExecution,
 	useSchema,
 } from '@/lib/hooks/use-api';
-import { ChevronRight, Download } from 'lucide-react';
+import { ChevronRight, Download, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -32,6 +33,8 @@ export default function ReportPage({
 	const report = reportQuery.data?.report;
 	const parameters = reportQuery.data?.parameters || [];
 	const schemaData = schemaQuery.data || null;
+
+	const [isEditingInBuilder, setIsEditingInBuilder] = useState(false);
 
 	const handleExecuteQuery = (sql: string) => {
 		directSqlExecution.mutate(
@@ -168,22 +171,38 @@ export default function ReportPage({
 
 			<div className="flex-1 p-8">
 				<div>
-					{/* Breadcrumb */}
-					<div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-						<Link href="/folders" className="hover:text-primary">
-							Folders
-						</Link>
-						<ChevronRight size={16} />
-						<Link
-							href={`/folders/${folderId}`}
-							className="hover:text-primary"
-						>
-							Folder
-						</Link>
-						<ChevronRight size={16} />
-						<span className="text-primary font-medium">
-							{report?.name || 'Loading...'}
-						</span>
+					{/* Breadcrumb and Header Actions */}
+					<div className="flex items-center justify-between mb-6">
+						<div className="flex items-center gap-2 text-sm text-gray-600">
+							<Link
+								href="/folders"
+								className="hover:text-primary"
+							>
+								Folders
+							</Link>
+							<ChevronRight size={16} />
+							<Link
+								href={`/folders/${folderId}`}
+								className="hover:text-primary"
+							>
+								Folder
+							</Link>
+							<ChevronRight size={16} />
+							<span className="text-primary font-medium">
+								{report?.name || 'Loading...'}
+							</span>
+						</div>
+						{report &&
+							process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' && (
+								<Button
+									onClick={() => setIsEditingInBuilder(true)}
+									variant="outline"
+									className="cursor-pointer"
+								>
+									<Edit size={16} className="mr-2" />
+									Edit Report
+								</Button>
+							)}
 					</div>
 
 					{/* Loading State */}
@@ -263,6 +282,23 @@ export default function ReportPage({
 								</div>
 							)}
 						</>
+					)}
+
+					{/* Visual Query Builder for Editing */}
+					{report && (
+						<VisualQueryBuilder
+							isOpen={isEditingInBuilder}
+							onClose={() => {
+								setIsEditingInBuilder(false);
+								// Refresh report data after closing
+								reportQuery.refetch();
+							}}
+							onExecuteQuery={handleExecuteQuery}
+							schemaData={schemaData}
+							mode="update"
+							initialQuery={report.query_config}
+							reportId={reportId}
+						/>
 					)}
 				</div>
 			</div>

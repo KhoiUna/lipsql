@@ -168,6 +168,8 @@ interface UpdateFolderRequest {
 interface UpdateReportRequest {
 	name?: string;
 	description?: string;
+	query_config?: any;
+	parameters?: any[];
 }
 
 // API functions

@@ -3,6 +3,7 @@ import {
 	getReportById,
 	getReportParameters,
 	updateReport,
+	updateReportQuery,
 	deleteReport,
 } from '@/lib/reports-db';
 import { verifyAuthentication } from '@/app/api/api-utils';
@@ -94,7 +95,8 @@ export async function PUT(
 			);
 		}
 
-		const { name, description } = await request.json();
+		const { name, description, query_config, parameters } =
+			await request.json();
 
 		// Validate input
 		if (
@@ -107,7 +109,24 @@ export async function PUT(
 			);
 		}
 
-		// Update the report
+		// If query_config and parameters are provided, update the entire query
+		if (query_config !== undefined && parameters !== undefined) {
+			// Add report_id to each parameter
+			const parametersWithReportId = parameters.map((param: any) => ({
+				...param,
+				report_id: reportId,
+			}));
+
+			updateReportQuery(reportId, query_config, parametersWithReportId);
+
+			return NextResponse.json({
+				success: true,
+				message: 'Report query updated successfully',
+				timestamp: new Date().toISOString(),
+			});
+		}
+
+		// Otherwise, just update name/description
 		updateReport(reportId, {
 			name: name?.trim(),
 			description: description?.trim(),

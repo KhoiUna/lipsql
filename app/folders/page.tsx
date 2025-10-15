@@ -151,7 +151,7 @@ export default function FoldersPage() {
 							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
 						>
 							<Plus size={18} className="mr-2" />
-							New Folder
+							Create Folder
 						</Button>
 					</div>
 

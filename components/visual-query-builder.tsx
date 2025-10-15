@@ -35,12 +35,17 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SaveReportDialog from './save-report-dialog';
+import { useUpdateReport } from '@/lib/hooks/use-api';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface VisualQueryBuilderProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onExecuteQuery: (sql: string) => void;
 	schemaData: SchemaData | null;
+	mode?: 'create' | 'update';
+	initialQuery?: VisualQuery;
+	reportId?: number;
 }
 
 export default function VisualQueryBuilder({
@@ -48,6 +53,9 @@ export default function VisualQueryBuilder({
 	onClose,
 	onExecuteQuery,
 	schemaData,
+	mode = 'create',
+	initialQuery,
+	reportId,
 }: VisualQueryBuilderProps) {
 	const [query, setQuery] = useState<VisualQuery>({
 		distinct: false,
@@ -64,6 +72,9 @@ export default function VisualQueryBuilder({
 	const [isSaveReportDialogOpen, setIsSaveReportDialogOpen] =
 		useState<boolean>(false);
 
+	const queryClient = useQueryClient();
+	const updateReportMutation = useUpdateReport();
+
 	// Parse schema to get available tables and columns
 	const tablesMap = schemaData
 		? new Map(
@@ -76,22 +87,28 @@ export default function VisualQueryBuilder({
 	const availableTables = Array.from(tablesMap.keys());
 	const relationships = schemaData?.relationships || [];
 
-	// Reset query when modal opens
+	// Initialize query when modal opens
 	useEffect(() => {
 		if (isOpen) {
-			setQuery({
-				distinct: false,
-				tables: [],
-				joins: [],
-				conditions: [],
-				groupBy: [],
-				orderBy: [],
-				limit: undefined,
-			});
+			if (initialQuery) {
+				// Pre-populate with initial query
+				setQuery(initialQuery);
+			} else {
+				// Start with empty query
+				setQuery({
+					distinct: false,
+					tables: [],
+					joins: [],
+					conditions: [],
+					groupBy: [],
+					orderBy: [],
+					limit: undefined,
+				});
+			}
 			setGeneratedSql('');
 			setShowSqlPreview(false);
 		}
-	}, [isOpen]);
+	}, [isOpen, initialQuery]);
 
 	// Update generated SQL whenever query changes
 	useEffect(() => {
@@ -412,6 +429,103 @@ export default function VisualQueryBuilder({
 		onClose();
 	};
 
+	// Auto-detect parameter type based on operator
+	const detectParameterType = (
+		operator: string
+	):
+		| 'dropdown'
+		| 'multiselect'
+		| 'date'
+		| 'daterange'
+		| 'text'
+		| 'number' => {
+		switch (operator) {
+			case '=':
+			case '!=':
+				return 'dropdown';
+			case 'IN':
+			case 'NOT IN':
+				return 'multiselect';
+			case 'BETWEEN':
+				return 'daterange';
+			case 'LIKE':
+			case 'NOT LIKE':
+				return 'text';
+			case '>':
+			case '<':
+			case '>=':
+			case '<=':
+				return 'number';
+			default:
+				return 'text';
+		}
+	};
+
+	// Auto-generate label from column name
+	const generateLabel = (field: string): string => {
+		const parts = field.split('.');
+		const columnName = parts[parts.length - 1];
+		// Capitalize first letter
+		return columnName.charAt(0).toUpperCase() + columnName.slice(1);
+	};
+
+	// Auto-detect options source from column
+	const detectOptionsSource = (field: string): string | undefined => {
+		// Extract table.column format
+		const parts = field.split('.');
+		if (parts.length >= 2) {
+			return field; // Return as-is for now (table.column)
+		}
+		return undefined;
+	};
+
+	const handleUpdateReport = async () => {
+		// Validate query
+		const validation = validateQueryStructure(query);
+		if (!validation.valid) {
+			toast.error(`Invalid query: ${validation.errors.join(', ')}`);
+			return;
+		}
+
+		if (!reportId) {
+			toast.error('Report ID not provided');
+			return;
+		}
+
+		// Auto-detect parameters from WHERE conditions
+		const parameters = query.conditions.map((condition) => ({
+			field: condition.column,
+			label: generateLabel(condition.column),
+			type: detectParameterType(condition.operator),
+			options_source: detectOptionsSource(condition.column),
+			default_value: condition.value,
+			required: false,
+		}));
+
+		try {
+			await updateReportMutation.mutateAsync({
+				id: reportId,
+				data: {
+					query_config: query,
+					parameters,
+				},
+			});
+
+			// Invalidate specific report query
+			queryClient.invalidateQueries({ queryKey: ['report', reportId] });
+
+			toast.success('Report updated successfully');
+			onClose();
+		} catch (error) {
+			console.error('Update report error:', error);
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to update report'
+			);
+		}
+	};
+
 	// Get all available columns for dropdowns
 	const allAvailableColumns = query.tables.flatMap((table) =>
 		(tablesMap.get(table.tableName) || []).map((col) => ({
@@ -432,7 +546,9 @@ export default function VisualQueryBuilder({
 				<div className="flex items-center justify-between p-6 border-b">
 					<div className="flex items-center gap-4">
 						<h2 className="text-xl font-bold text-primary">
-							Visual Query Builder
+							{mode === 'update'
+								? 'Edit Report'
+								: 'Visual Query Builder'}
 						</h2>
 						<label className="flex items-center gap-2 text-sm">
 							<input
@@ -741,17 +857,36 @@ export default function VisualQueryBuilder({
 						Clear All
 					</Button>
 					<div className="flex items-center gap-3">
-						<Button
-							onClick={() => setIsSaveReportDialogOpen(true)}
-							disabled={
-								!generatedSql || query.tables.length === 0
-							}
-							variant="outline"
-							className="cursor-pointer"
-						>
-							<Save size={16} className="mr-2" />
-							Save as Report
-						</Button>
+						{mode === 'create' && (
+							<Button
+								onClick={() => setIsSaveReportDialogOpen(true)}
+								disabled={
+									!generatedSql || query.tables.length === 0
+								}
+								variant="outline"
+								className="cursor-pointer"
+							>
+								<Save size={16} className="mr-2" />
+								Save as Report
+							</Button>
+						)}
+						{mode === 'update' && (
+							<Button
+								onClick={handleUpdateReport}
+								disabled={
+									!generatedSql ||
+									query.tables.length === 0 ||
+									updateReportMutation.isPending
+								}
+								variant="outline"
+								className="cursor-pointer"
+							>
+								<Save size={16} className="mr-2" />
+								{updateReportMutation.isPending
+									? 'Updating...'
+									: 'Update Report'}
+							</Button>
+						)}
 						<Button
 							onClick={onClose}
 							variant="outline"
@@ -759,16 +894,18 @@ export default function VisualQueryBuilder({
 						>
 							Cancel
 						</Button>
-						<Button
-							onClick={handleExecuteQuery}
-							disabled={
-								!generatedSql || query.tables.length === 0
-							}
-							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
-						>
-							<Play size={16} className="mr-2" />
-							Execute Query
-						</Button>
+						{mode === 'create' && (
+							<Button
+								onClick={handleExecuteQuery}
+								disabled={
+									!generatedSql || query.tables.length === 0
+								}
+								className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
+							>
+								<Play size={16} className="mr-2" />
+								Execute Query
+							</Button>
+						)}
 					</div>
 				</div>
 			</div>
