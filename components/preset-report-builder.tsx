@@ -55,6 +55,14 @@ export default function PresetReportBuilder({
 		  )
 		: new Map<string, string[]>();
 
+	// Helper function to get operator for a parameter
+	const getOperatorForParameter = (paramField: string): string | null => {
+		const condition = queryConfig.conditions.find(
+			(cond) => cond.column === paramField
+		);
+		return condition?.operator || null;
+	};
+
 	// Initialize parameter values with defaults
 	useEffect(() => {
 		const initialValues: Record<string, any> = {};
@@ -275,189 +283,209 @@ export default function PresetReportBuilder({
 						Parameters
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{parameters.map((param) => (
-							<div key={param.id}>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									{param.label}
-									{param.required && (
-										<span className="text-red-500 ml-1">
-											*
-										</span>
-									)}
-								</label>
-
-								{param.type === 'dropdown' &&
-								isBooleanParameter(param.field) ? (
-									<select
-										value={String(
-											parameterValues[param.field] || ''
+						{parameters.map((param) => {
+							const operator = getOperatorForParameter(
+								param.field
+							);
+							return (
+								<div key={param.id}>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										{param.label}
+										{operator && (
+											<span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-mono">
+												{operator}
+											</span>
 										)}
-										onChange={(e) =>
-											handleParameterChange(
-												param.field,
-												e.target.value
-											)
-										}
-										className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
-									>
-										<option value="">Select...</option>
-										{getBooleanValues().map((opt) => (
-											<option
-												key={opt.value}
-												value={opt.value}
-											>
-												{opt.label}
-											</option>
-										))}
-									</select>
-								) : param.type === 'dropdown' ? (
-									<Combobox
-										options={
-											parameterOptions[param.field] || []
-										}
-										value={
-											parameterValues[param.field] || ''
-										}
-										onValueChange={(value) =>
-											handleParameterChange(
-												param.field,
-												value
-											)
-										}
-										placeholder="Select..."
-										emptyText="No option found."
-									/>
-								) : null}
+										{param.required && (
+											<span className="text-red-500 ml-1">
+												*
+											</span>
+										)}
+									</label>
 
-								{param.type === 'multiselect' && (
-									<select
-										multiple
-										value={
-											Array.isArray(
-												parameterValues[param.field]
-											)
-												? parameterValues[param.field]
-												: []
-										}
-										onChange={(e) => {
-											const selected = Array.from(
-												e.target.selectedOptions,
-												(opt) => opt.value
-											);
-											handleParameterChange(
-												param.field,
-												selected
-											);
-										}}
-										className="w-full border border-gray-300 rounded-md px-3 py-2"
-										size={5}
-									>
-										{(
-											parameterOptions[param.field] || []
-										).map((opt) => (
-											<option
-												key={opt.value}
-												value={opt.value}
-											>
-												{opt.label}
-											</option>
-										))}
-									</select>
-								)}
-
-								{param.type === 'text' && (
-									<Input
-										type="text"
-										value={
-											parameterValues[param.field] || ''
-										}
-										onChange={(e) =>
-											handleParameterChange(
-												param.field,
-												e.target.value
-											)
-										}
-										placeholder={`Enter ${param.label.toLowerCase()}`}
-									/>
-								)}
-
-								{param.type === 'number' && (
-									<Input
-										type="number"
-										value={
-											parameterValues[param.field] || ''
-										}
-										onChange={(e) =>
-											handleParameterChange(
-												param.field,
-												e.target.value
-													? Number(e.target.value)
-													: ''
-											)
-										}
-										placeholder={`Enter ${param.label.toLowerCase()}`}
-									/>
-								)}
-
-								{param.type === 'date' && (
-									<Input
-										type="date"
-										value={
-											parameterValues[param.field] || ''
-										}
-										onChange={(e) =>
-											handleParameterChange(
-												param.field,
-												e.target.value
-											)
-										}
-									/>
-								)}
-
-								{param.type === 'daterange' && (
-									<div className="flex gap-2">
-										<Input
-											type="date"
+									{param.type === 'dropdown' &&
+									isBooleanParameter(param.field) ? (
+										<select
+											value={String(
+												parameterValues[param.field] ||
+													''
+											)}
+											onChange={(e) =>
+												handleParameterChange(
+													param.field,
+													e.target.value
+												)
+											}
+											className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
+										>
+											<option value="">Select...</option>
+											{getBooleanValues().map((opt) => (
+												<option
+													key={opt.value}
+													value={opt.value}
+												>
+													{opt.label}
+												</option>
+											))}
+										</select>
+									) : param.type === 'dropdown' ? (
+										<Combobox
+											options={
+												parameterOptions[param.field] ||
+												[]
+											}
 											value={
-												parameterValues[param.field]
-													?.from || ''
+												parameterValues[param.field] ||
+												''
+											}
+											onValueChange={(value) =>
+												handleParameterChange(
+													param.field,
+													value
+												)
+											}
+											placeholder="Select..."
+											emptyText="No option found."
+										/>
+									) : null}
+
+									{param.type === 'multiselect' && (
+										<select
+											multiple
+											value={
+												Array.isArray(
+													parameterValues[param.field]
+												)
+													? parameterValues[
+															param.field
+													  ]
+													: []
+											}
+											onChange={(e) => {
+												const selected = Array.from(
+													e.target.selectedOptions,
+													(opt) => opt.value
+												);
+												handleParameterChange(
+													param.field,
+													selected
+												);
+											}}
+											className="w-full border border-gray-300 rounded-md px-3 py-2"
+											size={5}
+										>
+											{(
+												parameterOptions[param.field] ||
+												[]
+											).map((opt) => (
+												<option
+													key={opt.value}
+													value={opt.value}
+												>
+													{opt.label}
+												</option>
+											))}
+										</select>
+									)}
+
+									{param.type === 'text' && (
+										<Input
+											type="text"
+											value={
+												parameterValues[param.field] ||
+												''
 											}
 											onChange={(e) =>
 												handleParameterChange(
 													param.field,
-													{
-														...parameterValues[
-															param.field
-														],
-														from: e.target.value,
-													}
+													e.target.value
 												)
 											}
-											placeholder="From"
+											placeholder={`Enter ${param.label.toLowerCase()}`}
 										/>
+									)}
+
+									{param.type === 'number' && (
 										<Input
-											type="date"
+											type="number"
 											value={
-												parameterValues[param.field]
-													?.to || ''
+												parameterValues[param.field] ||
+												''
 											}
 											onChange={(e) =>
 												handleParameterChange(
 													param.field,
-													{
-														...parameterValues[
-															param.field
-														],
-														to: e.target.value,
-													}
+													e.target.value
+														? Number(e.target.value)
+														: ''
 												)
 											}
-											placeholder="To"
+											placeholder={`Enter ${param.label.toLowerCase()}`}
 										/>
-									</div>
-								)}
-							</div>
-						))}
+									)}
+
+									{param.type === 'date' && (
+										<Input
+											type="date"
+											value={
+												parameterValues[param.field] ||
+												''
+											}
+											onChange={(e) =>
+												handleParameterChange(
+													param.field,
+													e.target.value
+												)
+											}
+										/>
+									)}
+
+									{param.type === 'daterange' && (
+										<div className="flex gap-2">
+											<Input
+												type="date"
+												value={
+													parameterValues[param.field]
+														?.from || ''
+												}
+												onChange={(e) =>
+													handleParameterChange(
+														param.field,
+														{
+															...parameterValues[
+																param.field
+															],
+															from: e.target
+																.value,
+														}
+													)
+												}
+												placeholder="From"
+											/>
+											<Input
+												type="date"
+												value={
+													parameterValues[param.field]
+														?.to || ''
+												}
+												onChange={(e) =>
+													handleParameterChange(
+														param.field,
+														{
+															...parameterValues[
+																param.field
+															],
+															to: e.target.value,
+														}
+													)
+												}
+												placeholder="To"
+											/>
+										</div>
+									)}
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			)}
