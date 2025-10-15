@@ -259,7 +259,7 @@ export default function SavedQueries({
 															item.saved_name
 														)
 													}
-													className="cursor-pointer p-1 hover:bg-red-100 rounded-lg transition-colors text-red-600"
+													className="cursor-pointer p-1 hover:bg-red-100 rounded-lg transition-colors text-red-700"
 													title="Delete"
 												>
 													<Trash2 size={14} />

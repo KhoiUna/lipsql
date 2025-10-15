@@ -275,7 +275,7 @@ export default function FolderPage({
 																		null
 																	);
 																}}
-																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-600 rounded-b-lg"
+																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-700 rounded-b-lg"
 															>
 																<Trash2
 																	size={16}
@@ -379,7 +379,7 @@ export default function FolderPage({
 				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold text-red-600">
+							<h3 className="text-lg font-semibold text-red-700">
 								Delete Report
 							</h3>
 							<button
@@ -400,7 +400,7 @@ export default function FolderPage({
 								<Button
 									onClick={handleDeleteReport}
 									disabled={deleteReportMutation.isPending}
-									className="flex-1 bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+									className="flex-1 bg-red-700 text-white hover:bg-red-700 cursor-pointer"
 								>
 									{deleteReportMutation.isPending
 										? 'Deleting...'

@@ -29,7 +29,7 @@ export default function ExpressionBuilder({
 				</div>
 				<Button
 					onClick={onRemove}
-					className="p-1 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+					className="p-1 h-auto text-red-700 hover:text-red-700 hover:bg-red-50"
 					variant="ghost"
 				>
 					<X size={18} />

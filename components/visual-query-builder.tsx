@@ -829,7 +829,7 @@ export default function VisualQueryBuilder({
 												handleRemoveOrderBy(orderBy.id)
 											}
 											variant="ghost"
-											className="p-2 h-auto text-red-600 hover:text-red-700"
+											className="p-2 h-auto text-red-700 hover:text-red-700"
 										>
 											<X size={18} />
 										</Button>
@@ -957,7 +957,7 @@ export default function VisualQueryBuilder({
 					<Button
 						onClick={handleClearQuery}
 						variant="outline"
-						className="text-red-600 border-red-600 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+						className="text-red-700 border-red-700 hover:text-red-700 hover:bg-red-50 cursor-pointer"
 					>
 						<Trash2 size={16} className="mr-2" />
 						Clear All

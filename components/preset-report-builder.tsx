@@ -629,7 +629,7 @@ export default function PresetReportBuilder({
 							<Button
 								onClick={() => handleRemoveOrderBy(order.id)}
 								variant="ghost"
-								className="p-2 h-auto text-red-600 hover:text-red-700"
+								className="p-2 h-auto text-red-700 hover:text-red-700"
 							>
 								<X size={18} />
 							</Button>

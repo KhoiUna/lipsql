@@ -82,7 +82,7 @@ export default function QueryHistory({
 						{history.length > 0 && (
 							<button
 								onClick={clearHistory}
-								className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-600 cursor-pointer"
+								className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-700 cursor-pointer"
 								title="Clear all history"
 							>
 								<Trash2 size={16} />
