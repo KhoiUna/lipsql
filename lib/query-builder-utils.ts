@@ -880,3 +880,47 @@ export function parseSchemaString(schemaString: string): Map<string, string[]> {
 
 	return tables;
 }
+
+/**
+ * Auto-detect parameter type based on operator
+ */
+export function detectParameterType(
+	operator: string
+): 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number' {
+	switch (operator) {
+		case '>':
+		case '<':
+		case '>=':
+		case '<=':
+			return 'number';
+		case 'IN':
+		case 'NOT IN':
+			return 'multiselect';
+		case 'BETWEEN':
+			return 'daterange';
+		default:
+			return 'text';
+	}
+}
+
+/**
+ * Auto-generate label from column name
+ */
+export function generateParameterLabel(field: string): string {
+	const parts = field.split('.');
+	const columnName = parts[parts.length - 1];
+	// Capitalize first letter
+	return columnName.charAt(0).toUpperCase() + columnName.slice(1);
+}
+
+/**
+ * Auto-detect options source from column
+ */
+export function detectOptionsSource(field: string): string | undefined {
+	// Extract table.column format
+	const parts = field.split('.');
+	if (parts.length >= 2) {
+		return field; // Return as-is for now (table.column)
+	}
+	return undefined;
+}

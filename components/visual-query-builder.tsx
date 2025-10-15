@@ -14,6 +14,9 @@ import {
 	generateSqlFromVisual,
 	validateQueryStructure,
 	generateTableAlias,
+	detectParameterType,
+	generateParameterLabel,
+	detectOptionsSource,
 } from '@/lib/query-builder-utils';
 import TableBlock from './query-builder/table-block';
 import JoinBlock from './query-builder/join-block';
@@ -448,56 +451,6 @@ export default function VisualQueryBuilder({
 		onClose();
 	};
 
-	// Auto-detect parameter type based on operator
-	const detectParameterType = (
-		operator: string
-	):
-		| 'dropdown'
-		| 'multiselect'
-		| 'date'
-		| 'daterange'
-		| 'text'
-		| 'number' => {
-		switch (operator) {
-			case '=':
-			case '!=':
-				return 'dropdown';
-			case 'IN':
-			case 'NOT IN':
-				return 'multiselect';
-			case 'BETWEEN':
-				return 'daterange';
-			case 'LIKE':
-			case 'NOT LIKE':
-				return 'text';
-			case '>':
-			case '<':
-			case '>=':
-			case '<=':
-				return 'number';
-			default:
-				return 'text';
-		}
-	};
-
-	// Auto-generate label from column name
-	const generateLabel = (field: string): string => {
-		const parts = field.split('.');
-		const columnName = parts[parts.length - 1];
-		// Capitalize first letter
-		return columnName.charAt(0).toUpperCase() + columnName.slice(1);
-	};
-
-	// Auto-detect options source from column
-	const detectOptionsSource = (field: string): string | undefined => {
-		// Extract table.column format
-		const parts = field.split('.');
-		if (parts.length >= 2) {
-			return field; // Return as-is for now (table.column)
-		}
-		return undefined;
-	};
-
 	const toggleParameter = (field: string) => {
 		setEnabledParameters((prev) => {
 			const newSet = new Set(prev);
@@ -532,7 +485,7 @@ export default function VisualQueryBuilder({
 		// Auto-detect parameters from WHERE conditions, filter by enabled
 		const allDetectedParams = query.conditions.map((condition) => ({
 			field: condition.column,
-			label: generateLabel(condition.column),
+			label: generateParameterLabel(condition.column),
 			type: detectParameterType(condition.operator),
 			options_source: detectOptionsSource(condition.column),
 			default_value: condition.value,
@@ -873,7 +826,7 @@ export default function VisualQueryBuilder({
 											(condition, index) => {
 												const param = {
 													field: condition.column,
-													label: generateLabel(
+													label: generateParameterLabel(
 														condition.column
 													),
 													type: detectParameterType(

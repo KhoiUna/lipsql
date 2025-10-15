@@ -80,48 +80,6 @@ export default function PresetReportBuilder({
 		setVisibleColumns(allColumns);
 	}, [queryConfig.tables]);
 
-	// Load parameter options for dropdowns
-	useEffect(() => {
-		const loadOptions = async () => {
-			const options: Record<string, { value: string; label: string }[]> =
-				{};
-
-			for (const param of parameters) {
-				if (
-					(param.type === 'dropdown' ||
-						param.type === 'multiselect') &&
-					param.options_source
-				) {
-					try {
-						// Parse table.column format
-						const [table, column] = param.options_source.split('.');
-						const response = await fetch(
-							`/api/schema/values?table=${table}&column=${column}`
-						);
-						if (response.ok) {
-							const data = await response.json();
-							options[param.field] = data.values.map(
-								(v: any) => ({
-									value: v,
-									label: v,
-								})
-							);
-						}
-					} catch (error) {
-						console.error(
-							`Failed to load options for ${param.field}:`,
-							error
-						);
-					}
-				}
-			}
-
-			setParameterOptions(options);
-		};
-
-		loadOptions();
-	}, [parameters]);
-
 	// Generate SQL with current parameter values
 	useEffect(() => {
 		try {
