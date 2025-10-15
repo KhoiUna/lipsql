@@ -113,7 +113,7 @@ export default function page() {
 			{ query },
 			{
 				onError: (error) => {
-					toast.error(error.message);
+					console.error(error.message);
 				},
 			}
 		);
