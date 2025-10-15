@@ -1,7 +1,7 @@
 SELECT DISTINCT
   Concat (poeh.pono, '-', Format (poeh.posuf, '00')) AS "PO#",
   CAST(poeh.vendno AS BIGINT) AS "Vendor #",
-  apsv.NAME AS "Vendor Name",
+  icsp.brandcode,
   CASE poeh.stagecd
     WHEN 0 THEN 'Entered'
     WHEN 1 THEN 'Ordered'
@@ -14,17 +14,14 @@ SELECT DISTINCT
     WHEN 9 THEN 'Cancelled'
     ELSE CONVERT(NVARCHAR (20), poeh.stagecd)
   END AS Stage,
-  icsd.name AS "Warehouse Name",
-  icsd.whse AS "Warehouse",
   poeh.orderdt AS "Order Date",
   poeh.duedt AS "Due Date",
   poel.shipprod AS "Martin Product ID",
   icsec.prod AS "Customer Product #",
   icsec.addprtinfo AS "Customer Product Information",
-  icsw.vendprod AS "Vendor Product",
   poel.qtyord AS "Qty Ordered",
   poel.price * 1.12 AS "Price",
-  (poel.price*1.12) * poel.qtyord AS "Total"
+  (poel.price * 1.12) * poel.qtyord AS "Total"
 FROM
   poel
   INNER JOIN poeh ON poel.pono = poeh.pono
