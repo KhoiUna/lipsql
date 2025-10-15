@@ -198,17 +198,21 @@ export default function ConditionBuilder({
 					>
 						<option value="=">=</option>
 						<option value="!=">!=</option>
-						<option value=">">&gt;</option>
-						<option value="<">&lt;</option>
-						<option value=">=">&gt;=</option>
-						<option value="<=">&lt;=</option>
-						<option value="LIKE">LIKE</option>
-						<option value="NOT LIKE">NOT LIKE</option>
-						<option value="IN">IN</option>
-						<option value="NOT IN">NOT IN</option>
-						<option value="IS NULL">IS NULL</option>
-						<option value="IS NOT NULL">IS NOT NULL</option>
-						<option value="BETWEEN">BETWEEN</option>
+						{!isBooleanColumn && (
+							<>
+								<option value=">">&gt;</option>
+								<option value="<">&lt;</option>
+								<option value=">=">&gt;=</option>
+								<option value="<=">&lt;=</option>
+								<option value="LIKE">LIKE</option>
+								<option value="NOT LIKE">NOT LIKE</option>
+								<option value="IN">IN</option>
+								<option value="NOT IN">NOT IN</option>
+								<option value="IS NULL">IS NULL</option>
+								<option value="IS NOT NULL">IS NOT NULL</option>
+								<option value="BETWEEN">BETWEEN</option>
+							</>
+						)}
 					</select>
 				</div>
 
