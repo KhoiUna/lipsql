@@ -86,6 +86,9 @@ export default function SaveReportDialog({
 	const [detectedParameters, setDetectedParameters] = useState<
 		Omit<ReportParameter, 'id' | 'report_id'>[]
 	>([]);
+	const [enabledParameters, setEnabledParameters] = useState<Set<string>>(
+		new Set()
+	);
 
 	const foldersQuery = useFolders();
 	const createFolderMutation = useCreateFolder();
@@ -105,8 +108,11 @@ export default function SaveReportDialog({
 				required: false,
 			}));
 			setDetectedParameters(params);
+			// Enable all parameters by default
+			setEnabledParameters(new Set(params.map((p) => p.field)));
 		} else {
 			setDetectedParameters([]);
+			setEnabledParameters(new Set());
 		}
 	}, [isOpen, query.conditions]);
 
@@ -116,6 +122,18 @@ export default function SaveReportDialog({
 			setSelectedFolderId(folders[0].id);
 		}
 	}, [folders, selectedFolderId]);
+
+	const toggleParameter = (field: string) => {
+		setEnabledParameters((prev) => {
+			const newSet = new Set(prev);
+			if (newSet.has(field)) {
+				newSet.delete(field);
+			} else {
+				newSet.add(field);
+			}
+			return newSet;
+		});
+	};
 
 	const handleSave = async () => {
 		// Validate inputs
@@ -167,6 +185,11 @@ export default function SaveReportDialog({
 				}
 			}
 
+			// Filter only enabled parameters
+			const parametersToSave = detectedParameters.filter((p) =>
+				enabledParameters.has(p.field)
+			);
+
 			// Create the report
 			await createReportMutation.mutateAsync({
 				folder_id: folderId,
@@ -174,7 +197,7 @@ export default function SaveReportDialog({
 				description: reportDescription.trim() || undefined,
 				query_config: query,
 				default_visible_columns: allSelectedColumns,
-				parameters: detectedParameters,
+				parameters: parametersToSave,
 			});
 
 			toast.success('Report saved successfully');
@@ -195,6 +218,7 @@ export default function SaveReportDialog({
 		setReportName('');
 		setReportDescription('');
 		setDetectedParameters([]);
+		setEnabledParameters(new Set());
 		onClose();
 	};
 
@@ -348,15 +372,25 @@ export default function SaveReportDialog({
 					{detectedParameters.length > 0 && (
 						<div>
 							<h3 className="text-lg font-semibold text-primary mb-3">
-								Detected Parameters
+								Select Parameters
 							</h3>
 							<div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-2">
 								{detectedParameters.map((param, index) => (
-									<div
+									<label
 										key={index}
-										className="flex items-center justify-between text-sm"
+										className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-100 p-2 rounded"
 									>
-										<div className="flex items-center gap-2">
+										<div className="flex items-center gap-3">
+											<input
+												type="checkbox"
+												checked={enabledParameters.has(
+													param.field
+												)}
+												onChange={() =>
+													toggleParameter(param.field)
+												}
+												className="w-4 h-4 cursor-pointer"
+											/>
 											<span className="font-mono text-gray-600">
 												{param.field}
 											</span>
@@ -370,12 +404,13 @@ export default function SaveReportDialog({
 										<span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
 											{param.type}
 										</span>
-									</div>
+									</label>
 								))}
 							</div>
 							<p className="text-sm text-gray-600 mt-2">
-								These WHERE conditions will be editable
-								parameters in the report.
+								Checked conditions will be editable parameters.
+								Unchecked conditions will be fixed in the
+								report.
 							</p>
 						</div>
 					)}

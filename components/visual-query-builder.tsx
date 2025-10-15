@@ -43,7 +43,7 @@ interface VisualQueryBuilderProps {
 	onClose: () => void;
 	onExecuteQuery: (sql: string) => void;
 	schemaData: SchemaData | null;
-	mode?: 'create' | 'update';
+	mode: 'create' | 'update';
 	initialQuery?: VisualQuery;
 	reportId?: number;
 }
@@ -53,7 +53,7 @@ export default function VisualQueryBuilder({
 	onClose,
 	onExecuteQuery,
 	schemaData,
-	mode = 'create',
+	mode,
 	initialQuery,
 	reportId,
 }: VisualQueryBuilderProps) {
@@ -71,6 +71,11 @@ export default function VisualQueryBuilder({
 	const [showSqlPreview, setShowSqlPreview] = useState<boolean>(false);
 	const [isSaveReportDialogOpen, setIsSaveReportDialogOpen] =
 		useState<boolean>(false);
+	const [showParameterSelection, setShowParameterSelection] =
+		useState<boolean>(false);
+	const [enabledParameters, setEnabledParameters] = useState<Set<string>>(
+		new Set()
+	);
 
 	const queryClient = useQueryClient();
 	const updateReportMutation = useUpdateReport();
@@ -107,8 +112,22 @@ export default function VisualQueryBuilder({
 			}
 			setGeneratedSql('');
 			setShowSqlPreview(false);
+			setShowParameterSelection(false);
 		}
+		return () => {
+			setShowParameterSelection(false);
+		};
 	}, [isOpen, initialQuery]);
+
+	// Initialize enabled parameters when conditions change
+	useEffect(() => {
+		if (mode === 'update' && query.conditions.length > 0) {
+			// Enable all parameters by default for update mode
+			setEnabledParameters(
+				new Set(query.conditions.map((c) => c.column))
+			);
+		}
+	}, [mode, query.conditions]);
 
 	// Update generated SQL whenever query changes
 	useEffect(() => {
@@ -479,7 +498,25 @@ export default function VisualQueryBuilder({
 		return undefined;
 	};
 
+	const toggleParameter = (field: string) => {
+		setEnabledParameters((prev) => {
+			const newSet = new Set(prev);
+			if (newSet.has(field)) {
+				newSet.delete(field);
+			} else {
+				newSet.add(field);
+			}
+			return newSet;
+		});
+	};
+
 	const handleUpdateReport = async () => {
+		// Show parameter selection if not already shown
+		if (!showParameterSelection && query.conditions.length > 0) {
+			setShowParameterSelection(true);
+			return;
+		}
+
 		// Validate query
 		const validation = validateQueryStructure(query);
 		if (!validation.valid) {
@@ -492,8 +529,8 @@ export default function VisualQueryBuilder({
 			return;
 		}
 
-		// Auto-detect parameters from WHERE conditions
-		const parameters = query.conditions.map((condition) => ({
+		// Auto-detect parameters from WHERE conditions, filter by enabled
+		const allDetectedParams = query.conditions.map((condition) => ({
 			field: condition.column,
 			label: generateLabel(condition.column),
 			type: detectParameterType(condition.operator),
@@ -501,6 +538,10 @@ export default function VisualQueryBuilder({
 			default_value: condition.value,
 			required: false,
 		}));
+
+		const parameters = allDetectedParams.filter((p) =>
+			enabledParameters.has(p.field)
+		);
 
 		try {
 			await updateReportMutation.mutateAsync({
@@ -515,6 +556,7 @@ export default function VisualQueryBuilder({
 			queryClient.invalidateQueries({ queryKey: ['report', reportId] });
 
 			toast.success('Report updated successfully');
+			setShowParameterSelection(false);
 			onClose();
 		} catch (error) {
 			console.error('Update report error:', error);
@@ -692,6 +734,7 @@ export default function VisualQueryBuilder({
 											index ===
 											query.conditions.length - 1
 										}
+										schemaData={schemaData}
 									/>
 								))}
 							</div>
@@ -817,6 +860,69 @@ export default function VisualQueryBuilder({
 							/>
 						</div>
 
+						{/* Parameter Selection (Update Mode Only) */}
+						{mode === 'update' &&
+							showParameterSelection &&
+							query.conditions.length > 0 && (
+								<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+									<h3 className="text-lg font-semibold text-primary mb-3">
+										Select Parameters
+									</h3>
+									<div className="space-y-2">
+										{query.conditions.map(
+											(condition, index) => {
+												const param = {
+													field: condition.column,
+													label: generateLabel(
+														condition.column
+													),
+													type: detectParameterType(
+														condition.operator
+													),
+												};
+												return (
+													<label
+														key={index}
+														className="flex items-center justify-between text-sm cursor-pointer hover:bg-blue-100 p-2 rounded"
+													>
+														<div className="flex items-center gap-3">
+															<input
+																type="checkbox"
+																checked={enabledParameters.has(
+																	param.field
+																)}
+																onChange={() =>
+																	toggleParameter(
+																		param.field
+																	)
+																}
+																className="w-4 h-4 cursor-pointer"
+															/>
+															<span className="font-mono text-gray-600">
+																{param.field}
+															</span>
+															<span className="text-gray-400">
+																→
+															</span>
+															<span className="font-medium">
+																{param.label}
+															</span>
+														</div>
+														<span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-medium">
+															{param.type}
+														</span>
+													</label>
+												);
+											}
+										)}
+									</div>
+									<p className="text-sm text-gray-600 mt-3">
+										Checked conditions will be editable
+										parameters. Unchecked will be fixed.
+									</p>
+								</div>
+							)}
+
 						{/* SQL Preview */}
 						{generatedSql && (
 							<div>
@@ -884,6 +990,9 @@ export default function VisualQueryBuilder({
 								<Save size={16} className="mr-2" />
 								{updateReportMutation.isPending
 									? 'Updating...'
+									: !showParameterSelection &&
+									  query.conditions.length > 0
+									? 'Select Parameters & Update'
 									: 'Update Report'}
 							</Button>
 						)}

@@ -3,6 +3,7 @@ import {
 	WhereCondition,
 	OperatorType,
 	LogicOperator,
+	SchemaData,
 } from '@/lib/query-builder-types';
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
@@ -14,6 +15,7 @@ interface ConditionBuilderProps {
 	onRemove: () => void;
 	availableColumns: Array<{ table: string; column: string }>;
 	isLast: boolean;
+	schemaData: SchemaData | null;
 }
 
 export default function ConditionBuilder({
@@ -22,6 +24,7 @@ export default function ConditionBuilder({
 	onRemove,
 	availableColumns,
 	isLast,
+	schemaData,
 }: ConditionBuilderProps) {
 	const handleColumnChange = (column: string) => {
 		onUpdate({ ...condition, column });
@@ -47,10 +50,67 @@ export default function ConditionBuilder({
 		onUpdate({ ...condition, logicOperator });
 	};
 
+	// Detect if column is boolean type
+	const isBoolean = () => {
+		if (!schemaData || !condition.column) return false;
+
+		const [tableName, columnName] = condition.column.split('.');
+		const table = schemaData.schema.tables.find(
+			(t) => t.name === tableName
+		);
+		if (!table) return false;
+
+		const column = table.columns.find((c) => c.column === columnName);
+		if (!column) return false;
+
+		const type = column.type.toLowerCase();
+		return (
+			type.includes('bool') ||
+			type.includes('bit') ||
+			type === 'tinyint(1)'
+		);
+	};
+
+	// Get boolean values based on database type
+	const getBooleanValues = () => {
+		const dbType = (schemaData?.databaseType || 'postgres').toLowerCase();
+
+		if (dbType.includes('postgres')) {
+			return [
+				{ value: 'true', label: 'True' },
+				{ value: 'false', label: 'False' },
+			];
+		}
+		if (dbType.includes('sqlserver') || dbType.includes('mssql')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+		if (dbType.includes('mysql')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+		if (dbType.includes('sqlite')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+
+		return [
+			{ value: 'true', label: 'True' },
+			{ value: 'false', label: 'False' },
+		];
+	};
+
 	const needsValue = !['IS NULL', 'IS NOT NULL'].includes(condition.operator);
 	const isArrayValue = ['IN', 'NOT IN', 'BETWEEN'].includes(
 		condition.operator
 	);
+	const isBooleanColumn = isBoolean();
 
 	return (
 		<div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
@@ -158,7 +218,22 @@ export default function ConditionBuilder({
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Value
 						</label>
-						{isArrayValue ? (
+						{isBooleanColumn ? (
+							<select
+								value={String(condition.value || '')}
+								onChange={(e) =>
+									handleValueChange(e.target.value)
+								}
+								className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+							>
+								<option value="">Select value...</option>
+								{getBooleanValues().map((opt) => (
+									<option key={opt.value} value={opt.value}>
+										{opt.label}
+									</option>
+								))}
+							</select>
+						) : isArrayValue ? (
 							<input
 								type="text"
 								value={
@@ -195,7 +270,7 @@ export default function ConditionBuilder({
 								className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
 							/>
 						)}
-						{isArrayValue && (
+						{isArrayValue && !isBooleanColumn && (
 							<p className="text-xs text-gray-500 mt-1">
 								Separate values with commas
 							</p>

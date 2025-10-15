@@ -221,6 +221,62 @@ export default function PresetReportBuilder({
 		onExecuteQuery(generatedSql);
 	};
 
+	// Get boolean values based on database type
+	const getBooleanValues = () => {
+		const dbType = (schemaData?.databaseType || 'postgres').toLowerCase();
+
+		if (dbType.includes('postgres')) {
+			return [
+				{ value: 'true', label: 'True' },
+				{ value: 'false', label: 'False' },
+			];
+		}
+		if (dbType.includes('sqlserver') || dbType.includes('mssql')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+		if (dbType.includes('mysql')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+		if (dbType.includes('sqlite')) {
+			return [
+				{ value: '1', label: 'True' },
+				{ value: '0', label: 'False' },
+			];
+		}
+
+		return [
+			{ value: 'true', label: 'True' },
+			{ value: 'false', label: 'False' },
+		];
+	};
+
+	// Detect if a parameter field is boolean type
+	const isBooleanParameter = (field: string) => {
+		if (!schemaData) return false;
+
+		const [tableName, columnName] = field.split('.');
+		const table = schemaData.schema.tables.find(
+			(t) => t.name === tableName
+		);
+		if (!table) return false;
+
+		const column = table.columns.find((c) => c.column === columnName);
+		if (!column) return false;
+
+		const type = column.type.toLowerCase();
+		return (
+			type.includes('bool') ||
+			type.includes('bit') ||
+			type === 'tinyint(1)'
+		);
+	};
+
 	// Get all available columns
 	const allAvailableColumns = queryConfig.tables.flatMap((table) =>
 		(tablesMap.get(table.tableName) || []).map((col) => ({
@@ -272,7 +328,31 @@ export default function PresetReportBuilder({
 									)}
 								</label>
 
-								{param.type === 'dropdown' && (
+								{param.type === 'dropdown' &&
+								isBooleanParameter(param.field) ? (
+									<select
+										value={String(
+											parameterValues[param.field] || ''
+										)}
+										onChange={(e) =>
+											handleParameterChange(
+												param.field,
+												e.target.value
+											)
+										}
+										className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
+									>
+										<option value="">Select...</option>
+										{getBooleanValues().map((opt) => (
+											<option
+												key={opt.value}
+												value={opt.value}
+											>
+												{opt.label}
+											</option>
+										))}
+									</select>
+								) : param.type === 'dropdown' ? (
 									<Combobox
 										options={
 											parameterOptions[param.field] || []
@@ -289,7 +369,7 @@ export default function PresetReportBuilder({
 										placeholder="Select..."
 										emptyText="No option found."
 									/>
-								)}
+								) : null}
 
 								{param.type === 'multiselect' && (
 									<select
