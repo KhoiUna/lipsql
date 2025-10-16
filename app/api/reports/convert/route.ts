@@ -19,6 +19,13 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		if (!process.env.DATABASE_TYPE) {
+			return NextResponse.json(
+				{ error: 'DATABASE_TYPE environment variable is required' },
+				{ status: 500 }
+			);
+		}
+
 		const { sql } = await request.json();
 
 		// Validate input
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
 				})),
 			},
 			relationships,
-			databaseType: process.env.DB_TYPE || 'postgres',
+			databaseType: process.env.DATABASE_TYPE,
 			databaseName,
 		};
 
