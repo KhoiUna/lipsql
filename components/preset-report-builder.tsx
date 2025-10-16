@@ -79,6 +79,39 @@ export default function PresetReportBuilder({
 		setParameterValues(initialValues);
 	}, [parameters]);
 
+	// Initialize parameter options from default_value
+	useEffect(() => {
+		const options: Record<string, { value: string; label: string }[]> = {};
+
+		for (const param of parameters) {
+			// Only process dropdown and multiselect types that have default_value
+			if (
+				(param.type === 'dropdown' || param.type === 'multiselect') &&
+				param.default_value !== undefined &&
+				param.default_value !== null
+			) {
+				// Handle array values (from multiselect or IN operator)
+				if (Array.isArray(param.default_value)) {
+					options[param.field] = param.default_value.map((val) => ({
+						value: String(val),
+						label: String(val),
+					}));
+				}
+				// Handle single value (from dropdown or = operator)
+				else if (param.default_value) {
+					options[param.field] = [
+						{
+							value: String(param.default_value),
+							label: String(param.default_value),
+						},
+					];
+				}
+			}
+		}
+
+		setParameterOptions(options);
+	}, [parameters]);
+
 	// Initialize visible columns (all visible by default)
 	useEffect(() => {
 		const allColumns = new Set<string>();
