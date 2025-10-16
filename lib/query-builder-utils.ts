@@ -903,7 +903,13 @@ export function detectParameterType({
 	operator: string;
 	columnDataType?: string;
 }): 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number' {
-	if (columnDataType && columnDataType.includes('bool')) return 'dropdown';
+	if (
+		columnDataType &&
+		(columnDataType.includes('bool') ||
+			columnDataType.includes('bit') ||
+			columnDataType === 'tinyint(1)')
+	)
+		return 'dropdown';
 
 	if (operator === 'IN' || operator === 'NOT IN') return 'multiselect';
 
