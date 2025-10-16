@@ -520,9 +520,7 @@ function buildJoinClauses(query: VisualQuery, dialect: SqlDialect): string {
  * Builds the WHERE clause from conditions
  */
 function buildWhereClause(query: VisualQuery, dialect: SqlDialect): string {
-	if (query.conditions.length === 0) {
-		return '';
-	}
+	if (query.conditions.length === 0) return '';
 
 	const conditions: string[] = [];
 
@@ -564,12 +562,13 @@ function buildWhereClause(query: VisualQuery, dialect: SqlDialect): string {
 				break;
 			case 'BETWEEN':
 				if (
-					Array.isArray(condition.value) &&
-					condition.value.length === 2
+					typeof condition.value === 'object' &&
+					'from' in condition.value &&
+					'to' in condition.value
 				) {
 					conditionStr += `${columnRef} BETWEEN ${dialect.escapeValue(
-						condition.value[0]
-					)} AND ${dialect.escapeValue(condition.value[1])}`;
+						condition.value.from
+					)} AND ${dialect.escapeValue(condition.value.to)}`;
 				}
 				break;
 			default:
