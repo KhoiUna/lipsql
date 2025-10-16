@@ -8,11 +8,18 @@ import {
 } from '@/components/ui/collapsible';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronRight, Download, Blocks } from 'lucide-react';
+import {
+	ChevronDown,
+	ChevronRight,
+	Download,
+	Blocks,
+	FileText,
+} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
 import SavedQueries from '@/components/saved-queries';
 import VisualQueryBuilder from '@/components/visual-query-builder';
+import ConvertToReportDialog from '@/components/convert-to-report-dialog';
 import { cn, formatSql } from '@/lib/utils';
 import {
 	useQueryExecution,
@@ -27,7 +34,7 @@ interface QueryRow {
 	[key: string]: string | number | boolean | null;
 }
 
-// Function to detect if input is a valid SQL statement
+// FIX: Function to detect if input is a valid SQL statement
 const isSqlStatement = (input: string): boolean => {
 	const trimmed = input.trim().toLowerCase();
 
@@ -99,6 +106,7 @@ export default function page() {
 	const [showSaveDialog, setShowSaveDialog] = useState(false);
 	const [saveQueryName, setSaveQueryName] = useState('');
 	const [isVisualBuilderOpen, setIsVisualBuilderOpen] = useState(false);
+	const [showConvertDialog, setShowConvertDialog] = useState(false);
 
 	const queryExecution = useQueryExecution();
 	const directSqlExecution = useDirectSqlExecution();
@@ -496,14 +504,34 @@ export default function page() {
 													{generatedSql}
 												</code>
 											</div>
-											<Button
-												onClick={() =>
-													setShowSaveDialog(true)
-												}
-												className="font-medium w-full bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
-											>
-												💾 Save Query
-											</Button>
+											<div className="flex gap-2">
+												<Button
+													onClick={() =>
+														setShowSaveDialog(true)
+													}
+													className="font-medium flex-1 bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+												>
+													💾 Save Query
+												</Button>
+												{process.env
+													.NEXT_PUBLIC_EXPERIMENTAL ===
+													'true' && (
+													<Button
+														onClick={() =>
+															setShowConvertDialog(
+																true
+															)
+														}
+														className="font-medium flex-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+													>
+														<FileText
+															size={16}
+															className="mr-2"
+														/>
+														Convert to Report
+													</Button>
+												)}
+											</div>
 										</div>
 									</CollapsibleContent>
 								</Collapsible>
@@ -627,6 +655,15 @@ export default function page() {
 				onExecuteQuery={handleDirectSql}
 				schemaData={schemaData || null}
 			/>
+
+			{/* Convert to Report Dialog */}
+			{showConvertDialog && generatedSql && (
+				<ConvertToReportDialog
+					isOpen={showConvertDialog}
+					onClose={() => setShowConvertDialog(false)}
+					sql={generatedSql}
+				/>
+			)}
 		</div>
 	);
 }
