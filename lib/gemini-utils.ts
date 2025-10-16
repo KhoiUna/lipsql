@@ -43,12 +43,12 @@ ${sql}
 Instructions:
 1. Parse the SQL query and extract:
    - Tables used (from FROM and JOIN clauses)
-   - Selected columns (from SELECT clause)
+   - Selected columns (from SELECT clause) - PRESERVE EXACT COLUMN NAMES AND EXPRESSIONS
    - Join conditions (from JOIN clauses)
    - WHERE conditions
    - GROUP BY clauses
    - ORDER BY clauses
-   - LIMIT clause
+   - LIMIT/TOP clause
    - DISTINCT keyword
 
 2. Identify which WHERE conditions should become parameters (user inputs):
@@ -63,9 +63,10 @@ Instructions:
    - Generate user-friendly labels from column names (e.g., "Order Date" from "order_date")
 
 3. For each table in the FROM/JOIN clauses:
-   - Extract the table name and create an alias if not present
+   - Extract the table name and use the ACTUAL table name (not alias) as tableName
+   - Use the ACTUAL table name (not alias) as the alias field as well
    - List all columns selected from that table
-   - Include any custom expressions or calculated fields
+   - Include any custom expressions or calculated fields in customExpressions array
 
 4. For joins:
    - Identify join type (INNER, LEFT, RIGHT, FULL)
@@ -88,10 +89,11 @@ Instructions:
    - default_value: the literal value from the SQL query
    - required: boolean (default false)
 
-Important:
-- Use proper table aliases from the SQL query
-- Preserve column names exactly as they appear in the schema
-- For aggregate functions, include them in the column selection with the aggregateFunction field
+CRITICAL RULES:
+- DO NOT create table aliases - use the actual table name for both tableName and alias
+- PRESERVE exact column names and expressions from the SQL query
+- For custom expressions (like UPPER(email)), store them in customExpressions array with the exact SQL expression
+- Do NOT modify or transform the SQL expressions
 - Ensure all IDs are unique strings
 - For conditions that should be parameters, keep the operator but set the value to the literal from SQL`;
 
