@@ -908,8 +908,10 @@ export function detectParameterType({
 	if (
 		columnDataType &&
 		(columnDataType.includes('date') || columnDataType.includes('time'))
-	)
-		return 'daterange';
+	) {
+		if (operator === 'BETWEEN') return 'daterange';
+		return 'date';
+	}
 
 	switch (operator) {
 		case '>':
