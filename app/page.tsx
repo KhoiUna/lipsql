@@ -248,9 +248,8 @@ export default function page() {
 					setNaturalLanguageQuery(formattedSql);
 					setSqlQuery(formattedSql);
 				},
-
 				onError: (error) => {
-					toast.error(error.message);
+					console.error(error.message);
 				},
 			}
 		);
