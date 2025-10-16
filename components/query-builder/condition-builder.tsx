@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
 import { X, Filter } from 'lucide-react';
+import { Input } from '../ui/input';
 
 interface ConditionBuilderProps {
 	condition: WhereCondition;
@@ -238,33 +239,38 @@ export default function ConditionBuilder({
 								))}
 							</select>
 						) : isArrayValue ? (
-							<input
+							<Input
 								type="text"
 								value={
 									Array.isArray(condition.value)
-										? condition.value.join(', ')
+										? condition.value.join(',')
 										: String(condition.value || '')
 								}
 								onChange={(e) => {
-									const values = e.target.value
-										.split(',')
-										.map((v) => v.trim())
-										.filter((v) => v);
-									handleValueChange(values);
+									handleValueChange(
+										condition.operator === 'BETWEEN'
+											? e.target.value
+													.split(',')
+													.slice(0, 2)
+													.map((v) => v.trim())
+											: e.target.value
+													.split(',')
+													.map((v) => v.trim())
+									);
 								}}
 								placeholder={
 									condition.operator === 'BETWEEN'
-										? 'value1, value2'
-										: 'value1, value2, value3...'
+										? 'value1,value2'
+										: 'value1,value2,value3,...'
 								}
 								className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
 							/>
 						) : (
-							<input
+							<Input
 								type="text"
 								value={
 									Array.isArray(condition.value)
-										? condition.value.join(', ')
+										? condition.value.join(',')
 										: String(condition.value || '')
 								}
 								onChange={(e) =>
