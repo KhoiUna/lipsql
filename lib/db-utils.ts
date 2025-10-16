@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { Pool } from 'pg';
 import * as sql from 'mssql';
 import { GEMINI_MODEL } from './constants';
+import { getGeminiAI } from './gemini-utils';
 
 // Schema types
 export interface SchemaColumn {
@@ -327,17 +328,6 @@ function getDatabaseDriver(): DatabaseDriver {
 		default:
 			return new PostgresDriver();
 	}
-}
-
-// Initialize Gemini AI
-function getGeminiAI(): GoogleGenerativeAI {
-	const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-	if (!apiKey) {
-		throw new Error(
-			'GOOGLE_GENERATIVE_AI_API_KEY environment variable is required'
-		);
-	}
-	return new GoogleGenerativeAI(apiKey);
 }
 
 // Updated functions using the driver abstraction
