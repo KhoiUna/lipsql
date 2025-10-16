@@ -4,6 +4,7 @@ import {
 	ColumnSelection,
 	CustomExpression,
 	FunctionArgument,
+	SchemaData,
 } from './query-builder-types';
 
 /**
@@ -881,12 +882,30 @@ export function parseSchemaString(schemaString: string): Map<string, string[]> {
 	return tables;
 }
 
+export function findColumnDataType({
+	column,
+	schemaData,
+}: {
+	column: string;
+	schemaData: SchemaData | null;
+}): string | undefined {
+	return schemaData?.schema.tables
+		.find((table) => table.name === column.split('.')[0])
+		?.columns.find((col) => col.column === column.split('.')[1])?.type;
+}
+
 /**
  * Auto-detect parameter type based on operator
  */
-export function detectParameterType(
-	operator: string
-): 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number' {
+export function detectParameterType({
+	operator,
+	columnDataType,
+}: {
+	operator: string;
+	columnDataType?: string;
+}): 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number' {
+	if (columnDataType && columnDataType.includes('bool')) return 'dropdown';
+
 	switch (operator) {
 		case '>':
 		case '<':
