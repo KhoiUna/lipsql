@@ -187,6 +187,17 @@ export default function PresetReportBuilder({
 		});
 	};
 
+	const copyToClipboard = async () => {
+		if (!generatedSql) return;
+
+		try {
+			await navigator.clipboard.writeText(generatedSql);
+			toast.success('SQL copied to clipboard');
+		} catch (error) {
+			console.error('Failed to copy to clipboard:', error);
+		}
+	};
+
 	const handleAddOrderBy = () => {
 		const firstTable = queryConfig.tables[0];
 		if (!firstTable) return;
@@ -702,7 +713,11 @@ export default function PresetReportBuilder({
 					</button>
 					{showSqlPreview && (
 						<div className="px-4 pb-4">
-							<div className="bg-white border border-gray-300 rounded-lg p-4">
+							<div
+								className="bg-white border border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+								onClick={copyToClipboard}
+								title="Click to copy SQL"
+							>
 								<pre className="text-sm font-mono whitespace-pre-wrap text-gray-800">
 									{generatedSql}
 								</pre>
