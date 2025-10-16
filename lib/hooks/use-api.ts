@@ -376,6 +376,27 @@ const api = {
 		return response.json();
 	},
 
+	async convertSqlToReport(sql: string): Promise<{
+		success: boolean;
+		query_config: any;
+		parameters: any[];
+	}> {
+		const response = await fetch('/api/reports/convert', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ sql }),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData.error || 'Failed to convert SQL to report'
+			);
+		}
+
+		return response.json();
+	},
+
 	async updateFolder(id: number, data: UpdateFolderRequest): Promise<void> {
 		const response = await fetch(`/api/folders/${id}`, {
 			method: 'PUT',
@@ -597,6 +618,12 @@ export function useCreateReport() {
 			queryClient.invalidateQueries({ queryKey: ['folders'] });
 			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
 		},
+	});
+}
+
+export function useConvertSqlToReport() {
+	return useMutation({
+		mutationFn: api.convertSqlToReport,
 	});
 }
 
