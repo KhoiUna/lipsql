@@ -428,7 +428,7 @@ function buildSelectClause(
 			if (expr.alias) {
 				columns.push(
 					`${translatedExpr} AS ${dialect.escapeIdentifier(
-						expr.alias
+						`"${expr.alias}"`
 					)}`
 				);
 			} else {
