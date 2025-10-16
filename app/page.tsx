@@ -39,21 +39,7 @@ const isSqlStatement = (input: string): boolean => {
 	const trimmed = input.trim().toLowerCase();
 
 	// Check if it starts with common SQL keywords
-	const sqlKeywords = [
-		'select',
-		'with',
-		'insert',
-		'update',
-		'delete',
-		'create',
-		'drop',
-		'alter',
-		'truncate',
-		'explain',
-		'describe',
-		'show',
-		'declare',
-	];
+	const sqlKeywords = ['select', 'with', 'declare'];
 
 	const startsWithSqlKeyword = sqlKeywords.some((keyword) =>
 		trimmed.startsWith(keyword)
