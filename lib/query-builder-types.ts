@@ -85,7 +85,11 @@ export interface WhereCondition {
 	id: string;
 	column: string; // format: "tableName.columnName"
 	operator: OperatorType;
-	value?: string | number | (string | number)[];
+	value?:
+		| string
+		| number
+		| (string | number)[]
+		| { from: string | number; to: string | number };
 	logicOperator?: LogicOperator; // connects to next condition
 	groupStart?: boolean; // starts a parenthesis group
 	groupEnd?: boolean; // ends a parenthesis group
