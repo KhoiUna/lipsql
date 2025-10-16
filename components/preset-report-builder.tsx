@@ -67,7 +67,14 @@ export default function PresetReportBuilder({
 	useEffect(() => {
 		const initialValues: Record<string, any> = {};
 		for (const param of parameters) {
-			initialValues[param.field] = param.default_value;
+			if (param.type === 'daterange') {
+				initialValues[param.field] = {
+					from: param.default_value[0],
+					to: param.default_value[1],
+				};
+			} else {
+				initialValues[param.field] = param.default_value;
+			}
 		}
 		setParameterValues(initialValues);
 	}, [parameters]);
