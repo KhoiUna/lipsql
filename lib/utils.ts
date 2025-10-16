@@ -36,7 +36,7 @@ export const generateStaticMetadata = ({
 		description:
 			description ||
 			'LipSQL | Speak to your database using natural language',
-		manifest: 'https://lipsql.platopunk.com/manifest.json',
+		manifest: `${process.env.NEXT_PUBLIC_APP_URL}/manifest.json`,
 		openGraph: {
 			title,
 			description,
