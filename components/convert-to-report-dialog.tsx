@@ -71,6 +71,7 @@ export default function ConvertToReportDialog({
 			toast.error('No SQL query provided');
 			return;
 		}
+		if (isConverting) return;
 
 		setIsConverting(true);
 		try {
@@ -159,7 +160,10 @@ export default function ConvertToReportDialog({
 						`${col.tableName}.${col.columnName}`
 					);
 				}
-				// Include custom expressions
+
+				// FIX: table.customExpressions is not iterable error
+				//
+
 				for (const expr of table.customExpressions) {
 					if (expr.alias) {
 						allSelectedColumns.push(expr.alias);
