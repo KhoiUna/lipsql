@@ -12,13 +12,14 @@ import {
 } from '@/lib/hooks/use-api';
 import {
 	VisualQuery,
-	WhereCondition,
 	ReportParameter,
+	SchemaData,
 } from '@/lib/query-builder-types';
 import {
 	detectParameterType,
 	generateParameterLabel,
 	detectOptionsSource,
+	findColumnDataType,
 } from '@/lib/query-builder-utils';
 
 interface SaveReportDialogProps {
@@ -26,12 +27,14 @@ interface SaveReportDialogProps {
 	onClose: () => void;
 	query: VisualQuery;
 	databaseType: string;
+	schemaData: SchemaData | null;
 }
 
 export default function SaveReportDialog({
 	isOpen,
 	onClose,
 	query,
+	schemaData,
 }: SaveReportDialogProps) {
 	const [folderSelection, setFolderSelection] = useState<'existing' | 'new'>(
 		'existing'
@@ -62,7 +65,13 @@ export default function SaveReportDialog({
 			const params = query.conditions.map((condition) => ({
 				field: condition.column,
 				label: generateParameterLabel(condition.column),
-				type: detectParameterType(condition.operator),
+				type: detectParameterType({
+					operator: condition.operator,
+					columnDataType: findColumnDataType({
+						column: condition.column,
+						schemaData,
+					}),
+				}),
 				options_source: detectOptionsSource(condition.column),
 				default_value: condition.value,
 				required: false,

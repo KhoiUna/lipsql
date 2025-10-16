@@ -17,6 +17,7 @@ import {
 	detectParameterType,
 	generateParameterLabel,
 	detectOptionsSource,
+	findColumnDataType,
 } from '@/lib/query-builder-utils';
 import TableBlock from './query-builder/table-block';
 import JoinBlock from './query-builder/join-block';
@@ -486,7 +487,13 @@ export default function VisualQueryBuilder({
 		const allDetectedParams = query.conditions.map((condition) => ({
 			field: condition.column,
 			label: generateParameterLabel(condition.column),
-			type: detectParameterType(condition.operator),
+			type: detectParameterType({
+				operator: condition.operator,
+				columnDataType: findColumnDataType({
+					column: condition.column,
+					schemaData,
+				}),
+			}),
 			options_source: detectOptionsSource(condition.column),
 			default_value: condition.value,
 			required: false,
@@ -829,9 +836,15 @@ export default function VisualQueryBuilder({
 													label: generateParameterLabel(
 														condition.column
 													),
-													type: detectParameterType(
-														condition.operator
-													),
+													type: detectParameterType({
+														operator:
+															condition.operator,
+														columnDataType:
+															findColumnDataType({
+																column: condition.column,
+																schemaData,
+															}),
+													}),
 												};
 												return (
 													<label
@@ -978,6 +991,7 @@ export default function VisualQueryBuilder({
 				onClose={() => setIsSaveReportDialogOpen(false)}
 				query={query}
 				databaseType={schemaData?.databaseType || 'postgres'}
+				schemaData={schemaData}
 			/>
 		</div>
 	);
