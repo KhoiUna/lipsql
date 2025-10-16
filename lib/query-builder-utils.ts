@@ -904,6 +904,9 @@ export function detectParameterType({
 	columnDataType?: string;
 }): 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number' {
 	if (columnDataType && columnDataType.includes('bool')) return 'dropdown';
+
+	if (operator === 'IN' || operator === 'NOT IN') return 'multiselect';
+
 	if (
 		columnDataType &&
 		(columnDataType.includes('date') || columnDataType.includes('time'))
@@ -919,9 +922,6 @@ export function detectParameterType({
 		case '<=':
 		case 'BETWEEN':
 			return 'number';
-		case 'IN':
-		case 'NOT IN':
-			return 'multiselect';
 		default:
 			return 'text';
 	}
