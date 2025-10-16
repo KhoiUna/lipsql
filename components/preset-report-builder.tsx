@@ -268,7 +268,7 @@ export default function PresetReportBuilder({
 		<div className="space-y-6">
 			{/* Report Header */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h2 className="text-2xl font-bold text-primary mb-2">
+				<h2 className="text-xl font-bold text-primary mb-2">
 					{reportName}
 				</h2>
 				{reportDescription && (
@@ -279,7 +279,7 @@ export default function PresetReportBuilder({
 			{/* Parameters Panel */}
 			{parameters.length > 0 && (
 				<div className="bg-white rounded-lg border border-gray-200 p-6">
-					<h3 className="text-lg font-semibold text-primary mb-4">
+					<h3 className="font-semibold text-primary mb-4">
 						Parameters
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -492,7 +492,7 @@ export default function PresetReportBuilder({
 
 			{/* Query Structure (Read-only) */}
 			<div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-				<h3 className="text-lg font-semibold text-primary mb-4">
+				<h3 className="font-semibold text-primary mb-4">
 					Query Structure
 				</h3>
 				<div className="space-y-4">
@@ -542,7 +542,7 @@ export default function PresetReportBuilder({
 
 			{/* Column Selection */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h3 className="text-lg font-semibold text-primary mb-4">
+				<h3 className="font-semibold text-primary mb-4">
 					Visible Columns
 				</h3>
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -568,9 +568,7 @@ export default function PresetReportBuilder({
 			{/* Order By */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
 				<div className="flex items-center justify-between mb-4">
-					<h3 className="text-lg font-semibold text-primary">
-						Order By
-					</h3>
+					<h3 className="font-semibold text-primary">Order By</h3>
 					<Button onClick={handleAddOrderBy} size="sm">
 						Add Order By
 					</Button>
@@ -626,9 +624,7 @@ export default function PresetReportBuilder({
 
 			{/* Limit */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h3 className="text-lg font-semibold text-primary mb-3">
-					Limit
-				</h3>
+				<h3 className="font-semibold text-primary mb-3">Limit</h3>
 				<Input
 					type="number"
 					placeholder="No limit"
@@ -652,7 +648,7 @@ export default function PresetReportBuilder({
 						onClick={() => setShowSqlPreview(!showSqlPreview)}
 						className="w-full p-4 text-left hover:bg-gray-100 transition-colors rounded-lg"
 					>
-						<h3 className="text-lg font-semibold text-primary flex items-center justify-between">
+						<h3 className="font-semibold text-primary flex items-center justify-between">
 							<span className="flex items-center gap-2">
 								<Eye size={20} />
 								SQL Preview
