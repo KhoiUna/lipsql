@@ -45,6 +45,9 @@ export default function PresetReportBuilder({
 	const [parameterOptions, setParameterOptions] = useState<
 		Record<string, { value: string; label: string }[]>
 	>({});
+	const [dropdownsCache, setDropdownsCache] = useState<
+		Record<number, { value: string; label: string }[]>
+	>({});
 
 	const tablesMap = schemaData
 		? new Map(
@@ -79,38 +82,71 @@ export default function PresetReportBuilder({
 		setParameterValues(initialValues);
 	}, [parameters]);
 
-	// Initialize parameter options from default_value
+	// Initialize parameter options from dropdown_id or default_value
 	useEffect(() => {
 		const options: Record<string, { value: string; label: string }[]> = {};
 
 		for (const param of parameters) {
-			// Only process dropdown and multiselect types that have default_value
-			if (
-				(param.type === 'dropdown' || param.type === 'multiselect') &&
-				param.default_value !== undefined &&
-				param.default_value !== null
-			) {
-				// Handle array values (from multiselect or IN operator)
-				if (Array.isArray(param.default_value)) {
-					options[param.field] = param.default_value.map((val) => ({
-						value: String(val),
-						label: String(val),
-					}));
+			// Only process dropdown and multiselect types
+			if (param.type === 'dropdown' || param.type === 'multiselect') {
+				// If dropdown_id exists, use dropdown options
+				if (param.dropdown_id) {
+					if (dropdownsCache[param.dropdown_id]) {
+						options[param.field] =
+							dropdownsCache[param.dropdown_id];
+					} else {
+						// Fetch dropdown options
+						fetch(`/api/dropdowns/${param.dropdown_id}`)
+							.then((res) => res.json())
+							.then((data) => {
+								if (data.dropdown) {
+									const dropdownOptions =
+										data.dropdown.options;
+									setDropdownsCache((prev) => ({
+										...prev,
+										[param.dropdown_id!]: dropdownOptions,
+									}));
+									setParameterOptions((prev) => ({
+										...prev,
+										[param.field]: dropdownOptions,
+									}));
+								}
+							})
+							.catch((err) =>
+								console.error('Failed to fetch dropdown:', err)
+							);
+					}
 				}
-				// Handle single value (from dropdown or = operator)
-				else if (param.default_value) {
-					options[param.field] = [
-						{
-							value: String(param.default_value),
-							label: String(param.default_value),
-						},
-					];
+				// Otherwise, fall back to default_value
+				else if (
+					param.default_value !== undefined &&
+					param.default_value !== null
+				) {
+					// Handle array values (from multiselect or IN operator)
+					if (Array.isArray(param.default_value)) {
+						options[param.field] = param.default_value.map(
+							(val) => ({
+								value: String(val),
+								label: String(val),
+							})
+						);
+					}
+					// Handle single value (from dropdown or = operator)
+					else if (param.default_value) {
+						options[param.field] = [
+							{
+								value: String(param.default_value),
+								label: String(param.default_value),
+							},
+						];
+					}
 				}
 			}
 		}
 
-		setParameterOptions(options);
-	}, [parameters]);
+		// Set options that don't need async fetching
+		setParameterOptions((prev) => ({ ...prev, ...options }));
+	}, [parameters, dropdownsCache]);
 
 	// Initialize visible columns (all visible by default)
 	useEffect(() => {

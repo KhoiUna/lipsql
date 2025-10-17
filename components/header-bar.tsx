@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthCheck, useLogout, useSchema } from '@/lib/hooks/use-api';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Info, FolderOpen } from 'lucide-react';
+import { Info, FolderOpen, List } from 'lucide-react';
 import SchemaInfoModal from './ui/schema-info-modal';
 
 export default function HeaderBar() {
@@ -62,6 +62,14 @@ export default function HeaderBar() {
 									>
 										<FolderOpen size={16} />
 										<span>Reports</span>
+									</Link>
+									<Link
+										href="/dropdowns"
+										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										title="Manage Dropdowns"
+									>
+										<List size={16} />
+										<span>Dropdowns</span>
 									</Link>
 									<button
 										type="button"

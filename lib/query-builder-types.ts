@@ -93,6 +93,8 @@ export interface WhereCondition {
 	logicOperator?: LogicOperator; // connects to next condition
 	groupStart?: boolean; // starts a parenthesis group
 	groupEnd?: boolean; // ends a parenthesis group
+	dropdownId?: number; // reference to dropdown for IN/NOT IN
+	useDropdown?: boolean; // toggle between dropdown and CSV mode
 }
 
 export interface OrderByClause {
@@ -184,4 +186,19 @@ export interface ReportParameter {
 	options_source?: string;
 	default_value?: any;
 	required: boolean;
+	dropdown_id?: number; // reference to dropdown for multiselect
+}
+
+export interface DropdownOption {
+	value: string;
+	label: string;
+}
+
+export interface Dropdown {
+	id: number;
+	name: string;
+	description?: string;
+	options: DropdownOption[];
+	created_at: string;
+	updated_at: string;
 }

@@ -497,6 +497,7 @@ export default function VisualQueryBuilder({
 			options_source: detectOptionsSource(condition.column),
 			default_value: condition.value,
 			required: false,
+			dropdown_id: condition.dropdownId,
 		}));
 
 		const parameters = allDetectedParams.filter((p) =>

@@ -75,6 +75,7 @@ export default function SaveReportDialog({
 				options_source: detectOptionsSource(condition.column),
 				default_value: condition.value,
 				required: false,
+				dropdown_id: condition.dropdownId,
 			}));
 			setDetectedParameters(params);
 			// Enable all parameters by default

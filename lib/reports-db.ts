@@ -52,9 +52,20 @@ function getDb(): Database.Database {
         options_source TEXT,
         default_value TEXT,
         required INTEGER DEFAULT 0,
-        FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
+        dropdown_id INTEGER,
+        FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+        FOREIGN KEY (dropdown_id) REFERENCES dropdowns(id) ON DELETE SET NULL
       )
     `);
+
+		// Add dropdown_id column if it doesn't exist (migration)
+		try {
+			db.exec(
+				`ALTER TABLE report_parameters ADD COLUMN dropdown_id INTEGER REFERENCES dropdowns(id) ON DELETE SET NULL`
+			);
+		} catch (error) {
+			// Column already exists, ignore
+		}
 	}
 	return db;
 }
@@ -101,6 +112,7 @@ export interface ReportParameter {
 	options_source?: string;
 	default_value?: any;
 	required: boolean;
+	dropdown_id?: number;
 }
 
 export interface CreateReportParameterData {
@@ -111,6 +123,7 @@ export interface CreateReportParameterData {
 	options_source?: string;
 	default_value?: any;
 	required?: boolean;
+	dropdown_id?: number;
 }
 
 // Folder CRUD functions
@@ -265,7 +278,7 @@ export function updateReportQuery(
 
 		// Insert new parameters
 		const insertStmt = db.prepare(
-			'INSERT INTO report_parameters (report_id, field, label, type, options_source, default_value, required) VALUES (?, ?, ?, ?, ?, ?, ?)'
+			'INSERT INTO report_parameters (report_id, field, label, type, options_source, default_value, required, dropdown_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
 		);
 
 		for (const param of parameters) {
@@ -278,7 +291,8 @@ export function updateReportQuery(
 				param.default_value !== undefined
 					? JSON.stringify(param.default_value)
 					: null,
-				param.required ? 1 : 0
+				param.required ? 1 : 0,
+				param.dropdown_id || null
 			);
 		}
 	})();
@@ -304,6 +318,7 @@ export function getReportParameters(reportId: number): ReportParameter[] {
 			? JSON.parse(row.default_value)
 			: undefined,
 		required: Boolean(row.required),
+		dropdown_id: row.dropdown_id || undefined,
 	}));
 }
 
@@ -311,7 +326,7 @@ export function createReportParameter(data: CreateReportParameterData): number {
 	const db = getDb();
 	const result = db
 		.prepare(
-			'INSERT INTO report_parameters (report_id, field, label, type, options_source, default_value, required) VALUES (?, ?, ?, ?, ?, ?, ?)'
+			'INSERT INTO report_parameters (report_id, field, label, type, options_source, default_value, required, dropdown_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
 		)
 		.run(
 			data.report_id,
@@ -322,7 +337,8 @@ export function createReportParameter(data: CreateReportParameterData): number {
 			data.default_value !== undefined
 				? JSON.stringify(data.default_value)
 				: null,
-			data.required ? 1 : 0
+			data.required ? 1 : 0,
+			data.dropdown_id || null
 		);
 	return result.lastInsertRowid as number;
 }
