@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Dropdown, DropdownOption } from '@/lib/query-builder-types';
+import HeaderBar from '@/components/header-bar';
 
 interface DropdownFormData {
 	name: string;
@@ -187,9 +188,11 @@ export default function DropdownsPage() {
 	}
 
 	return (
-		<div className="p-6 max-w-6xl mx-auto">
-			<div className="flex items-center justify-between mb-6">
-				<h1 className="text-2xl font-bold text-primary">Dropdowns</h1>
+		<div className="min-h-screen flex flex-col">
+			<HeaderBar />
+
+			<div className="flex items-center justify-between pt-8 px-8">
+				<h1 className="text-xl font-bold text-primary">Dropdowns</h1>
 				<Button
 					onClick={() => {
 						setIsCreating(true);
@@ -205,7 +208,7 @@ export default function DropdownsPage() {
 
 			{/* Create/Edit Form */}
 			{(isCreating || editingId !== null) && (
-				<div className="border border-gray-300 rounded-lg p-6 mb-6">
+				<div className="border border-gray-300 rounded-lg p-6 m-8">
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div>
 							<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -330,7 +333,7 @@ export default function DropdownsPage() {
 				{data?.map((dropdown) => (
 					<div
 						key={dropdown.id}
-						className="bg-white border border-gray-300 rounded-lg p-4"
+						className="bg-white border border-gray-300 rounded-lg p-4 m-8"
 					>
 						<div className="flex items-start justify-between mb-3">
 							<div>
