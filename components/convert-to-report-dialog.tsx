@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -44,6 +44,7 @@ export default function ConvertToReportDialog({
 		new Set()
 	);
 	const [isConverting, setIsConverting] = useState(false);
+	const hasInitiatedConversion = useRef(false);
 
 	const foldersQuery = useFolders();
 	const createFolderMutation = useCreateFolder();
@@ -54,7 +55,8 @@ export default function ConvertToReportDialog({
 
 	// Convert SQL to VisualQuery on dialog open
 	useEffect(() => {
-		if (isOpen && sql) {
+		if (isOpen && sql && !hasInitiatedConversion.current) {
+			hasInitiatedConversion.current = true;
 			handleConvert();
 		}
 	}, [isOpen, sql]);
@@ -161,9 +163,6 @@ export default function ConvertToReportDialog({
 					);
 				}
 
-				// FIX: table.customExpressions is not iterable error
-				//
-
 				for (const expr of table.customExpressions) {
 					if (expr.alias) {
 						allSelectedColumns.push(expr.alias);
@@ -207,6 +206,9 @@ export default function ConvertToReportDialog({
 		setDetectedParameters([]);
 		setEnabledParameters(new Set());
 		setIsConverting(false);
+
+		hasInitiatedConversion.current = false;
+
 		onClose();
 	};
 
