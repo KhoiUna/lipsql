@@ -6,12 +6,22 @@ import {
 	type CreateDropdownData,
 } from '@/lib/dropdowns-db';
 import { DropdownOption } from '@/lib/query-builder-types';
+import { verifyAuthentication } from '../../api-utils';
 
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		// Authentication check
+		const authResult = await verifyAuthentication();
+		if (!authResult.success) {
+			return NextResponse.json(
+				{ error: authResult.error },
+				{ status: 401 }
+			);
+		}
+
 		const id = parseInt((await params).id);
 		const dropdown = getDropdownById(id);
 
@@ -37,6 +47,15 @@ export async function PUT(
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		// Authentication check
+		const authResult = await verifyAuthentication();
+		if (!authResult.success) {
+			return NextResponse.json(
+				{ error: authResult.error },
+				{ status: 401 }
+			);
+		}
+
 		const id = parseInt((await params).id);
 		const body = await request.json();
 		const { name, description, options } = body;
@@ -74,6 +93,15 @@ export async function DELETE(
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		// Authentication check
+		const authResult = await verifyAuthentication();
+		if (!authResult.success) {
+			return NextResponse.json(
+				{ error: authResult.error },
+				{ status: 401 }
+			);
+		}
+
 		const id = parseInt((await params).id);
 		deleteDropdown(id);
 		return NextResponse.json({ success: true });

@@ -5,9 +5,19 @@ import {
 	type CreateDropdownData,
 } from '@/lib/dropdowns-db';
 import { DropdownOption } from '@/lib/query-builder-types';
+import { verifyAuthentication } from '../api-utils';
 
 export async function GET() {
 	try {
+		// Authentication check
+		const authResult = await verifyAuthentication();
+		if (!authResult.success) {
+			return NextResponse.json(
+				{ error: authResult.error },
+				{ status: 401 }
+			);
+		}
+
 		const dropdowns = getAllDropdowns();
 		return NextResponse.json({ dropdowns });
 	} catch (error) {
@@ -21,6 +31,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
 	try {
+		// Authentication check
+		const authResult = await verifyAuthentication();
+		if (!authResult.success) {
+			return NextResponse.json(
+				{ error: authResult.error },
+				{ status: 401 }
+			);
+		}
+
 		const body = await request.json();
 		const { name, description, options } = body;
 
