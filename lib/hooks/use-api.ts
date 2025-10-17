@@ -466,8 +466,14 @@ export function useQueryExecution() {
 }
 
 export function useLogin() {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: api.login,
+		onSuccess: () => {
+			// Invalidate auth check to refresh the login status
+			queryClient.invalidateQueries({ queryKey: ['auth'] });
+		},
 	});
 }
 
@@ -486,6 +492,9 @@ export function useLogout() {
 		onSuccess: () => {
 			// Clear all queries on logout
 			queryClient.clear();
+
+			// Invalidate auth check to refresh the login status
+			queryClient.invalidateQueries({ queryKey: ['auth'] });
 		},
 	});
 }
