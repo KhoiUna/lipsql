@@ -70,6 +70,12 @@ export async function POST(request: NextRequest) {
 		});
 	} catch (error) {
 		console.error('Convert SQL to report error:', error);
+
+		// Check if it's a validation error (schema mismatch)
+		const isValidationError =
+			error instanceof Error &&
+			error.message.includes('does not reference any tables');
+
 		return NextResponse.json(
 			{
 				error:
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
 						? error.message
 						: 'Failed to convert SQL to report',
 			},
-			{ status: 500 }
+			{ status: isValidationError ? 400 : 500 }
 		);
 	}
 }
