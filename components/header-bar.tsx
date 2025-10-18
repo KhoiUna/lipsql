@@ -52,24 +52,28 @@ export default function HeaderBar() {
 						</Link>
 
 						{/* Navigation and Auth */}
-						<div className="flex items-center space-x-4">
+						<div className="flex items-center gap-2 sm:gap-4">
 							{isAuthenticated && (
 								<>
 									<Link
 										href="/folders"
-										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 										title="View Reports"
 									>
-										<FolderOpen size={16} />
-										<span>Reports</span>
+										<FolderOpen size={18} />
+										<span className="hidden sm:inline">
+											Reports
+										</span>
 									</Link>
 									<Link
 										href="/dropdowns"
-										className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 										title="Manage Dropdowns"
 									>
-										<List size={16} />
-										<span>Dropdowns</span>
+										<List size={18} />
+										<span className="hidden sm:inline">
+											Dropdowns
+										</span>
 									</Link>
 									<button
 										type="button"
@@ -77,15 +81,17 @@ export default function HeaderBar() {
 											setIsSchemaModalOpen(true)
 										}
 										disabled={schemaQuery.isLoading}
-										className="cursor-pointer flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+										className="cursor-pointer flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 										title="View Database Schema"
 									>
 										{schemaQuery.isLoading ? (
 											<div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
 										) : (
-											<Info size={16} />
+											<Info size={18} />
 										)}
-										<span>Schema Info</span>
+										<span className="hidden sm:inline">
+											Schema Info
+										</span>
 									</button>
 								</>
 							)}
@@ -96,17 +102,17 @@ export default function HeaderBar() {
 									type="button"
 									onClick={handleLogout}
 									disabled={logoutMutation.isPending}
-									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+									className="px-2 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 								>
 									{logoutMutation.isPending
-										? 'Logging out...'
+										? 'Logging out'
 										: 'Log Out'}
 								</button>
 							) : (
 								<button
 									type="button"
 									onClick={handleLogin}
-									className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+									className="px-2 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
 								>
 									Log In
 								</button>
