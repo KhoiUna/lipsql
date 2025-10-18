@@ -177,16 +177,6 @@ export default function DropdownsPage() {
 		resetForm();
 	};
 
-	if (isLoading) {
-		return (
-			<div className="p-6">
-				<div className="text-center text-gray-600">
-					Loading dropdowns...
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="min-h-screen flex flex-col">
 			<HeaderBar />
@@ -205,6 +195,12 @@ export default function DropdownsPage() {
 					Create Dropdown
 				</Button>
 			</div>
+
+			{isLoading && (
+				<div className="flex items-center justify-center py-12">
+					<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+				</div>
+			)}
 
 			{/* Create/Edit Form */}
 			{(isCreating || editingId !== null) && (
