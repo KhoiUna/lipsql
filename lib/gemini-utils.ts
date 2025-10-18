@@ -23,10 +23,33 @@ interface ConvertSqlToReportResponse {
 	parameters: Omit<ReportParameter, 'id' | 'report_id'>[];
 }
 
+// Helper function to validate SQL references schema tables
+function validateSqlReferencesSchema(
+	sql: string,
+	schemaData: SchemaData
+): void {
+	const tableNames = schemaData.schema.tables.map((t) =>
+		t.name.toLowerCase()
+	);
+	const sqlLower = sql.toLowerCase();
+
+	// Check if SQL references any table from the schema
+	const referencesSchema = tableNames.some((tableName) =>
+		sqlLower.includes(tableName)
+	);
+
+	if (!referencesSchema)
+		throw new Error(
+			'SQL query does not reference any tables. Please ensure your query includes at least 1 table.'
+		);
+}
+
 export async function convertSqlToReport(
 	sql: string,
 	schemaData: SchemaData
 ): Promise<ConvertSqlToReportResponse> {
+	validateSqlReferencesSchema(sql, schemaData);
+
 	const genAI = getGeminiAI();
 
 	// Build comprehensive schema information string
@@ -41,8 +64,10 @@ SQL Query to Convert:
 ${sql}
 
 Instructions:
+0. VALIDATION: Ensure the SQL query references at least one table from the provided database schema. If it doesn't, this is an error.
+
 1. Parse the SQL query and extract:
-   - Tables used (from FROM and JOIN clauses)
+   - Tables used (from FROM and JOIN clauses) - MUST be from the provided schema
    - Selected columns (from SELECT clause) - PRESERVE EXACT COLUMN NAMES AND EXPRESSIONS
    - Join conditions (from JOIN clauses)
    - WHERE conditions
@@ -163,7 +188,14 @@ CRITICAL RULES:
 											items: { type: SchemaType.STRING },
 										},
 									},
-									required: ['id', 'tableName', 'alias'],
+									required: [
+										'id',
+										'tableName',
+										'alias',
+										'selectedColumns',
+										'customExpressions',
+										'allColumns',
+									],
 								},
 							},
 							joins: {
