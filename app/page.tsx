@@ -14,6 +14,7 @@ import {
 	Download,
 	Blocks,
 	FileText,
+	MessageSquare,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import QueryHistory from '@/components/query-history';
@@ -29,6 +30,8 @@ import {
 } from '@/lib/hooks/use-api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { isAdmin } from '@/lib/auth-utils';
+import Link from 'next/link';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -412,16 +415,28 @@ export default function page() {
 								)}
 							</Button>
 
-							{process.env.NEXT_PUBLIC_EXPERIMENTAL ===
-								'true' && (
-								<Button
-									type="button"
-									onClick={() => setIsVisualBuilderOpen(true)}
-									className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
-								>
-									<Blocks size={18} />
-									Visual Builder
-								</Button>
+							{process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' &&
+								isAdmin() && (
+									<Button
+										type="button"
+										onClick={() =>
+											setIsVisualBuilderOpen(true)
+										}
+										className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
+									>
+										<Blocks size={18} />
+										Visual Builder
+									</Button>
+								)}
+
+							{/* Chat Builder Link */}
+							{isAdmin() && (
+								<Link href="/chat">
+									<Button className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 flex items-center gap-2">
+										<MessageSquare size={18} />
+										Chat Builder
+									</Button>
+								</Link>
 							)}
 
 							{naturalLanguageQuery.trim() && (
@@ -491,32 +506,37 @@ export default function page() {
 												</code>
 											</div>
 											<div className="flex gap-2">
-												<Button
-													onClick={() =>
-														setShowSaveDialog(true)
-													}
-													className="font-medium flex-1 bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
-												>
-													💾 Save Query
-												</Button>
-												{process.env
-													.NEXT_PUBLIC_EXPERIMENTAL ===
-													'true' && (
+												{isAdmin() && (
 													<Button
 														onClick={() =>
-															setShowConvertDialog(
+															setShowSaveDialog(
 																true
 															)
 														}
-														className="font-medium flex-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+														className="font-medium flex-1 bg-primary text-secondary rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
 													>
-														<FileText
-															size={16}
-															className="mr-2"
-														/>
-														Convert to Report
+														💾 Save Query
 													</Button>
 												)}
+												{process.env
+													.NEXT_PUBLIC_EXPERIMENTAL ===
+													'true' &&
+													isAdmin() && (
+														<Button
+															onClick={() =>
+																setShowConvertDialog(
+																	true
+																)
+															}
+															className="font-medium flex-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+														>
+															<FileText
+																size={16}
+																className="mr-2"
+															/>
+															Convert to Report
+														</Button>
+													)}
 											</div>
 										</div>
 									</CollapsibleContent>
