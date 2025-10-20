@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { VisualQuery } from './query-builder-types';
+import { getDb as getDropdownDb } from './dropdowns-db';
 
 const DB_DIR = path.join(process.cwd(), 'db');
 const DB_PATH = path.join(DB_DIR, 'lipsql-sqlite.db');
@@ -16,6 +17,8 @@ let db: Database.Database | null = null;
 function getDb(): Database.Database {
 	if (!db) {
 		db = new Database(DB_PATH);
+
+		getDropdownDb();
 
 		// Create folders table
 		db.exec(`
