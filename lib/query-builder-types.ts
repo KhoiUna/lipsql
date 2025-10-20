@@ -172,7 +172,9 @@ export interface Report {
 	folder_id: number;
 	name: string;
 	description?: string;
+	type: 'visual' | 'chat';
 	query_config: VisualQuery;
+	base_sql?: string;
 	default_visible_columns: string[];
 	created_at: string;
 }

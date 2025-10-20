@@ -12,6 +12,7 @@ import { ChevronRight, Download, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { isAdmin } from '@/lib/auth-utils';
 
 interface QueryRow {
 	[key: string]: string | number | boolean | null;
@@ -193,7 +194,8 @@ export default function ReportPage({
 							</span>
 						</div>
 						{report &&
-							process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' && (
+							process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' &&
+							isAdmin() && (
 								<Button
 									onClick={() => setIsEditingInBuilder(true)}
 									variant="outline"

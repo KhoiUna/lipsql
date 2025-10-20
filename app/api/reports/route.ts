@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
 			folder_id,
 			name,
 			description,
+			type,
 			query_config,
+			base_sql,
 			default_visible_columns,
 			parameters,
 		} = await request.json();
@@ -40,6 +42,25 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		// Validate type
+		const reportType = type || 'visual';
+		if (reportType !== 'visual' && reportType !== 'chat') {
+			return NextResponse.json(
+				{ error: 'Type must be either "visual" or "chat"' },
+				{ status: 400 }
+			);
+		}
+
+		// Validate chat report requirements
+		if (reportType === 'chat') {
+			if (!base_sql || typeof base_sql !== 'string') {
+				return NextResponse.json(
+					{ error: 'base_sql is required for chat reports' },
+					{ status: 400 }
+				);
+			}
+		}
+
 		if (!query_config || typeof query_config !== 'object') {
 			return NextResponse.json(
 				{ error: 'Query config is required and must be an object' },
@@ -52,7 +73,9 @@ export async function POST(request: NextRequest) {
 			folder_id,
 			name: name.trim(),
 			description: description?.trim() || undefined,
+			type: reportType,
 			query_config,
+			base_sql: reportType === 'chat' ? base_sql : undefined,
 			default_visible_columns: default_visible_columns || [],
 		});
 

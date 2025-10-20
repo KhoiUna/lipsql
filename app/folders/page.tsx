@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Folder, Plus, X, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { isAdmin } from '@/lib/auth-utils';
 
 export default function FoldersPage() {
 	const router = useRouter();
@@ -146,13 +147,15 @@ export default function FoldersPage() {
 								Organize your preset reports into folders
 							</p>
 						</div>
-						<Button
-							onClick={() => setShowCreateDialog(true)}
-							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
-						>
-							<Plus size={18} className="mr-2" />
-							Create Folder
-						</Button>
+						{isAdmin() && (
+							<Button
+								onClick={() => setShowCreateDialog(true)}
+								className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
+							>
+								<Plus size={18} className="mr-2" />
+								Create Folder
+							</Button>
+						)}
 					</div>
 
 					{/* Loading State */}
@@ -186,15 +189,17 @@ export default function FoldersPage() {
 										Create your first folder to organize
 										reports
 									</p>
-									<Button
-										onClick={() =>
-											setShowCreateDialog(true)
-										}
-										className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
-									>
-										<Plus size={18} className="mr-2" />
-										Create Folder
-									</Button>
+									{isAdmin() && (
+										<Button
+											onClick={() =>
+												setShowCreateDialog(true)
+											}
+											className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
+										>
+											<Plus size={18} className="mr-2" />
+											Create Folder
+										</Button>
+									)}
 								</div>
 							) : (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,64 +245,70 @@ export default function FoldersPage() {
 														).toLocaleDateString()}
 													</p>
 												</div>
-												<div className="relative">
-													<button
-														onClick={(e) => {
-															e.stopPropagation();
-															setOpenDropdown(
-																openDropdown ===
-																	folder.id
-																	? null
-																	: folder.id
-															);
-														}}
-														className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-													>
-														<MoreVertical
-															size={20}
-														/>
-													</button>
-													{openDropdown ===
-														folder.id && (
-														<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-															<button
-																onClick={(
-																	e
-																) => {
-																	e.stopPropagation();
-																	handleEditFolder(
-																		folder
-																	);
-																}}
-																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700 rounded-t-lg"
-															>
-																<Edit
-																	size={16}
-																/>
-																Edit
-															</button>
-															<button
-																onClick={(
-																	e
-																) => {
-																	e.stopPropagation();
-																	setDeletingFolder(
-																		folder
-																	);
-																	setOpenDropdown(
-																		null
-																	);
-																}}
-																className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-700 rounded-b-lg"
-															>
-																<Trash2
-																	size={16}
-																/>
-																Delete
-															</button>
-														</div>
-													)}
-												</div>
+												{isAdmin() && (
+													<div className="relative">
+														<button
+															onClick={(e) => {
+																e.stopPropagation();
+																setOpenDropdown(
+																	openDropdown ===
+																		folder.id
+																		? null
+																		: folder.id
+																);
+															}}
+															className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+														>
+															<MoreVertical
+																size={20}
+															/>
+														</button>
+														{openDropdown ===
+															folder.id && (
+															<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+																<button
+																	onClick={(
+																		e
+																	) => {
+																		e.stopPropagation();
+																		handleEditFolder(
+																			folder
+																		);
+																	}}
+																	className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700 rounded-t-lg"
+																>
+																	<Edit
+																		size={
+																			16
+																		}
+																	/>
+																	Edit
+																</button>
+																<button
+																	onClick={(
+																		e
+																	) => {
+																		e.stopPropagation();
+																		setDeletingFolder(
+																			folder
+																		);
+																		setOpenDropdown(
+																			null
+																		);
+																	}}
+																	className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-700 rounded-b-lg"
+																>
+																	<Trash2
+																		size={
+																			16
+																		}
+																	/>
+																	Delete
+																</button>
+															</div>
+														)}
+													</div>
+												)}
 											</div>
 										</div>
 									))}

@@ -69,6 +69,22 @@ function getDb(): Database.Database {
 		} catch (error) {
 			// Column already exists, ignore
 		}
+
+		// Add type column if it doesn't exist (migration)
+		try {
+			db.exec(
+				`ALTER TABLE reports ADD COLUMN type TEXT DEFAULT 'visual'`
+			);
+		} catch (error) {
+			// Column already exists, ignore
+		}
+
+		// Add base_sql column if it doesn't exist (migration)
+		try {
+			db.exec(`ALTER TABLE reports ADD COLUMN base_sql TEXT`);
+		} catch (error) {
+			// Column already exists, ignore
+		}
 	}
 	return db;
 }
@@ -92,7 +108,9 @@ export interface Report {
 	folder_id: number;
 	name: string;
 	description?: string;
+	type: 'visual' | 'chat';
 	query_config: VisualQuery;
+	base_sql?: string;
 	default_visible_columns: string[];
 	created_at: string;
 }
@@ -101,7 +119,9 @@ export interface CreateReportData {
 	folder_id: number;
 	name: string;
 	description?: string;
+	type: 'visual' | 'chat';
 	query_config: VisualQuery;
+	base_sql?: string;
 	default_visible_columns?: string[];
 }
 
@@ -193,7 +213,9 @@ export function getReportsByFolder(folderId: number): Report[] {
 
 	return rows.map((row) => ({
 		...row,
+		type: row.type || 'visual',
 		query_config: JSON.parse(row.query_config),
+		base_sql: row.base_sql || undefined,
 		default_visible_columns: row.default_visible_columns
 			? JSON.parse(row.default_visible_columns)
 			: [],
@@ -208,7 +230,9 @@ export function getReportById(id: number): Report | undefined {
 
 	return {
 		...row,
+		type: row.type || 'visual',
 		query_config: JSON.parse(row.query_config),
+		base_sql: row.base_sql || undefined,
 		default_visible_columns: row.default_visible_columns
 			? JSON.parse(row.default_visible_columns)
 			: [],
@@ -219,13 +243,15 @@ export function createReport(data: CreateReportData): number {
 	const db = getDb();
 	const result = db
 		.prepare(
-			'INSERT INTO reports (folder_id, name, description, query_config, default_visible_columns) VALUES (?, ?, ?, ?, ?)'
+			'INSERT INTO reports (folder_id, name, description, type, query_config, base_sql, default_visible_columns) VALUES (?, ?, ?, ?, ?, ?, ?)'
 		)
 		.run(
 			data.folder_id,
 			data.name,
 			data.description || null,
+			data.type,
 			JSON.stringify(data.query_config),
+			data.base_sql || null,
 			JSON.stringify(data.default_visible_columns || [])
 		);
 	return result.lastInsertRowid as number;
