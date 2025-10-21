@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox } from '@/components/ui/combobox';
-import { Sparkles, Save, X, Check, Loader2 } from 'lucide-react';
+import { Sparkles, Save, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { isAdmin } from '@/lib/auth-utils';
 import { useFolders } from '@/lib/hooks/use-api';
@@ -134,7 +134,7 @@ export default function ChatPage() {
 					required: false,
 				}));
 
-			// Create a minimal query_config for chat reports
+			// Create a minimal query_config for AI reports
 			const queryConfig = {
 				distinct: false,
 				tables: [],
@@ -151,7 +151,7 @@ export default function ChatPage() {
 					folder_id: selectedFolderId,
 					name: reportName.trim(),
 					description: reportDescription.trim() || undefined,
-					type: 'chat',
+					type: 'ai',
 					query_config: queryConfig,
 					base_sql: sql,
 					parameters,
@@ -161,7 +161,7 @@ export default function ChatPage() {
 			const data = await response.json();
 
 			if (data.success) {
-				toast.success('Chat Report created successfully');
+				toast.success('AI Report created successfully');
 				setShowSaveDialog(false);
 				setReportName('');
 				setReportDescription('');
@@ -187,10 +187,10 @@ export default function ChatPage() {
 				<div className="flex-1 flex items-center justify-center p-8">
 					<div className="text-center">
 						<h1 className="text-2xl font-bold text-primary mb-4">
-							Chat Builder
+							AI Builder
 						</h1>
 						<p className="text-gray-600 mb-6">
-							Chat Builder is admin-only. Go to Home to execute
+							AI Builder is admin-only. Go to Home to execute
 							reports.
 						</p>
 						<Button onClick={() => (window.location.href = '/')}>
@@ -211,7 +211,7 @@ export default function ChatPage() {
 					{/* Header */}
 					<div className="mb-8">
 						<h1 className="text-2xl font-bold text-primary mb-2">
-							Chat Report Builder
+							AI Report Builder
 						</h1>
 						<p className="text-gray-600">
 							Paste your SQL query and let AI identify parameters
@@ -403,7 +403,7 @@ export default function ChatPage() {
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<div className="flex items-center justify-between mb-4">
 							<h3 className="text-lg font-semibold">
-								Save Chat Report
+								Save AI Report
 							</h3>
 							<button
 								onClick={() => setShowSaveDialog(false)}
