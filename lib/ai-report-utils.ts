@@ -1,5 +1,5 @@
 /**
- * Utilities for Chat Report parameter replacement
+ * Utilities for AI Report parameter replacement
  */
 
 /**
