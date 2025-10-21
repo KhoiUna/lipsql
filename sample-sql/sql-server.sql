@@ -1,42 +1,30 @@
 SELECT DISTINCT
-  Concat (poeh.pono, '-', Format (poeh.posuf, '00')) AS "PO#",
-  CAST(poeh.vendno AS BIGINT) AS "Vendor #",
-  icsp.brandcode,
-  CASE poeh.stagecd
-    WHEN 0 THEN 'Entered'
-    WHEN 1 THEN 'Ordered'
-    WHEN 2 THEN 'Printed'
-    WHEN 3 THEN 'Acknowledged'
-    WHEN 4 THEN 'Pre-receiving'
-    WHEN 5 THEN 'Received'
-    WHEN 6 THEN 'Costed'
-    WHEN 7 THEN 'Closed'
-    WHEN 9 THEN 'Cancelled'
-    ELSE CONVERT(NVARCHAR (20), poeh.stagecd)
-  END AS Stage,
-  poeh.orderdt AS "Order Date",
-  poeh.duedt AS "Due Date",
-  poel.shipprod AS "Martin Product ID",
-  icsec.prod AS "Customer Product #",
-  icsec.addprtinfo AS "Customer Product Information",
-  poel.qtyord AS "Qty Ordered",
-  poel.price * 1.12 AS "Price",
-  (poel.price * 1.12) * poel.qtyord AS "Total"
+    CONCAT(poeh.pono, '-', FORMAT(poeh.posuf, '00')) AS "PO#",
+    poeh.orderdt AS "Order Date",
+    poel.ackdt AS "Acknowledged Date",
+    poel.shipprod AS "Martin Product ID",
+    icsec.prod AS "Customer Product #",
+    icsec.addprtinfo AS "Item Desc",
+    icsw.vendprod AS "Vendor Product",
+    icsp.lookupnm AS "MFG Part #",
+    CASE 
+        WHEN poel.nonstockty IS NULL THEN 'Stock Item'
+        ELSE 'Non-Stock Item'
+    END AS "Non-Stock Type",
+    poel.qtyord AS "Qty Ordered",
+    poel.price * 1.12 AS "Price",
+    (poel.price * 1.12) * poel.qtyord AS "Total"
 FROM
-  poel
-  INNER JOIN poeh ON poel.pono = poeh.pono
-  AND poel.posuf = poeh.posuf
-  INNER JOIN icsp ON poel.shipprod = icsp.prod
-  LEFT JOIN icsec ON poel.shipprod = icsec.altprod
-  INNER JOIN apsv ON poeh.vendno = apsv.vendno
-  INNER JOIN icsd ON poeh.whse = icsd.whse
-  INNER JOIN icsw ON icsec.altprod = icsw.prod
+    poel
+    INNER JOIN poeh ON poel.pono = poeh.pono AND poel.posuf = poeh.posuf
+    INNER JOIN icsp ON poel.shipprod = icsp.prod
+    LEFT JOIN icsec ON poel.shipprod = icsec.altprod
+    INNER JOIN apsv ON poeh.vendno = apsv.vendno
+    INNER JOIN icsd ON poeh.whse = icsd.whse
+    INNER JOIN icsw ON icsec.altprod = icsw.prod
 WHERE
-  poel.whse = '5500'
-  AND (
-    poeh.stagecd = 1
-    OR poeh.stagecd = 2
-    OR poeh.stagecd = 3
-  )
+    poel.whse = '5500'
+    AND poeh.stagecd IN (1, 2, 3)
+    AND icsec.custno = '313541'
 ORDER BY
-  poeh.orderdt DESC
+    poeh.orderdt DESC;
