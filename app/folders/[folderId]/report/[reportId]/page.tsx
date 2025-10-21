@@ -2,7 +2,7 @@
 import { use, useMemo, useState } from 'react';
 import HeaderBar from '@/components/header-bar';
 import PresetReportBuilder from '@/components/preset-report-builder';
-import ChatReportBuilder from '@/components/chat-report-builder';
+import AIReportBuilder from '@/components/ai-report-builder';
 import VisualQueryBuilder from '@/components/visual-query-builder';
 import {
 	useReport,
@@ -226,8 +226,8 @@ export default function ReportPage({
 					{/* Report Builder */}
 					{report && (
 						<>
-							{report.type === 'chat' && report.base_sql ? (
-								<ChatReportBuilder
+							{report.type === 'ai' && report.base_sql ? (
+								<AIReportBuilder
 									reportName={report.name}
 									reportDescription={report.description}
 									baseSql={report.base_sql}

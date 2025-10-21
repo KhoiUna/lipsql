@@ -137,7 +137,7 @@ interface Report {
 	folder_id: number;
 	name: string;
 	description?: string;
-	type: 'visual' | 'chat';
+	type: 'visual' | 'ai';
 	query_config: VisualQuery;
 	default_visible_columns: string[];
 	created_at: string;

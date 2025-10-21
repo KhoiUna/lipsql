@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { ReportParameter } from '@/lib/query-builder-types';
-import { replacePlaceholders } from '@/lib/chat-report-utils';
+import { replacePlaceholders } from '@/lib/ai-report-utils';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Combobox } from './ui/combobox';

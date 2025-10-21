@@ -44,18 +44,18 @@ export async function POST(request: NextRequest) {
 
 		// Validate type
 		const reportType = type || 'visual';
-		if (reportType !== 'visual' && reportType !== 'chat') {
+		if (reportType !== 'visual' && reportType !== 'ai') {
 			return NextResponse.json(
-				{ error: 'Type must be either "visual" or "chat"' },
+				{ error: 'Type must be either "visual" or "ai"' },
 				{ status: 400 }
 			);
 		}
 
-		// Validate chat report requirements
-		if (reportType === 'chat') {
+		// Validate AI report requirements
+		if (reportType === 'ai') {
 			if (!base_sql || typeof base_sql !== 'string') {
 				return NextResponse.json(
-					{ error: 'base_sql is required for chat reports' },
+					{ error: 'base_sql is required for AI reports' },
 					{ status: 400 }
 				);
 			}
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 			description: description?.trim() || undefined,
 			type: reportType,
 			query_config,
-			base_sql: reportType === 'chat' ? base_sql : undefined,
+			base_sql: reportType === 'ai' ? base_sql : undefined,
 			default_visible_columns: default_visible_columns || [],
 		});
 
