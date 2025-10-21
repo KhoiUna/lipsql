@@ -7,7 +7,7 @@ import { Combobox } from './ui/combobox';
 import { Play, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface ChatReportBuilderProps {
+interface AIReportBuilderProps {
 	reportName: string;
 	reportDescription?: string;
 	baseSql: string;
@@ -16,14 +16,14 @@ interface ChatReportBuilderProps {
 	onExecuteQuery: (sql: string) => void;
 }
 
-export default function ChatReportBuilder({
+export default function AIReportBuilder({
 	reportName,
 	reportDescription,
 	baseSql,
 	parameters,
 	schemaData,
 	onExecuteQuery,
-}: ChatReportBuilderProps) {
+}: AIReportBuilderProps) {
 	const [parameterValues, setParameterValues] = useState<Record<string, any>>(
 		{}
 	);
