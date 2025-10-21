@@ -20,6 +20,8 @@ interface PresetReportBuilderProps {
 	parameters: ReportParameter[];
 	schemaData: SchemaData | null;
 	onExecuteQuery: (sql: string) => void;
+	baseSql?: string;
+	type: 'visual' | 'chat';
 }
 
 export default function PresetReportBuilder({
@@ -29,6 +31,8 @@ export default function PresetReportBuilder({
 	parameters,
 	schemaData,
 	onExecuteQuery,
+	baseSql,
+	type,
 }: PresetReportBuilderProps) {
 	const [parameterValues, setParameterValues] = useState<Record<string, any>>(
 		{}
@@ -167,6 +171,55 @@ export default function PresetReportBuilder({
 	// Generate SQL with current parameter values
 	useEffect(() => {
 		try {
+			// If baseSql exists (chat report), use parameter substitution
+			if (baseSql && type === 'chat') {
+				let sql = baseSql;
+
+				// Substitute parameters in the SQL
+				for (const [field, value] of Object.entries(parameterValues)) {
+					// Handle different value types
+					let sqlValue: string;
+					if (value === null || value === undefined || value === '') {
+						continue; // Skip empty values
+					} else if (Array.isArray(value)) {
+						// For multiselect/IN operator
+						sqlValue = value.map((v) => `'${v}'`).join(', ');
+					} else if (
+						typeof value === 'object' &&
+						'from' in value &&
+						'to' in value
+					) {
+						// For daterange
+						sqlValue = `'${value.from}' AND '${value.to}'`;
+					} else {
+						// For single values
+						sqlValue = `'${value}'`;
+						console.log('single value', sqlValue);
+					}
+
+					// Replace parameter placeholders in SQL
+					sql = sql.replace(new RegExp(`:${field}`, 'g'), sqlValue);
+					console.log('sql', sql);
+				}
+
+				// Add ORDER BY if specified
+				if (orderBy.length > 0) {
+					const orderByClause = orderBy
+						.map((o) => `${o.column} ${o.direction}`)
+						.join(', ');
+					sql += ` ORDER BY ${orderByClause}`;
+				}
+
+				// Add LIMIT if specified
+				if (limit !== undefined && limit > 0) {
+					sql += ` LIMIT ${limit}`;
+				}
+
+				setGeneratedSql(sql);
+				return;
+			}
+
+			// Otherwise, use visual query builder logic
 			// Create a modified query with updated conditions
 			const modifiedQuery: VisualQuery = {
 				...queryConfig,
@@ -205,6 +258,7 @@ export default function PresetReportBuilder({
 		limit,
 		queryConfig,
 		schemaData?.databaseType,
+		baseSql,
 	]);
 
 	const handleParameterChange = (field: string, value: any) => {
@@ -578,79 +632,86 @@ export default function PresetReportBuilder({
 			)}
 
 			{/* Query Structure (Read-only) */}
-			<div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-				<h3 className="font-semibold text-primary mb-4">
-					Query Structure
-				</h3>
-				<div className="space-y-4">
-					{/* Tables */}
-					<div>
-						<h4 className="font-medium text-gray-700 mb-2">
-							Tables
-						</h4>
-						<div className="flex flex-wrap gap-2">
-							{queryConfig.tables.map((table) => (
-								<div
-									key={table.id}
-									className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
-								>
-									{table.tableName} ({table.alias})
-								</div>
-							))}
-						</div>
-					</div>
-
-					{/* Joins */}
-					{queryConfig.joins.length > 0 && (
+			{type === 'visual' && queryConfig.tables.length > 0 && (
+				<div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+					<h3 className="font-semibold text-primary mb-4">
+						Query Structure
+					</h3>
+					<div className="space-y-4">
+						{/* Tables */}
 						<div>
 							<h4 className="font-medium text-gray-700 mb-2">
-								Joins
+								Tables
 							</h4>
-							<div className="space-y-2">
-								{queryConfig.joins.map((join) => (
+							<div className="flex flex-wrap gap-2">
+								{queryConfig.tables.map((table) => (
 									<div
-										key={join.id}
-										className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
+										key={table.id}
+										className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
 									>
-										{join.joinType} JOIN {join.leftTable} ON{' '}
-										{join.conditions
-											.map(
-												(c) =>
-													`${c.leftColumn} ${c.operator} ${c.rightColumn}`
-											)
-											.join(' AND ')}
+										{table.tableName} ({table.alias})
 									</div>
 								))}
 							</div>
 						</div>
-					)}
+
+						{/* Joins */}
+						{queryConfig.joins.length > 0 && (
+							<div>
+								<h4 className="font-medium text-gray-700 mb-2">
+									Joins
+								</h4>
+								<div className="space-y-2">
+									{queryConfig.joins.map((join) => (
+										<div
+											key={join.id}
+											className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
+										>
+											{join.joinType} JOIN{' '}
+											{join.leftTable} ON{' '}
+											{join.conditions
+												.map(
+													(c) =>
+														`${c.leftColumn} ${c.operator} ${c.rightColumn}`
+												)
+												.join(' AND ')}
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Column Selection */}
-			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h3 className="font-semibold text-primary mb-4">
-					Visible Columns
-				</h3>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-					{allColumnIds.map((columnId) => (
-						<label
-							key={columnId}
-							className="flex items-center gap-2"
-						>
-							<input
-								type="checkbox"
-								checked={visibleColumns.has(columnId)}
-								onChange={() => handleColumnToggle(columnId)}
-								className="w-4 h-4"
-							/>
-							<span className="text-sm font-mono text-gray-700">
-								{columnId}
-							</span>
-						</label>
-					))}
+			{type === 'visual' && allColumnIds.length > 0 && (
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<h3 className="font-semibold text-primary mb-4">
+						Visible Columns
+					</h3>
+					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+						{allColumnIds.map((columnId) => (
+							<label
+								key={columnId}
+								className="flex items-center gap-2"
+							>
+								<input
+									type="checkbox"
+									checked={visibleColumns.has(columnId)}
+									onChange={() =>
+										handleColumnToggle(columnId)
+									}
+									className="w-4 h-4"
+								/>
+								<span className="text-sm font-mono text-gray-700">
+									{columnId}
+								</span>
+							</label>
+						))}
+					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Order By */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
