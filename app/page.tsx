@@ -431,10 +431,10 @@ export default function page() {
 
 							{/* Chat Builder Link */}
 							{isAdmin() && (
-								<Link href="/chat">
+								<Link href="/ai-report-builder">
 									<Button className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 flex items-center gap-2">
 										<MessageSquare size={18} />
-										Chat Builder
+										AI Report Builder
 									</Button>
 								</Link>
 							)}
