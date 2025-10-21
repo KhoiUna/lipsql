@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
 		console.log('Executing SQL query directly:', sql, '...');
 		const result = await executeSql(sql);
 
-		// Return results to frontend
 		return NextResponse.json({
 			success: true,
 			sql: formatSql(sql),
