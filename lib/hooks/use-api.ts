@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { VisualQuery } from '../query-builder-types';
 
 // Types
 interface QueryRequest {
@@ -131,15 +132,27 @@ interface CreateFolderResponse {
 	timestamp: string;
 }
 
+interface Report {
+	id: number;
+	folder_id: number;
+	name: string;
+	description?: string;
+	type: 'visual' | 'chat';
+	query_config: VisualQuery;
+	default_visible_columns: string[];
+	created_at: string;
+	base_sql?: string;
+}
+
 interface FolderReportsResponse {
 	success: boolean;
-	reports: any[];
+	reports: Report[];
 	timestamp: string;
 }
 
 interface ReportResponse {
 	success: boolean;
-	report: any;
+	report: Report;
 	parameters: any[];
 	timestamp: string;
 }
