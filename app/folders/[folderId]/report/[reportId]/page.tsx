@@ -2,6 +2,7 @@
 import { use, useMemo, useState } from 'react';
 import HeaderBar from '@/components/header-bar';
 import PresetReportBuilder from '@/components/preset-report-builder';
+import ChatReportBuilder from '@/components/chat-report-builder';
 import VisualQueryBuilder from '@/components/visual-query-builder';
 import {
 	useReport,
@@ -225,16 +226,25 @@ export default function ReportPage({
 					{/* Report Builder */}
 					{report && (
 						<>
-							<PresetReportBuilder
-								reportName={report.name}
-								reportDescription={report.description}
-								queryConfig={report.query_config}
-								parameters={parameters}
-								schemaData={schemaData}
-								onExecuteQuery={handleExecuteQuery}
-								baseSql={report.base_sql}
-								type={report.type}
-							/>
+							{report.type === 'chat' && report.base_sql ? (
+								<ChatReportBuilder
+									reportName={report.name}
+									reportDescription={report.description}
+									baseSql={report.base_sql}
+									parameters={parameters}
+									schemaData={schemaData}
+									onExecuteQuery={handleExecuteQuery}
+								/>
+							) : (
+								<PresetReportBuilder
+									reportName={report.name}
+									reportDescription={report.description}
+									queryConfig={report.query_config}
+									parameters={parameters}
+									schemaData={schemaData}
+									onExecuteQuery={handleExecuteQuery}
+								/>
+							)}
 
 							{/* Results Section */}
 							{queryResult && (

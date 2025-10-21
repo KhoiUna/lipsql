@@ -1,45 +1,32 @@
 'use client';
 import { useState, useEffect } from 'react';
-import {
-	VisualQuery,
-	ReportParameter,
-	OrderByClause,
-	SchemaData,
-} from '@/lib/query-builder-types';
-import { generateSqlFromVisual } from '@/lib/query-builder-utils';
+import { ReportParameter, SchemaData } from '@/lib/query-builder-types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Combobox } from './ui/combobox';
-import { Play, X, Eye, ChevronDown, ChevronRight } from 'lucide-react';
+import { Play, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface PresetReportBuilderProps {
+interface ChatReportBuilderProps {
 	reportName: string;
 	reportDescription?: string;
-	queryConfig: VisualQuery;
+	baseSql: string;
 	parameters: ReportParameter[];
 	schemaData: SchemaData | null;
 	onExecuteQuery: (sql: string) => void;
 }
 
-export default function PresetReportBuilder({
+export default function ChatReportBuilder({
 	reportName,
 	reportDescription,
-	queryConfig,
+	baseSql,
 	parameters,
 	schemaData,
 	onExecuteQuery,
-}: PresetReportBuilderProps) {
+}: ChatReportBuilderProps) {
 	const [parameterValues, setParameterValues] = useState<Record<string, any>>(
 		{}
 	);
-	const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-		new Set()
-	);
-	const [orderBy, setOrderBy] = useState<OrderByClause[]>(
-		queryConfig.orderBy || []
-	);
-	const [limit, setLimit] = useState<number | undefined>(queryConfig.limit);
 	const [generatedSql, setGeneratedSql] = useState<string>('');
 	const [showSqlPreview, setShowSqlPreview] = useState<boolean>(false);
 	const [parameterOptions, setParameterOptions] = useState<
@@ -48,23 +35,6 @@ export default function PresetReportBuilder({
 	const [dropdownsCache, setDropdownsCache] = useState<
 		Record<number, { value: string; label: string }[]>
 	>({});
-
-	const tablesMap = schemaData
-		? new Map(
-				schemaData.schema.tables.map((table) => [
-					table.name,
-					table.columns.map((col) => col.column),
-				])
-		  )
-		: new Map<string, string[]>();
-
-	// Helper function to get operator for a parameter
-	const getOperatorForParameter = (paramField: string): string | null => {
-		const condition = queryConfig.conditions.find(
-			(cond) => cond.column === paramField
-		);
-		return condition?.operator || null;
-	};
 
 	// Initialize parameter values with defaults
 	useEffect(() => {
@@ -148,79 +118,44 @@ export default function PresetReportBuilder({
 		setParameterOptions((prev) => ({ ...prev, ...options }));
 	}, [parameters, dropdownsCache]);
 
-	// Initialize visible columns (all visible by default)
-	useEffect(() => {
-		const allColumns = new Set<string>();
-		for (const table of queryConfig.tables) {
-			for (const col of table.selectedColumns) {
-				allColumns.add(`${col.tableName}.${col.columnName}`);
-			}
-			for (const expr of table.customExpressions) {
-				if (expr.alias) {
-					allColumns.add(expr.alias);
-				}
-			}
-		}
-		setVisibleColumns(allColumns);
-	}, [queryConfig.tables]);
-
 	// Generate SQL with current parameter values
 	useEffect(() => {
 		try {
-			// Create a modified query with updated conditions
-			const modifiedQuery: VisualQuery = {
-				...queryConfig,
-				conditions: queryConfig.conditions.map((cond) => {
-					const paramValue = parameterValues[cond.column];
-					if (paramValue !== undefined) {
-						return { ...cond, value: paramValue };
-					}
-					return cond;
-				}),
-				orderBy,
-				limit,
-				tables: queryConfig.tables.map((table) => ({
-					...table,
-					selectedColumns: table.selectedColumns.filter((col) =>
-						visibleColumns.has(`${col.tableName}.${col.columnName}`)
-					),
-					customExpressions: table.customExpressions.filter(
-						(expr) => !expr.alias || visibleColumns.has(expr.alias)
-					),
-				})),
-			};
+			let sql = baseSql;
 
-			const sql = generateSqlFromVisual(
-				modifiedQuery,
-				schemaData?.databaseType || 'postgres'
-			);
+			// Substitute parameters in the SQL
+			for (const [field, value] of Object.entries(parameterValues)) {
+				// Handle different value types
+				let sqlValue: string;
+				if (value === null || value === undefined || value === '') {
+					continue; // Skip empty values
+				} else if (Array.isArray(value)) {
+					// For multiselect/IN operator
+					sqlValue = value.map((v) => `'${v}'`).join(', ');
+				} else if (
+					typeof value === 'object' &&
+					'from' in value &&
+					'to' in value
+				) {
+					// For daterange
+					sqlValue = `'${value.from}' AND '${value.to}'`;
+				} else {
+					// For single values
+					sqlValue = `'${value}'`;
+				}
+
+				// Replace parameter placeholders in SQL
+				sql = sql.replace(new RegExp(`:${field}`, 'g'), sqlValue);
+			}
+
 			setGeneratedSql(sql);
 		} catch (error) {
 			setGeneratedSql('');
 		}
-	}, [
-		parameterValues,
-		visibleColumns,
-		orderBy,
-		limit,
-		queryConfig,
-		schemaData?.databaseType,
-	]);
+	}, [parameterValues, baseSql]);
 
 	const handleParameterChange = (field: string, value: any) => {
 		setParameterValues((prev) => ({ ...prev, [field]: value }));
-	};
-
-	const handleColumnToggle = (columnId: string) => {
-		setVisibleColumns((prev) => {
-			const newSet = new Set(prev);
-			if (newSet.has(columnId)) {
-				newSet.delete(columnId);
-			} else {
-				newSet.add(columnId);
-			}
-			return newSet;
-		});
 	};
 
 	const copyToClipboard = async () => {
@@ -232,37 +167,6 @@ export default function PresetReportBuilder({
 		} catch (error) {
 			console.error('Failed to copy to clipboard:', error);
 		}
-	};
-
-	const handleAddOrderBy = () => {
-		const firstTable = queryConfig.tables[0];
-		if (!firstTable) return;
-
-		const firstColumn = tablesMap.get(firstTable.tableName)?.[0] || '';
-
-		const newOrderBy: OrderByClause = {
-			id: `orderby-${Date.now()}`,
-			column: `${firstTable.tableName}.${firstColumn}`,
-			direction: 'ASC',
-		};
-
-		setOrderBy((prev) => [...prev, newOrderBy]);
-	};
-
-	const handleRemoveOrderBy = (orderById: string) => {
-		setOrderBy((prev) => prev.filter((o) => o.id !== orderById));
-	};
-
-	const handleUpdateOrderBy = (
-		orderId: string,
-		column: string,
-		direction: 'ASC' | 'DESC'
-	) => {
-		setOrderBy((prev) =>
-			prev.map((o) =>
-				o.id === orderId ? { ...o, column, direction } : o
-			)
-		);
 	};
 
 	const handleExecute = () => {
@@ -330,27 +234,6 @@ export default function PresetReportBuilder({
 		);
 	};
 
-	// Get all available columns
-	const allAvailableColumns = queryConfig.tables.flatMap((table) =>
-		(tablesMap.get(table.tableName) || []).map((col) => ({
-			table: table.tableName,
-			column: col,
-		}))
-	);
-
-	// Get all column identifiers
-	const allColumnIds: string[] = [];
-	for (const table of queryConfig.tables) {
-		for (const col of table.selectedColumns) {
-			allColumnIds.push(`${col.tableName}.${col.columnName}`);
-		}
-		for (const expr of table.customExpressions) {
-			if (expr.alias) {
-				allColumnIds.push(expr.alias);
-			}
-		}
-	}
-
 	return (
 		<div className="space-y-6">
 			{/* Report Header */}
@@ -371,18 +254,10 @@ export default function PresetReportBuilder({
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{parameters.map((param) => {
-							const operator = getOperatorForParameter(
-								param.field
-							);
 							return (
 								<div key={param.id}>
 									<label className="block text-sm font-medium text-gray-700 mb-1">
 										{param.label}
-										{operator && (
-											<span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-mono">
-												{operator}
-											</span>
-										)}
 										{param.required && (
 											<span className="text-red-500 ml-1">
 												*
@@ -576,157 +451,6 @@ export default function PresetReportBuilder({
 					</div>
 				</div>
 			)}
-
-			{/* Query Structure (Read-only) */}
-			<div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-				<h3 className="font-semibold text-primary mb-4">
-					Query Structure
-				</h3>
-				<div className="space-y-4">
-					{/* Tables */}
-					<div>
-						<h4 className="font-medium text-gray-700 mb-2">
-							Tables
-						</h4>
-						<div className="flex flex-wrap gap-2">
-							{queryConfig.tables.map((table) => (
-								<div
-									key={table.id}
-									className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
-								>
-									{table.tableName} ({table.alias})
-								</div>
-							))}
-						</div>
-					</div>
-
-					{/* Joins */}
-					{queryConfig.joins.length > 0 && (
-						<div>
-							<h4 className="font-medium text-gray-700 mb-2">
-								Joins
-							</h4>
-							<div className="space-y-2">
-								{queryConfig.joins.map((join) => (
-									<div
-										key={join.id}
-										className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-mono"
-									>
-										{join.joinType} JOIN {join.leftTable} ON{' '}
-										{join.conditions
-											.map(
-												(c) =>
-													`${c.leftColumn} ${c.operator} ${c.rightColumn}`
-											)
-											.join(' AND ')}
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-
-			{/* Column Selection */}
-			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h3 className="font-semibold text-primary mb-4">
-					Visible Columns
-				</h3>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-					{allColumnIds.map((columnId) => (
-						<label
-							key={columnId}
-							className="flex items-center gap-2"
-						>
-							<input
-								type="checkbox"
-								checked={visibleColumns.has(columnId)}
-								onChange={() => handleColumnToggle(columnId)}
-								className="w-4 h-4"
-							/>
-							<span className="text-sm font-mono text-gray-700">
-								{columnId}
-							</span>
-						</label>
-					))}
-				</div>
-			</div>
-
-			{/* Order By */}
-			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<div className="flex items-center justify-between mb-4">
-					<h3 className="font-semibold text-primary">Order By</h3>
-					<Button onClick={handleAddOrderBy} size="sm">
-						Add Order By
-					</Button>
-				</div>
-				<div className="space-y-2">
-					{orderBy.map((order) => (
-						<div key={order.id} className="flex items-center gap-2">
-							<div className="flex-1">
-								<Combobox
-									options={allAvailableColumns.map(
-										({ table, column }) => ({
-											value: `${table}.${column}`,
-											label: `${table}.${column}`,
-										})
-									)}
-									value={order.column}
-									onValueChange={(value) =>
-										handleUpdateOrderBy(
-											order.id,
-											value,
-											order.direction
-										)
-									}
-									placeholder="Select column..."
-									emptyText="No column found."
-								/>
-							</div>
-							<select
-								value={order.direction}
-								onChange={(e) =>
-									handleUpdateOrderBy(
-										order.id,
-										order.column,
-										e.target.value as 'ASC' | 'DESC'
-									)
-								}
-								className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-							>
-								<option value="ASC">ASC</option>
-								<option value="DESC">DESC</option>
-							</select>
-							<Button
-								onClick={() => handleRemoveOrderBy(order.id)}
-								variant="ghost"
-								className="p-2 h-auto text-red-700 hover:text-red-700"
-							>
-								<X size={18} />
-							</Button>
-						</div>
-					))}
-				</div>
-			</div>
-
-			{/* Limit */}
-			<div className="bg-white rounded-lg border border-gray-200 p-6">
-				<h3 className="font-semibold text-primary mb-3">Limit</h3>
-				<Input
-					type="number"
-					placeholder="No limit"
-					value={limit || ''}
-					onChange={(e) =>
-						setLimit(
-							e.target.value
-								? parseInt(e.target.value)
-								: undefined
-						)
-					}
-					min={1}
-					className="w-48"
-				/>
-			</div>
 
 			{/* SQL Preview */}
 			{generatedSql && (
