@@ -232,6 +232,7 @@ export default function ReportPage({
 								parameters={parameters}
 								schemaData={schemaData}
 								onExecuteQuery={handleExecuteQuery}
+								baseSql={report.base_sql}
 							/>
 
 							{/* Results Section */}
