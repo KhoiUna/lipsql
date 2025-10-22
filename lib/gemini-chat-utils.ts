@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { GEMINI_MODEL } from './constants';
-import { SchemaData } from './query-builder-types';
+import { SchemaData, Dropdown } from './query-builder-types';
 import { schemaToString } from './db-utils';
 
 // Initialize Gemini AI
@@ -24,6 +24,7 @@ export interface DetectedParameter {
 		start: number;
 		end: number;
 	};
+	suggested_dropdown_ids?: number[]; // Array of matching dropdown IDs
 }
 
 interface IdentifyParametersResponse {
@@ -36,17 +37,31 @@ interface IdentifyParametersResponse {
  */
 export async function identifyParametersInSql(
 	sql: string,
-	schemaData: SchemaData
+	schemaData: SchemaData,
+	availableDropdowns: Dropdown[]
 ): Promise<DetectedParameter[]> {
 	const genAI = getGeminiAI();
 
 	// Build schema information string
 	const schemaInfo = schemaToString(schemaData.schema);
 
-	const prompt = `You are a SQL parameter analyzer. Given a SQL query and database schema, identify which literal values in WHERE clauses and other conditions should become user-editable parameters.
+	// Build dropdowns information string
+	const dropdownsInfo = availableDropdowns.length > 0
+		? availableDropdowns
+				.map(
+					(d) =>
+						`${d.id}: ${d.name} - Options: ${d.options.map((o) => `${o.label} (${o.value})`).join(', ')}`
+				)
+				.join('\n')
+		: 'No dropdowns available';
+
+	const prompt = `You are a SQL parameter analyzer. Given a SQL query, database schema, and available dropdowns, identify which literal values in WHERE clauses and other conditions should become user-editable parameters.
 
 Database Schema:
 ${schemaInfo}
+
+Available Dropdowns:
+${dropdownsInfo}
 
 SQL Query to Analyze:
 ${sql}
@@ -66,6 +81,7 @@ Instructions:
    - The default value (the literal value from the SQL)
    - The operator (=, >, <, >=, <=, LIKE, IN, BETWEEN, etc.)
    - The position in the SQL (character start and end positions)
+   - suggested_dropdown_ids: If parameter values match dropdown option VALUES, suggest those dropdown IDs
 
 3. Return a JSON array of detected parameters
 
@@ -75,7 +91,10 @@ CRITICAL RULES:
 - Generate user-friendly labels (title case, spaces)
 - Return the exact literal value as default_value
 - Include the operator for context
-- Position should be character indices in the original SQL string`;
+- Position should be character indices in the original SQL string
+- When suggesting dropdowns, match by comparing default_value(s) with dropdown option VALUES (not labels)
+- Can suggest multiple dropdowns if multiple match
+- Only suggest dropdowns when there's a clear value match`;
 
 	const model = genAI.getGenerativeModel({
 		model: GEMINI_MODEL,
@@ -101,6 +120,10 @@ CRITICAL RULES:
 										end: { type: SchemaType.NUMBER },
 									},
 									required: ['start', 'end'],
+								},
+								suggested_dropdown_ids: {
+									type: SchemaType.ARRAY,
+									items: { type: SchemaType.NUMBER },
 								},
 							},
 							required: [

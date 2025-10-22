@@ -6,6 +6,7 @@ import {
 	getTableRelationships,
 	getDatabaseName,
 } from '@/lib/db-utils';
+import { getAllDropdowns } from '@/lib/dropdowns-db';
 
 export async function POST(request: NextRequest) {
 	try {
@@ -41,13 +42,36 @@ export async function POST(request: NextRequest) {
 			databaseName,
 		};
 
+		// Get available dropdowns
+		const dropdowns = getAllDropdowns();
+
 		// Identify parameters using Gemini
 		console.log('Identifying parameters in SQL...');
-		const parameters = await identifyParametersInSql(sql, schemaData);
+		const parameters = await identifyParametersInSql(
+			sql,
+			schemaData,
+			dropdowns
+		);
+
+		// Fix multiselect parsing
+		const parsedParameters = parameters.map((param) => {
+			if (
+				param.type === 'multiselect' &&
+				typeof param.default_value === 'string'
+			) {
+				// Parse "4, 5" into ["4", "5"]
+				const values = param.default_value
+					.split(',')
+					.map((v: string) => v.trim())
+					.filter((v: string) => v.length > 0);
+				return { ...param, default_value: values };
+			}
+			return param;
+		});
 
 		return NextResponse.json({
 			success: true,
-			parameters,
+			parameters: parsedParameters,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {

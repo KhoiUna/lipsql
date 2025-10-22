@@ -1,14 +1,14 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import HeaderBar from '@/components/header-bar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Combobox } from '@/components/ui/combobox';
-import { Sparkles, Save, X, Loader2 } from 'lucide-react';
+import { Sparkles, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { isAdmin } from '@/lib/auth-utils';
 import { useFolders } from '@/lib/hooks/use-api';
+import SaveAIReportDialog from '@/components/save-ai-report-dialog';
 
 interface DetectedParameter {
 	field: string;
@@ -20,6 +20,7 @@ interface DetectedParameter {
 		start: number;
 		end: number;
 	};
+	suggested_dropdown_ids?: number[];
 }
 
 export default function ChatPage() {
@@ -36,17 +37,28 @@ export default function ChatPage() {
 	const [parameterTypes, setParameterTypes] = useState<
 		Record<string, string>
 	>({});
+	const [parameterDropdowns, setParameterDropdowns] = useState<
+		Record<string, number | null>
+	>({});
+	const [allDropdowns, setAllDropdowns] = useState<any[]>([]);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [showSaveDialog, setShowSaveDialog] = useState(false);
-	const [reportName, setReportName] = useState('');
-	const [reportDescription, setReportDescription] = useState('');
-	const [selectedFolderId, setSelectedFolderId] = useState<number | null>(
-		null
-	);
 	const [isSaving, setIsSaving] = useState(false);
 
 	const foldersQuery = useFolders();
 	const folders = foldersQuery.data?.folders || [];
+
+	// Fetch all dropdowns on mount
+	useEffect(() => {
+		fetch('/api/dropdowns')
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.dropdowns) {
+					setAllDropdowns(data.dropdowns);
+				}
+			})
+			.catch((err) => console.error('Failed to fetch dropdowns:', err));
+	}, []);
 
 	const handleAnalyzeSQL = async () => {
 		if (!sql.trim()) {
@@ -93,6 +105,15 @@ export default function ChatPage() {
 		}
 	};
 
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.ctrlKey && e.key === 'Enter') {
+			e.preventDefault();
+			if (!isAnalyzing && sql.trim()) {
+				handleAnalyzeSQL();
+			}
+		}
+	};
+
 	const toggleParameter = (field: string) => {
 		setSelectedParameters((prev) => {
 			const newSet = new Set(prev);
@@ -105,17 +126,11 @@ export default function ChatPage() {
 		});
 	};
 
-	const handleSaveReport = async () => {
-		if (!reportName.trim()) {
-			toast.error('Please enter a report name');
-			return;
-		}
-
-		if (!selectedFolderId) {
-			toast.error('Please select a folder');
-			return;
-		}
-
+	const handleSaveReport = async (reportData: {
+		name: string;
+		description: string;
+		folderId: number;
+	}) => {
 		if (selectedParameters.size === 0) {
 			toast.error('Please select at least one parameter');
 			return;
@@ -132,6 +147,7 @@ export default function ChatPage() {
 					type: parameterTypes[p.field] || p.type,
 					default_value: p.default_value,
 					required: false,
+					dropdown_id: parameterDropdowns[p.field] || undefined,
 				}));
 
 			// Create a minimal query_config for AI reports
@@ -148,9 +164,9 @@ export default function ChatPage() {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					folder_id: selectedFolderId,
-					name: reportName.trim(),
-					description: reportDescription.trim() || undefined,
+					folder_id: reportData.folderId,
+					name: reportData.name,
+					description: reportData.description || undefined,
 					type: 'ai',
 					query_config: queryConfig,
 					base_sql: sql,
@@ -163,8 +179,6 @@ export default function ChatPage() {
 			if (data.success) {
 				toast.success('AI Report created successfully');
 				setShowSaveDialog(false);
-				setReportName('');
-				setReportDescription('');
 				setSql('');
 				setDetectedParameters([]);
 				setSelectedParameters(new Set());
@@ -225,7 +239,8 @@ export default function ChatPage() {
 					<Textarea
 						value={sql}
 						onChange={(e) => setSql(e.target.value)}
-						placeholder="Paste your SQL query here..."
+						onKeyDown={handleKeyDown}
+						placeholder="Paste your SQL query here"
 						rows={10}
 						className="font-mono text-sm"
 					/>
@@ -315,6 +330,74 @@ export default function ChatPage() {
 													placeholder="User-friendly label"
 												/>
 											</div>
+											{param.suggested_dropdown_ids &&
+												param.suggested_dropdown_ids
+													.length > 0 && (
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-1">
+															Suggested Dropdowns
+															(optional)
+														</label>
+														<select
+															value={
+																parameterDropdowns[
+																	param.field
+																] || ''
+															}
+															onChange={(e) =>
+																setParameterDropdowns(
+																	(prev) => ({
+																		...prev,
+																		[param.field]:
+																			e
+																				.target
+																				.value
+																				? Number(
+																						e
+																							.target
+																							.value
+																				  )
+																				: null,
+																	})
+																)
+															}
+															className="w-full border border-gray-300 rounded-md px-3 py-2"
+														>
+															<option value="">
+																None (use
+																default values)
+															</option>
+															{param.suggested_dropdown_ids.map(
+																(
+																	dropdownId
+																) => {
+																	const dropdown =
+																		allDropdowns.find(
+																			(
+																				d
+																			) =>
+																				d.id ===
+																				dropdownId
+																		);
+																	return dropdown ? (
+																		<option
+																			key={
+																				dropdownId
+																			}
+																			value={
+																				dropdownId
+																			}
+																		>
+																			{
+																				dropdown.name
+																			}
+																		</option>
+																	) : null;
+																}
+															)}
+														</select>
+													</div>
+												)}
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-1">
 													Type
@@ -393,96 +476,13 @@ export default function ChatPage() {
 			</div>
 
 			{/* Save Dialog */}
-			{showSaveDialog && (
-				<div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-					<div className="bg-white rounded-lg p-6 w-full max-w-md">
-						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold">
-								Save AI Report
-							</h3>
-							<button
-								onClick={() => setShowSaveDialog(false)}
-								className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-							>
-								<X size={20} />
-							</button>
-						</div>
-
-						<div className="space-y-4">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Report Name *
-								</label>
-								<Input
-									value={reportName}
-									onChange={(e) =>
-										setReportName(e.target.value)
-									}
-									placeholder="Enter report name"
-									autoFocus
-								/>
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Description
-								</label>
-								<Textarea
-									value={reportDescription}
-									onChange={(e) =>
-										setReportDescription(e.target.value)
-									}
-									placeholder="Optional description"
-									rows={3}
-								/>
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Folder *
-								</label>
-								<Combobox
-									options={folders.map((f) => ({
-										value: String(f.id),
-										label: f.name,
-									}))}
-									value={
-										selectedFolderId
-											? String(selectedFolderId)
-											: ''
-									}
-									onValueChange={(value) =>
-										setSelectedFolderId(Number(value))
-									}
-									placeholder="Select folder..."
-									emptyText="No folders found."
-								/>
-							</div>
-
-							<div className="flex gap-3">
-								<Button
-									onClick={handleSaveReport}
-									disabled={
-										isSaving ||
-										!reportName.trim() ||
-										!selectedFolderId
-									}
-									className="flex-1 cursor-pointer"
-								>
-									{isSaving ? 'Saving...' : 'Save'}
-								</Button>
-								<Button
-									onClick={() => setShowSaveDialog(false)}
-									variant="outline"
-									className="flex-1 cursor-pointer"
-								>
-									Cancel
-								</Button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			<SaveAIReportDialog
+				isOpen={showSaveDialog}
+				onClose={() => setShowSaveDialog(false)}
+				onSave={handleSaveReport}
+				folders={folders}
+				isLoading={isSaving}
+			/>
 		</div>
 	);
 }
