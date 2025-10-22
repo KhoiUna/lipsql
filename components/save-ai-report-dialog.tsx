@@ -52,6 +52,13 @@ export default function SaveAIReportDialog({
 
 	const folders = foldersQuery.data?.folders || [];
 
+	// Set default folder selection
+	useEffect(() => {
+		if (folders.length > 0 && !selectedFolderId) {
+			setSelectedFolderId(folders[0].id);
+		}
+	}, [folders, selectedFolderId]);
+
 	if (!isOpen) return null;
 
 	const handleSave = async () => {

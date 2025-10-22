@@ -285,6 +285,7 @@ export default function ChatPage() {
 													placeholder="User-friendly label"
 												/>
 											</div>
+
 											{param.suggested_dropdown_ids &&
 												param.suggested_dropdown_ids
 													.length > 0 && (
