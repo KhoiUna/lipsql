@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { isAdmin } from '@/lib/auth-utils';
 import { useFolders } from '@/lib/hooks/use-api';
 import SaveAIReportDialog from '@/components/save-ai-report-dialog';
+import { getAllDropdowns } from '@/lib/dropdowns-db';
 
 interface DetectedParameter {
 	field: string;
@@ -21,6 +22,8 @@ interface DetectedParameter {
 		end: number;
 	};
 	suggested_dropdown_ids?: number[];
+	required: boolean;
+	dropdown_id?: number;
 }
 
 export default function ChatPage() {
@@ -43,7 +46,6 @@ export default function ChatPage() {
 	const [allDropdowns, setAllDropdowns] = useState<any[]>([]);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [showSaveDialog, setShowSaveDialog] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
 
 	const foldersQuery = useFolders();
 	const folders = foldersQuery.data?.folders || [];
@@ -58,6 +60,7 @@ export default function ChatPage() {
 				}
 			})
 			.catch((err) => console.error('Failed to fetch dropdowns:', err));
+			getAllDropdowns
 	}, []);
 
 	const handleAnalyzeSQL = async () => {
@@ -77,20 +80,28 @@ export default function ChatPage() {
 			const data = await response.json();
 
 			if (data.success) {
-				setDetectedParameters(data.parameters);
 				// Initialize selected parameters (all selected by default)
 				setSelectedParameters(
 					new Set(
 						data.parameters.map((p: DetectedParameter) => p.field)
 					)
 				);
+
 				// Initialize labels and types
 				const labels: Record<string, string> = {};
 				const types: Record<string, string> = {};
-				data.parameters.forEach((p: DetectedParameter) => {
+
+				// Add required and dropdown_id defaults
+				const enrichedParams = data.parameters.map((p: any) => ({
+					...p,
+					required: false,
+					dropdown_id: undefined,
+				}));
+				enrichedParams.forEach((p: DetectedParameter) => {
 					labels[p.field] = p.label;
 					types[p.field] = p.type;
 				});
+				setDetectedParameters(enrichedParams);
 				setParameterLabels(labels);
 				setParameterTypes(types);
 				toast.success(`Found ${data.parameters.length} parameter(s)`);
@@ -126,71 +137,13 @@ export default function ChatPage() {
 		});
 	};
 
-	const handleSaveReport = async (reportData: {
-		name: string;
-		description: string;
-		folderId: number;
-	}) => {
-		if (selectedParameters.size === 0) {
-			toast.error('Please select at least one parameter');
-			return;
-		}
-
-		setIsSaving(true);
-		try {
-			// Prepare parameters for the selected ones
-			const parameters = detectedParameters
-				.filter((p) => selectedParameters.has(p.field))
-				.map((p) => ({
-					field: p.field,
-					label: parameterLabels[p.field] || p.label,
-					type: parameterTypes[p.field] || p.type,
-					default_value: p.default_value,
-					required: false,
-					dropdown_id: parameterDropdowns[p.field] || undefined,
-				}));
-
-			// Create a minimal query_config for AI reports
-			const queryConfig = {
-				distinct: false,
-				tables: [],
-				joins: [],
-				conditions: [],
-				groupBy: [],
-				orderBy: [],
-			};
-
-			const response = await fetch('/api/reports', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					folder_id: reportData.folderId,
-					name: reportData.name,
-					description: reportData.description || undefined,
-					type: 'ai',
-					query_config: queryConfig,
-					base_sql: sql,
-					parameters,
-				}),
-			});
-
-			const data = await response.json();
-
-			if (data.success) {
-				toast.success('AI Report created successfully');
-				setShowSaveDialog(false);
-				setSql('');
-				setDetectedParameters([]);
-				setSelectedParameters(new Set());
-			} else {
-				toast.error(data.error || 'Failed to create report');
-			}
-		} catch (error) {
-			console.error('Save report error:', error);
-			toast.error('Failed to create report');
-		} finally {
-			setIsSaving(false);
-		}
+	const handleSaveSuccess = () => {
+		setSql('');
+		setDetectedParameters([]);
+		setSelectedParameters(new Set());
+		setParameterLabels({});
+		setParameterTypes({});
+		setParameterDropdowns({});
 	};
 
 	// Non-admin view
@@ -480,9 +433,13 @@ export default function ChatPage() {
 			<SaveAIReportDialog
 				isOpen={showSaveDialog}
 				onClose={() => setShowSaveDialog(false)}
-				onSave={handleSaveReport}
-				folders={folders}
-				isLoading={isSaving}
+				sql={sql}
+				detectedParameters={detectedParameters}
+				selectedParameters={selectedParameters}
+				parameterLabels={parameterLabels}
+				parameterTypes={parameterTypes}
+				parameterDropdowns={parameterDropdowns}
+				onSuccess={handleSaveSuccess}
 			/>
 		</div>
 	);
