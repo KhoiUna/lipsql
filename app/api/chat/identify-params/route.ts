@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { identifyParametersInSql } from '@/lib/gemini-chat-utils';
 import { verifyAuthentication } from '../../api-utils';
 import {
 	getDatabaseSchema,
@@ -7,6 +6,7 @@ import {
 	getDatabaseName,
 } from '@/lib/db-utils';
 import { getAllDropdowns } from '@/lib/dropdowns-db';
+import { identifyParametersInSql } from '@/lib/gemini-utils';
 
 export async function POST(request: NextRequest) {
 	try {
