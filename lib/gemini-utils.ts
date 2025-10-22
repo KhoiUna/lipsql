@@ -401,7 +401,7 @@ ${sql}
 Instructions:
 1. Analyze the SQL query and identify WHERE clause conditions with literal values
 2. For each condition, determine:
-   - The column name (format: "tableName.columnName")
+   - The column name (format: "tableName.columnName") - use EXACT column names from schema
    - A user-friendly label (e.g., "Customer Name" from "customers.name")
    - The parameter type based on column data type and operator:
      * 'date' for date columns
@@ -415,21 +415,42 @@ Instructions:
    - The position in the SQL (character start and end positions)
    - suggested_dropdown_ids: If parameter values match dropdown option VALUES, suggest those dropdown IDs
 
+SPECIAL HANDLING FOR COMPLEX EXPRESSIONS:
+- For DATEDIFF(DAY,table.column,GETDATE()) <= value: 
+  * Field name should be "tableName.columnName" (e.g., "OEEH.INVOICEDT")
+  * Label should be "Days Since Invoice Date" or similar
+  * Type should be 'number'
+  * Default value should be the literal number (e.g., 90)
+  * Normalized SQL: DATEDIFF(DAY,OEEH.INVOICEDT,GETDATE()) <= :OEEH.INVOICEDT
+- For other complex expressions, follow the same pattern: use the actual column name, not synthetic names
+
+EXAMPLE:
+Input: "AND DATEDIFF(DAY,H.INVOICEDT,GETDATE()) <= 90"
+Field: "OEEH.INVOICEDT"
+Label: "Days Since Invoice Date"
+Type: "number"
+Default: 90
+Normalized SQL: "AND DATEDIFF(DAY,OEEH.INVOICEDT,GETDATE()) <= :OEEH.INVOICEDT"
+
 3. ALSO create a normalized version of the SQL where:
    - Replace all table aliases with full table names from the schema
    - Replace literal values with parameter placeholders in format :tableName.columnName
+   - For complex expressions like DATEDIFF(DAY,table.column,GETDATE()) <= value, replace ONLY the literal value with :tableName.columnName
+   - Do NOT modify function calls, operators, or SQL syntax - only replace literal values
    - Keep the same logic but make it alias-free and parameterized
 
 4. Return both the detected parameters AND the normalized SQL
 
 CRITICAL RULES:
 - Only identify WHERE clause conditions with literal values
-- Use the actual column names from the schema
+- Use the actual column names from the schema (e.g., OEEH.INVOICEDT, not OEEH.invoicedt_days_ago)
 - Generate user-friendly labels (title case, spaces)
 - Return the exact literal value as default_value
 - Include the operator for context
 - Position should be character indices in the original SQL string
 - For normalized SQL: use full table names and :tableName.columnName placeholders
+- NEVER create synthetic field names - use only actual database column names
+- For field names, use the exact column name from the schema (e.g., INVOICEDT, not invoicedt_days_ago)
 
 DROPDOWN SUGGESTION RULES (be proactive!):
 - Suggest dropdowns if ANY parameter value(s) match dropdown option VALUES (even partial matches)
