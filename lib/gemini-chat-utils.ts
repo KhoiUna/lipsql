@@ -46,14 +46,17 @@ export async function identifyParametersInSql(
 	const schemaInfo = schemaToString(schemaData.schema);
 
 	// Build dropdowns information string
-	const dropdownsInfo = availableDropdowns.length > 0
-		? availableDropdowns
-				.map(
-					(d) =>
-						`${d.id}: ${d.name} - Options: ${d.options.map((o) => `${o.label} (${o.value})`).join(', ')}`
-				)
-				.join('\n')
-		: 'No dropdowns available';
+	const dropdownsInfo =
+		availableDropdowns.length > 0
+			? availableDropdowns
+					.map(
+						(d) =>
+							`${d.id}: ${d.name} - Options: ${d.options
+								.map((o) => `${o.label} (${o.value})`)
+								.join(', ')}`
+					)
+					.join('\n')
+			: 'No dropdowns available';
 
 	const prompt = `You are a SQL parameter analyzer. Given a SQL query, database schema, and available dropdowns, identify which literal values in WHERE clauses and other conditions should become user-editable parameters.
 
@@ -92,9 +95,17 @@ CRITICAL RULES:
 - Return the exact literal value as default_value
 - Include the operator for context
 - Position should be character indices in the original SQL string
-- When suggesting dropdowns, match by comparing default_value(s) with dropdown option VALUES (not labels)
+
+DROPDOWN SUGGESTION RULES (be proactive!):
+- Suggest dropdowns if ANY parameter value(s) match dropdown option VALUES (even partial matches)
+- ALSO suggest dropdowns for columns that semantically fit categorical data:
+  * Status codes (STATUSCD, STAGECD, STATUS, STATE, etc.)
+  * Type codes (TYPE, TYPECODE, CATEGORY, CLASS, etc.)
+  * Boolean/flag columns (ACTIVE, ENABLED, DELETED, etc.)
+  * Small numeric ranges (likely enums/codes)
+- For multiselect (IN operator), suggest if ANY values match OR if column name suggests categorical data
 - Can suggest multiple dropdowns if multiple match
-- Only suggest dropdowns when there's a clear value match`;
+- Be generous with suggestions - users can ignore them if not needed`;
 
 	const model = genAI.getGenerativeModel({
 		model: GEMINI_MODEL,
