@@ -161,7 +161,9 @@ interface CreateReportRequest {
 	folder_id: number;
 	name: string;
 	description?: string;
+	type: 'visual' | 'ai';
 	query_config: any;
+	base_sql?: string;
 	default_visible_columns?: string[];
 	parameters?: any[];
 }
