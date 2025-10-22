@@ -218,7 +218,7 @@ export default function DropdownsPage() {
 										name: e.target.value,
 									})
 								}
-								placeholder="e.g., Order Status"
+								placeholder="Dropdown Name"
 								required
 							/>
 						</div>
@@ -270,7 +270,7 @@ export default function DropdownsPage() {
 													e.target.value
 												)
 											}
-											placeholder="Value (e.g., 0)"
+											placeholder="Value (e.g., 1)"
 											className="flex-1"
 										/>
 										<Input
@@ -282,7 +282,7 @@ export default function DropdownsPage() {
 													e.target.value
 												)
 											}
-											placeholder="Label (e.g., Entered)"
+											placeholder="Label (e.g., Completed)"
 											className="flex-1"
 										/>
 										<Button
