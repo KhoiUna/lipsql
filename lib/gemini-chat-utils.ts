@@ -29,17 +29,18 @@ export interface DetectedParameter {
 
 interface IdentifyParametersResponse {
 	parameters: DetectedParameter[];
+	normalizedSql: string;
 }
 
 /**
- * Identify parameters in a SQL query using Gemini AI
+ * Identify parameters in a SQL query using AI
  * Analyzes WHERE clauses and other conditions to detect parameterizable values
  */
 export async function identifyParametersInSql(
 	sql: string,
 	schemaData: SchemaData,
 	availableDropdowns: Dropdown[]
-): Promise<DetectedParameter[]> {
+): Promise<IdentifyParametersResponse> {
 	const genAI = getGeminiAI();
 
 	// Build schema information string
@@ -86,7 +87,12 @@ Instructions:
    - The position in the SQL (character start and end positions)
    - suggested_dropdown_ids: If parameter values match dropdown option VALUES, suggest those dropdown IDs
 
-3. Return a JSON array of detected parameters
+3. ALSO create a normalized version of the SQL where:
+   - Replace all table aliases with full table names from the schema
+   - Replace literal values with parameter placeholders in format :tableName.columnName
+   - Keep the same logic but make it alias-free and parameterized
+
+4. Return both the detected parameters AND the normalized SQL
 
 CRITICAL RULES:
 - Only identify WHERE clause conditions with literal values
@@ -95,6 +101,7 @@ CRITICAL RULES:
 - Return the exact literal value as default_value
 - Include the operator for context
 - Position should be character indices in the original SQL string
+- For normalized SQL: use full table names and :tableName.columnName placeholders
 
 DROPDOWN SUGGESTION RULES (be proactive!):
 - Suggest dropdowns if ANY parameter value(s) match dropdown option VALUES (even partial matches)
@@ -146,8 +153,9 @@ DROPDOWN SUGGESTION RULES (be proactive!):
 							],
 						},
 					},
+					normalizedSql: { type: SchemaType.STRING },
 				},
-				required: ['parameters'],
+				required: ['parameters', 'normalizedSql'],
 			},
 		},
 	});
@@ -163,7 +171,14 @@ DROPDOWN SUGGESTION RULES (be proactive!):
 			throw new Error('Invalid response structure from Gemini');
 		}
 
-		return response.parameters;
+		if (
+			!response.normalizedSql ||
+			typeof response.normalizedSql !== 'string'
+		) {
+			throw new Error('Invalid normalized SQL from Gemini');
+		}
+
+		return response;
 	} catch (error) {
 		console.error('Gemini API error:', error);
 		throw new Error(

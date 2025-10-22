@@ -47,11 +47,13 @@ export async function POST(request: NextRequest) {
 
 		// Identify parameters using Gemini
 		console.log('Identifying parameters in SQL...');
-		const parameters = await identifyParametersInSql(
+		const result = await identifyParametersInSql(
 			sql,
 			schemaData,
 			dropdowns
 		);
+		const parameters = result.parameters;
+		const normalizedSql = result.normalizedSql;
 
 		// Fix multiselect parsing
 		const parsedParameters = parameters.map((param) => {
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({
 			success: true,
 			parameters: parsedParameters,
+			normalizedSql: normalizedSql,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {

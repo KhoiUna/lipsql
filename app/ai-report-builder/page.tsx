@@ -28,6 +28,7 @@ interface DetectedParameter {
 
 export default function ChatPage() {
 	const [sql, setSql] = useState('');
+	const [normalizedSql, setNormalizedSql] = useState('');
 	const [detectedParameters, setDetectedParameters] = useState<
 		DetectedParameter[]
 	>([]);
@@ -79,6 +80,9 @@ export default function ChatPage() {
 			const data = await response.json();
 
 			if (data.success) {
+				// Store normalized SQL
+				setNormalizedSql(data.normalizedSql || sql);
+
 				// Initialize selected parameters (all selected by default)
 				setSelectedParameters(
 					new Set(
@@ -138,6 +142,7 @@ export default function ChatPage() {
 
 	const handleSaveSuccess = () => {
 		setSql('');
+		setNormalizedSql('');
 		setDetectedParameters([]);
 		setSelectedParameters(new Set());
 		setParameterLabels({});
@@ -435,7 +440,7 @@ export default function ChatPage() {
 			<SaveAIReportDialog
 				isOpen={showSaveDialog}
 				onClose={() => setShowSaveDialog(false)}
-				sql={sql}
+				sql={normalizedSql || sql}
 				detectedParameters={detectedParameters}
 				selectedParameters={selectedParameters}
 				parameterLabels={parameterLabels}
