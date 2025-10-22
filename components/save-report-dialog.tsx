@@ -163,6 +163,7 @@ export default function SaveReportDialog({
 			// Create the report
 			await createReportMutation.mutateAsync({
 				folder_id: folderId,
+				type: 'visual',
 				name: reportName.trim(),
 				description: reportDescription.trim() || undefined,
 				query_config: query,
