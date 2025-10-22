@@ -207,194 +207,189 @@ export default function ChatPage() {
 			<HeaderBar />
 
 			<div className="flex-1 p-8">
-				<div className="max-w-6xl mx-auto">
-					{/* Header */}
-					<div className="mb-8">
-						<h1 className="text-2xl font-bold text-primary mb-2">
-							AI Report Builder
-						</h1>
-						<p className="text-gray-600">
-							Paste your SQL query and let AI identify parameters
-							for users to customize
-						</p>
-					</div>
+				<div className="mb-8">
+					<h1 className="text-xl font-bold text-primary mb-2">
+						AI Report Builder
+					</h1>
+					<p className="text-gray-600">
+						Paste your SQL query and let AI identify parameters for
+						users to customize
+					</p>
+				</div>
 
-					{/* SQL Input */}
+				{/* SQL Input */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						SQL Query
+					</label>
+					<Textarea
+						value={sql}
+						onChange={(e) => setSql(e.target.value)}
+						placeholder="Paste your SQL query here..."
+						rows={10}
+						className="font-mono text-sm"
+					/>
+					<div className="mt-4 flex justify-end">
+						<Button
+							onClick={handleAnalyzeSQL}
+							disabled={isAnalyzing || !sql.trim()}
+							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
+						>
+							{isAnalyzing ? (
+								<>
+									<Loader2
+										size={16}
+										className="mr-2 animate-spin"
+									/>
+									Analyzing...
+								</>
+							) : (
+								<>
+									<Sparkles size={16} className="mr-2" />
+									Analyze SQL
+								</>
+							)}
+						</Button>
+					</div>
+				</div>
+
+				{/* Detected Parameters */}
+				{detectedParameters.length > 0 && (
 					<div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							SQL Query
-						</label>
-						<Textarea
-							value={sql}
-							onChange={(e) => setSql(e.target.value)}
-							placeholder="Paste your SQL query here..."
-							rows={10}
-							className="font-mono text-sm"
-						/>
-						<div className="mt-4 flex justify-end">
-							<Button
-								onClick={handleAnalyzeSQL}
-								disabled={isAnalyzing || !sql.trim()}
-								className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
-							>
-								{isAnalyzing ? (
-									<>
-										<Loader2
-											size={16}
-											className="mr-2 animate-spin"
+						<h2 className="text-lg font-semibold text-primary mb-4">
+							Detected Parameters ({detectedParameters.length})
+						</h2>
+						<p className="text-sm text-gray-600 mb-4">
+							Select which parameters should be editable by users
+						</p>
+						<div className="space-y-4">
+							{detectedParameters.map((param, index) => (
+								<div
+									key={index}
+									className="border border-gray-200 rounded-lg p-4"
+								>
+									<div className="flex items-start gap-3">
+										<input
+											type="checkbox"
+											checked={selectedParameters.has(
+												param.field
+											)}
+											onChange={() =>
+												toggleParameter(param.field)
+											}
+											className="mt-1 w-4 h-4"
 										/>
-										Analyzing...
-									</>
-								) : (
-									<>
-										<Sparkles size={16} className="mr-2" />
-										Analyze SQL
-									</>
-								)}
-							</Button>
-						</div>
-					</div>
-
-					{/* Detected Parameters */}
-					{detectedParameters.length > 0 && (
-						<div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-							<h2 className="text-lg font-semibold text-primary mb-4">
-								Detected Parameters ({detectedParameters.length}
-								)
-							</h2>
-							<p className="text-sm text-gray-600 mb-4">
-								Select which parameters should be editable by
-								users
-							</p>
-							<div className="space-y-4">
-								{detectedParameters.map((param, index) => (
-									<div
-										key={index}
-										className="border border-gray-200 rounded-lg p-4"
-									>
-										<div className="flex items-start gap-3">
-											<input
-												type="checkbox"
-												checked={selectedParameters.has(
-													param.field
+										<div className="flex-1 space-y-3">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Field
+												</label>
+												<input
+													type="text"
+													value={param.field}
+													disabled
+													className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 font-mono text-sm"
+												/>
+											</div>
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Label
+												</label>
+												<Input
+													type="text"
+													value={
+														parameterLabels[
+															param.field
+														] || param.label
+													}
+													onChange={(e) =>
+														setParameterLabels(
+															(prev) => ({
+																...prev,
+																[param.field]:
+																	e.target
+																		.value,
+															})
+														)
+													}
+													placeholder="User-friendly label"
+												/>
+											</div>
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Type
+												</label>
+												<select
+													value={
+														parameterTypes[
+															param.field
+														] || param.type
+													}
+													onChange={(e) =>
+														setParameterTypes(
+															(prev) => ({
+																...prev,
+																[param.field]:
+																	e.target
+																		.value,
+															})
+														)
+													}
+													className="w-full border border-gray-300 rounded-md px-3 py-2"
+												>
+													<option value="text">
+														Text
+													</option>
+													<option value="number">
+														Number
+													</option>
+													<option value="date">
+														Date
+													</option>
+													<option value="daterange">
+														Date Range
+													</option>
+													<option value="dropdown">
+														Dropdown
+													</option>
+													<option value="multiselect">
+														Multi-select
+													</option>
+												</select>
+											</div>
+											<div className="text-xs text-gray-500">
+												<span className="font-medium">
+													Operator:
+												</span>{' '}
+												{param.operator} |{' '}
+												<span className="font-medium">
+													Default:
+												</span>{' '}
+												{JSON.stringify(
+													param.default_value
 												)}
-												onChange={() =>
-													toggleParameter(param.field)
-												}
-												className="mt-1 w-4 h-4"
-											/>
-											<div className="flex-1 space-y-3">
-												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-1">
-														Field
-													</label>
-													<input
-														type="text"
-														value={param.field}
-														disabled
-														className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 font-mono text-sm"
-													/>
-												</div>
-												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-1">
-														Label
-													</label>
-													<Input
-														type="text"
-														value={
-															parameterLabels[
-																param.field
-															] || param.label
-														}
-														onChange={(e) =>
-															setParameterLabels(
-																(prev) => ({
-																	...prev,
-																	[param.field]:
-																		e.target
-																			.value,
-																})
-															)
-														}
-														placeholder="User-friendly label"
-													/>
-												</div>
-												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-1">
-														Type
-													</label>
-													<select
-														value={
-															parameterTypes[
-																param.field
-															] || param.type
-														}
-														onChange={(e) =>
-															setParameterTypes(
-																(prev) => ({
-																	...prev,
-																	[param.field]:
-																		e.target
-																			.value,
-																})
-															)
-														}
-														className="w-full border border-gray-300 rounded-md px-3 py-2"
-													>
-														<option value="text">
-															Text
-														</option>
-														<option value="number">
-															Number
-														</option>
-														<option value="date">
-															Date
-														</option>
-														<option value="daterange">
-															Date Range
-														</option>
-														<option value="dropdown">
-															Dropdown
-														</option>
-														<option value="multiselect">
-															Multi-select
-														</option>
-													</select>
-												</div>
-												<div className="text-xs text-gray-500">
-													<span className="font-medium">
-														Operator:
-													</span>{' '}
-													{param.operator} |{' '}
-													<span className="font-medium">
-														Default:
-													</span>{' '}
-													{JSON.stringify(
-														param.default_value
-													)}
-												</div>
 											</div>
 										</div>
 									</div>
-								))}
-							</div>
+								</div>
+							))}
 						</div>
-					)}
+					</div>
+				)}
 
-					{/* Save Button */}
-					{detectedParameters.length > 0 && (
-						<div className="flex justify-end">
-							<Button
-								onClick={() => setShowSaveDialog(true)}
-								disabled={selectedParameters.size === 0}
-								className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
-							>
-								<Save size={16} className="mr-2" />
-								Save as Report
-							</Button>
-						</div>
-					)}
-				</div>
+				{/* Save Button */}
+				{detectedParameters.length > 0 && (
+					<div className="flex justify-end">
+						<Button
+							onClick={() => setShowSaveDialog(true)}
+							disabled={selectedParameters.size === 0}
+							className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
+						>
+							<Save size={16} className="mr-2" />
+							Save as Report
+						</Button>
+					</div>
+				)}
 			</div>
 
 			{/* Save Dialog */}

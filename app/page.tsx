@@ -430,14 +430,15 @@ export default function page() {
 								)}
 
 							{/* Chat Builder Link */}
-							{isAdmin() && (
-								<Link href="/ai-report-builder">
-									<Button className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 flex items-center gap-2">
-										<MessageSquare size={18} />
-										AI Report Builder
-									</Button>
-								</Link>
-							)}
+							{process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' &&
+								isAdmin() && (
+									<Link href="/ai-report-builder">
+										<Button className="cursor-pointer px-4 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 flex items-center gap-2">
+											<MessageSquare size={18} />
+											AI Report Builder
+										</Button>
+									</Link>
+								)}
 
 							{naturalLanguageQuery.trim() && (
 								<Button
