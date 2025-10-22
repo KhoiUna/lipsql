@@ -173,14 +173,14 @@ export default function FolderPage({
 										No reports in this folder
 									</h3>
 									<p className="text-gray-600 mb-6">
-										Create a report using the Visual Query
-										Builder and save it to this folder
+										Please create a report and save it to
+										this folder
 									</p>
 									<Button
 										onClick={() => router.push('/')}
 										className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
 									>
-										Go to Query Builder
+										Build Report
 									</Button>
 								</div>
 							) : (
