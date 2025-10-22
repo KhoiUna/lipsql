@@ -187,6 +187,74 @@ interface UpdateReportRequest {
 	parameters?: any[];
 }
 
+// Chat types
+interface ChatSession {
+	id: number;
+	name: string;
+	base_sql?: string;
+	created_at: string;
+	updated_at: string;
+	user_id: string;
+}
+
+interface ChatParameter {
+	id: number;
+	session_id: number;
+	field: string;
+	label: string;
+	type: 'dropdown' | 'multiselect' | 'date' | 'daterange' | 'text' | 'number';
+	default_value?: any;
+	enabled: boolean;
+	dropdown_id?: number;
+}
+
+interface ChatSessionResponse {
+	success: boolean;
+	session: ChatSession | null;
+	parameters: ChatParameter[];
+	timestamp: string;
+}
+
+interface CreateChatSessionRequest {
+	name: string;
+	base_sql?: string;
+}
+
+interface UpdateChatSessionRequest {
+	id: number;
+	name?: string;
+	base_sql?: string;
+}
+
+interface IdentifyParametersRequest {
+	sql: string;
+}
+
+interface IdentifyParametersResponse {
+	success: boolean;
+	parameters: any[];
+	timestamp: string;
+}
+
+interface ExecuteChatQueryRequest {
+	sql: string;
+	parameters?: Record<string, any>;
+}
+
+interface ExecuteChatQueryResponse {
+	success: boolean;
+	sql: string;
+	result: {
+		rows: any[];
+		rowCount: number;
+		fields: Array<{
+			name: string;
+			dataTypeID: number;
+		}>;
+	};
+	timestamp: string;
+}
+
 // API functions
 const api = {
 	async query(data: QueryRequest): Promise<QueryResponse> {
@@ -459,6 +527,97 @@ const api = {
 			throw new Error(errorData.error || 'Failed to delete report');
 		}
 	},
+
+	// Chat API functions
+	async getChatSession(): Promise<ChatSessionResponse> {
+		const response = await fetch('/api/chat/sessions');
+
+		if (!response.ok) {
+			throw new Error('Failed to get chat session');
+		}
+
+		return response.json();
+	},
+
+	async createChatSession(
+		data: CreateChatSessionRequest
+	): Promise<ChatSessionResponse> {
+		const response = await fetch('/api/chat/sessions', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to create chat session');
+		}
+
+		return response.json();
+	},
+
+	async updateChatSession(
+		data: UpdateChatSessionRequest
+	): Promise<ChatSessionResponse> {
+		const response = await fetch('/api/chat/sessions', {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to update chat session');
+		}
+
+		return response.json();
+	},
+
+	async deleteChatSession(id?: number): Promise<void> {
+		const url = id ? `/api/chat/sessions?id=${id}` : '/api/chat/sessions';
+		const response = await fetch(url, {
+			method: 'DELETE',
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to delete chat session');
+		}
+	},
+
+	async identifyParameters(
+		data: IdentifyParametersRequest
+	): Promise<IdentifyParametersResponse> {
+		const response = await fetch('/api/chat/identify', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to identify parameters');
+		}
+
+		return response.json();
+	},
+
+	async executeChatQuery(
+		data: ExecuteChatQueryRequest
+	): Promise<ExecuteChatQueryResponse> {
+		const response = await fetch('/api/chat/execute', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || 'Failed to execute chat query');
+		}
+
+		return response.json();
+	},
 };
 
 // Custom hooks
@@ -700,5 +859,61 @@ export function useDeleteReport() {
 			// Invalidate reports to refresh the list
 			queryClient.invalidateQueries({ queryKey: ['folderReports'] });
 		},
+	});
+}
+
+// Chat hooks
+export function useChatSession() {
+	return useQuery({
+		queryKey: ['chatSession'],
+		queryFn: api.getChatSession,
+	});
+}
+
+export function useCreateChatSession() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.createChatSession,
+		onSuccess: () => {
+			// Invalidate chat session to refresh
+			queryClient.invalidateQueries({ queryKey: ['chatSession'] });
+		},
+	});
+}
+
+export function useUpdateChatSession() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.updateChatSession,
+		onSuccess: () => {
+			// Invalidate chat session to refresh
+			queryClient.invalidateQueries({ queryKey: ['chatSession'] });
+		},
+	});
+}
+
+export function useDeleteChatSession() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: api.deleteChatSession,
+		onSuccess: () => {
+			// Invalidate chat session to refresh
+			queryClient.invalidateQueries({ queryKey: ['chatSession'] });
+		},
+	});
+}
+
+export function useIdentifyParameters() {
+	return useMutation({
+		mutationFn: api.identifyParameters,
+	});
+}
+
+export function useExecuteChatQuery() {
+	return useMutation({
+		mutationFn: api.executeChatQuery,
 	});
 }

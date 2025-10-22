@@ -180,6 +180,7 @@ export default function ConvertToReportDialog({
 				folder_id: folderId,
 				name: reportName.trim(),
 				description: reportDescription.trim() || undefined,
+				type: 'visual',
 				query_config: convertedQuery,
 				default_visible_columns: allSelectedColumns,
 				parameters: parametersToSave,
