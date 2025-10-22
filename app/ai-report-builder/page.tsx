@@ -243,6 +243,7 @@ export default function ChatPage() {
 						placeholder="Paste your SQL query here"
 						rows={10}
 						className="font-mono text-sm"
+						disabled={isAnalyzing}
 					/>
 					<div className="mt-4 flex justify-end">
 						<Button

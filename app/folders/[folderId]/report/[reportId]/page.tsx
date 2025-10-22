@@ -194,7 +194,7 @@ export default function ReportPage({
 								{report?.name || 'Loading...'}
 							</span>
 						</div>
-						{report &&
+						{report?.type === 'visual' &&
 							process.env.NEXT_PUBLIC_EXPERIMENTAL === 'true' &&
 							isAdmin() && (
 								<Button
@@ -299,7 +299,7 @@ export default function ReportPage({
 					)}
 
 					{/* Visual Query Builder for Editing */}
-					{report && (
+					{report?.type === 'visual' && (
 						<VisualQueryBuilder
 							isOpen={isEditingInBuilder}
 							onClose={() => {
