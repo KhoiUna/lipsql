@@ -189,6 +189,7 @@ export interface ReportParameter {
 	default_value?: any;
 	required: boolean;
 	dropdown_id?: number; // reference to dropdown for multiselect
+	suggested_dropdowns?: number[]; // IDs of suggested dropdowns
 }
 
 export interface DropdownOption {
