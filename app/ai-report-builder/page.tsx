@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { isAdmin } from '@/lib/auth-utils';
 import { useFolders } from '@/lib/hooks/use-api';
 import SaveAIReportDialog from '@/components/save-ai-report-dialog';
-import { getAllDropdowns } from '@/lib/dropdowns-db';
 
 interface DetectedParameter {
 	field: string;
@@ -60,7 +59,6 @@ export default function ChatPage() {
 				}
 			})
 			.catch((err) => console.error('Failed to fetch dropdowns:', err));
-			getAllDropdowns
 	}, []);
 
 	const handleAnalyzeSQL = async () => {
