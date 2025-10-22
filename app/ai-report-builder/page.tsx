@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { isAdmin } from '@/lib/auth-utils';
 import { useFolders } from '@/lib/hooks/use-api';
 import SaveAIReportDialog from '@/components/save-ai-report-dialog';
+import Link from 'next/link';
 
 interface DetectedParameter {
 	field: string;
@@ -158,9 +159,11 @@ export default function ChatPage() {
 							AI Builder is admin-only. Go to Home to execute
 							reports.
 						</p>
-						<Button onClick={() => (window.location.href = '/')}>
-							Go to Home
-						</Button>
+						<Link href="/">
+							<Button className="cursor-pointer">
+								Go to Home
+							</Button>
+						</Link>
 					</div>
 				</div>
 			</div>
