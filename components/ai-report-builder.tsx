@@ -8,6 +8,7 @@ import { Play, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AIReportBuilderProps {
+	isPending: boolean;
 	reportName: string;
 	reportDescription?: string;
 	baseSql: string;
@@ -17,6 +18,7 @@ interface AIReportBuilderProps {
 }
 
 export default function AIReportBuilder({
+	isPending,
 	reportName,
 	reportDescription,
 	baseSql,
@@ -491,7 +493,7 @@ export default function AIReportBuilder({
 			<div className="flex justify-end">
 				<Button
 					onClick={handleExecute}
-					disabled={!generatedSql}
+					disabled={!generatedSql || isPending}
 					className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
 				>
 					<Play size={16} className="mr-2" />

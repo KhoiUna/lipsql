@@ -14,6 +14,7 @@ import { Play, X, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PresetReportBuilderProps {
+	isPending: boolean;
 	reportName: string;
 	reportDescription?: string;
 	queryConfig: VisualQuery;
@@ -23,6 +24,7 @@ interface PresetReportBuilderProps {
 }
 
 export default function PresetReportBuilder({
+	isPending,
 	reportName,
 	reportDescription,
 	queryConfig,
@@ -767,7 +769,7 @@ export default function PresetReportBuilder({
 			<div className="flex justify-end">
 				<Button
 					onClick={handleExecute}
-					disabled={!generatedSql}
+					disabled={!generatedSql || isPending}
 					className="bg-primary text-white hover:bg-gray-800 cursor-pointer"
 				>
 					<Play size={16} className="mr-2" />

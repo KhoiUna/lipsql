@@ -234,6 +234,7 @@ export default function ReportPage({
 									parameters={parameters}
 									schemaData={schemaData}
 									onExecuteQuery={handleExecuteQuery}
+									isPending={directSqlExecution.isPending}
 								/>
 							) : (
 								<PresetReportBuilder
@@ -243,6 +244,7 @@ export default function ReportPage({
 									parameters={parameters}
 									schemaData={schemaData}
 									onExecuteQuery={handleExecuteQuery}
+									isPending={directSqlExecution.isPending}
 								/>
 							)}
 
