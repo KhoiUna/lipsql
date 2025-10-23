@@ -179,6 +179,7 @@ export default function ConvertToReportDialog({
 			await createReportMutation.mutateAsync({
 				folder_id: folderId,
 				name: reportName.trim(),
+				type: 'visual',
 				description: reportDescription.trim() || undefined,
 				query_config: convertedQuery,
 				default_visible_columns: allSelectedColumns,
