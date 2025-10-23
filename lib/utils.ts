@@ -1,17 +1,14 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { Metadata } from 'next';
-import { format } from 'sql-formatter';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
 export function formatSql(sql: string) {
-	return format(sql, {
-		language: 'sql',
-		keywordCase: 'upper',
-	});
+	// FIX
+	return sql;
 }
 
 export function formatTimestamp(timestamp: string) {
