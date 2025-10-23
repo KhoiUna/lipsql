@@ -569,11 +569,23 @@ export default function page() {
 													?.executionTime) && (
 												<div className="ml-4 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
 													⏱️{' '}
-													{directSqlExecution.data
-														?.executionTime ||
-														queryExecution.data
-															?.executionTime}
-													ms
+													{(() => {
+														const time =
+															directSqlExecution
+																.data
+																?.executionTime ||
+															queryExecution.data
+																?.executionTime;
+														if (
+															time &&
+															time >= 1000
+														) {
+															return `${(
+																time / 1000
+															).toFixed(1)}s`;
+														}
+														return `${time}ms`;
+													})()}
 												</div>
 											)}
 										</div>
