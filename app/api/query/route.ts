@@ -61,7 +61,9 @@ User query: "${query}"`;
 
 		// Step 4: Execute the generated SQL query
 		console.log('Executing SQL query:', sqlStatement, '...');
+		const startTime = Date.now();
 		const result = await executeSql(sqlStatement);
+		const executionTime = Date.now() - startTime;
 
 		// Step 5: Return results to frontend
 		return NextResponse.json({
@@ -69,6 +71,7 @@ User query: "${query}"`;
 			originalQuery: query,
 			sql: sqlStatement,
 			result: result,
+			executionTime,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {

@@ -18,6 +18,7 @@ interface QueryResponse {
 			dataTypeID: number;
 		}>;
 	};
+	executionTime: number;
 	timestamp: string;
 }
 
@@ -67,6 +68,7 @@ interface DirectSqlResponse {
 			dataTypeID: number;
 		}>;
 	};
+	executionTime: number;
 	timestamp: string;
 }
 

@@ -27,13 +27,16 @@ export async function POST(request: NextRequest) {
 
 		// Execute the SQL query directly
 		console.log('Executing SQL query directly:', sql, '...');
+		const startTime = Date.now();
 		const result = await executeSql(sql);
+		const executionTime = Date.now() - startTime;
 
 		// Return results to frontend
 		return NextResponse.json({
 			success: true,
 			sql: formatSql(sql),
 			result,
+			executionTime,
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {

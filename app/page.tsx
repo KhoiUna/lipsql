@@ -548,19 +548,35 @@ export default function page() {
 							{queryResult && (
 								<div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
 									<div className="flex items-center justify-between mb-3">
-										<h2 className="text-lg font-semibold text-primary flex items-center">
-											<span className="text-green-600 mr-2">
-												📊
-											</span>
-											Query Results
-											{queryResult.rowCount !==
-												undefined && (
-												<span className="ml-2 text-sm font-normal text-gray-600">
-													({queryResult.rowCount}{' '}
-													rows)
+										<div className="flex items-center">
+											<h2 className="text-lg font-semibold text-primary flex items-center">
+												<span className="text-green-600 mr-2">
+													📊
 												</span>
+												Query Results
+												{queryResult.rowCount !==
+													undefined && (
+													<span className="ml-2 text-sm font-normal text-gray-600">
+														({queryResult.rowCount}{' '}
+														rows)
+													</span>
+												)}
+											</h2>
+											{/* Execution Time Display */}
+											{(directSqlExecution.data
+												?.executionTime ||
+												queryExecution.data
+													?.executionTime) && (
+												<div className="ml-4 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+													⏱️{' '}
+													{directSqlExecution.data
+														?.executionTime ||
+														queryExecution.data
+															?.executionTime}
+													ms
+												</div>
 											)}
-										</h2>
+										</div>
 										{queryResult.rows &&
 											queryResult.rows.length > 0 && (
 												<Button
