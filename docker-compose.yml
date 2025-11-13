@@ -1,0 +1,15 @@
+services:
+    client:
+        container_name: lipsql_container
+        build:
+            context: .
+        ports:
+            - '3004:3000'
+        environment:
+            - NODE_ENV=production
+        networks:
+            - lipsql_network
+
+networks:
+    lipsql_network:
+        driver: bridge
