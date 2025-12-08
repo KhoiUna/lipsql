@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const authCookie = request.cookies.get('lipsql-auth');
 	const isLoginPage = request.nextUrl.pathname === '/login';
 
